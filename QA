@@ -1,0 +1,31 @@
+
+1.undefined reference to `QtServiceBase::exec()'	main.cpp	/APP/managementsystem/clientservice	line 23	C/C++ Problem
+  ---在工程文件里添加 -lHHSharedService
+ 
+2./opt/workspace/qt/APP/managementsystem/serverservice'
+  /usr/lib/gcc/i586-suse-linux/4.5/../../../../i586-suse-linux/bin/ld: warning: libHHSharedNetwork_debug.so.2010, needed by ../lib/libHHSharedMS_debug.so, not found (try using -rpath or -rpath-link)
+  ../lib/libHHSharedMS_debug.so: undefined reference to `HEHUI::NetworkManagerBase::qt_metacast(char const*)'
+  ----对shared工程执行make install后解决
+  ----serverservice工程连接libHHSharedMS，没有直接引用到HHSharedNetwork里的文件，但libHHSharedMS用到了libHHSharedNetwork里的文件，libHHSharedMS连接了libHHSharedNetwork，serverservice工程没有连接到libHHSharedNetwork
+       serverservice工程也需要添加-lHHSharedNetwork
+
+3.Program received signal SIGSEGV, Segmentation fault.
+  Linux下对libHHSharedGUI进行修改后出现错误！
+  ----对shared工程执行'make uninstall',重新编译shared工程！
+
+4.widgetbase/mainwindowbase.cpp:86:9: error: ‘PluginManager’ has not been declared
+  ‘PluginManager’ 类的头文件已经引入!
+  ----‘PluginManager’类具有命名空间‘HEHUI’，而mainwindowbase没有这个空间，加入命名空间‘HEHUI’后解决！
+  
+Q: QDateTime => not enough actual parameters for macro ‘min’ & ‘max’  
+A: 修改qdatetime.h 中的“nullJd()”　为： static inline qint64 nullJd() { return (std::numeric_limits<qint64>::min)(); }
+    #define NOMINMAX before including windows.h header.
+    
+Q:VS2010:LINK : fatal error LNK1123: failure during conversion to COFF: file invalid or corrupt
+A:系统中有多个版本的cvtres.exe，将VC\bin\cvtres.exe 改名或删除
+
+Q:VS2010,qt-vs-addin-1.2.3导入.pro后编译时出现 RC : fatal error RC1107: invalid usage; use RC /? for Help
+A：删除工程中的所有*_resource.rc
+
+Q:VS2010,qt-vs-addin-1.2.3导入.pro后编译时出现 error C2143: syntax error : missing ')' before 'constant' ,提示用到字符串宏定义的地方有问题
+A：导入工程后宏定义多了对引号。删除工程中宏定义值后多出的“

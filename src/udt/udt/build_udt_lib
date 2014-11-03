@@ -1,0 +1,74 @@
+
+
+LIB_NAME = udt
+
+# ##
+TEMPLATE = lib
+
+# CONFIG += static
+CONFIG += shared
+TARGET = $${LIB_NAME}
+
+
+QT -= gui \
+    core \
+    network
+
+
+
+DEPENDPATH += .
+INCLUDEPATH += .
+
+
+# include config file
+include( ../../../buildlib_config.pri )
+
+VERSION = 4.7.0
+
+win32 { 
+    DEFINES += WIN32 __MINGW__ _WIN32_WINNT=0x0501
+    HEADERS += 
+    SOURCES += 
+
+    LIBS += -lws2_32 
+
+}
+
+#linux-g++ {
+#    QMAKE_CXXFLAGS = -fPIC -Wall -finline-functions -O3 #-msse3
+#}
+
+
+# Input
+HEADERS += api.h \
+           buffer.h \
+           cache.h \
+           ccc.h \
+           channel.h \
+           common.h \
+           core.h \
+           list.h \
+           md5.h \
+           packet.h \
+           queue.h \
+           udt.h \
+           window.h
+SOURCES += api.cpp \
+           buffer.cpp \
+           cache.cpp \
+           ccc.cpp \
+           channel.cpp \
+           common.cpp \
+           core.cpp \
+           list.cpp \
+           md5.cpp \
+           packet.cpp \
+           queue.cpp \
+           window.cpp
+
+# define some usefull values
+QMAKE_TARGET_COMPANY = "UDT"
+QMAKE_TARGET_PRODUCT = "UDT"
+QMAKE_TARGET_DESCRIPTION = "UDP-based data transfer protocol"
+QMAKE_TARGET_COPYRIGHT = "Copyright (C) 2001 - 2009 Yunhong Gu. All rights reserved."
+PACKAGE_DOMAIN = "http://udt.sf.net"

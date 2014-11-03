@@ -1,0 +1,37 @@
+ 
+#ifndef HHSHAREDGUI_MODULE_H
+#define HHSHAREDGUI_MODULE_H
+
+
+     #include "hpreferenceswindow.h"
+     #include "hpluginmanagerwindow.h"
+     #include "hplugininfomodel.h"
+     #include "hguiinterface.h"
+     #include "hprogressdlg.h"
+     #include "hsystemtrayiconbase.h"
+     #include "himageresourcebase.h"
+
+     #include "hcategorylistview.h"
+     #include "hexpandlistview.h"
+     #include "hexpandlistviewmanager.h"
+     #include "habstractexpandlistviewInterface.h"
+     #include "hexpandlistviewbase.h"
+     #include "hfilterwidget_p.h"
+     #include "hiconloader_p.h"
+     #include "hsheet_delegate_p.h"
+     #include "htreewidget.h"
+
+     #include "hguipluginbase.h"
+     #include "hloginbase.h"
+     #include "hsettingsbase.h"
+     #include "hdatabaseconnecter.h"
+     #include "hdatabaseconnecterdialog.h"
+	#include "hdataoutputdialog.h"
+
+     #include "hlogindlg.h"
+     #include "hdataprint.h"
+     #include "hmainwindowbase.h"
+     #include "hwidgetbase.h"
+
+
+#endif

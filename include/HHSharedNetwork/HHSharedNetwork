@@ -1,0 +1,21 @@
+ 
+#ifndef HHSHAREDNETWORK_MODULE_H
+#defind HHSHAREDNETWORK_MODULE_H
+
+
+    #include "hudpsocket.h"
+    #include "hipmulticast.h"
+    #include "hipmulticastsocketbase.h"
+    #include "hpacketparserbase.h"
+    #include "hpacket.h"
+    #include "hpackethandlerbase.h"
+    #include "networklib.h"
+    #include "hnetworkutilities.h"
+    #include "htcpsocketconnection.h"
+    #include "hglobal_network.h"
+    #include "htcpserver.h"
+    #include "htcpbase.h"
+    #include "hnetworkmanagerbase.h"
+
+
+#endif

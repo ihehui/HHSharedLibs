@@ -1,0 +1,22 @@
+ 
+#ifndef HHSHAREDCORE_MODULE_H
+#define HHSHAREDCORE_MODULE_H
+
+#include "hteacrypt.h"
+#include "hcryptography.h"
+#include "habstractplugininterface.h"
+#include "hcoreinterface.h"
+#include "hpluginmanager.h"
+#include "hcorepluginbase.h"
+#include "huserbase.h"
+#include "hutilities.h"
+#include "hsettingscore.h"
+#include "hglobal_core.h"
+#include "hdatabaseutility.h"
+#include "hmysharedlib_global.h"
+#include "hsingleton.h"
+#include "huser.h"
+#include "herror.h"
+
+
+#endif

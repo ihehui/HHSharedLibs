@@ -1,0 +1,9 @@
+ 
+#ifndef HHSHAREDWINDOWSMANAGEMENT_MODULE_H
+#define HHSHAREDWINDOWSMANAGEMENT_MODULE_H
+
+#include "hmysharedlib_global.h"
+#include "hwindowsmanagement.h"
+
+
+#endif

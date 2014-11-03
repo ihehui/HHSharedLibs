@@ -1,0 +1,3 @@
+lupdate  -no-obsolete  -recursive  -source-language en  -target-language zh_CN ./ -ts ts_Libs_zh_CN.ts
+
+lupdate  -no-obsolete  -recursive  -source-language en  -target-language zh_TW ./ -ts ts_Libs_zh_TW.ts
