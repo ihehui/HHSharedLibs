@@ -29,3 +29,8 @@ A：删除工程中的所有*_resource.rc
 
 Q:VS2010,qt-vs-addin-1.2.3导入.pro后编译时出现 error C2143: syntax error : missing ')' before 'constant' ,提示用到字符串宏定义的地方有问题
 A：导入工程后宏定义多了对引号。删除工程中宏定义值后多出的“
+
+Q:使用QLibrary调用POWERBASIC所写的DLL时，在函数返回时程序崩溃，使用VS2010调用提示“Run-Time Check Failure #0 - The value of ESP was not properly saved across a function call.”
+A：1.函数定义的调用规则,和实际的调用规则不同。如 编译器默认的是__cdecl，而__stdcall 类型的函数却用了 __cdecl 的调用规则，由于编译时不会报错，结果出现了运行时异常。
+     在函数定义中设置调用规则即可解决此问题。如: typedef void (WINAPI myFunction)(int arg);
+   2.实际的调用时的参数个数与原函数定义不一致。
