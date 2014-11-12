@@ -109,15 +109,6 @@ FUNCTION testADSI () AS LONG
 
    ' AD_SetUserPasswordChange("test1", 0)
 
-DIM ous AS STRING
-ous = AD_GetAllOUs("")
-'ous = test2()
-   MSGBOX "LEN:" + STR$(LEN(ous)) + " sizeof:" + STR$(SIZEOF(ous)) + $CRLF + ous
-
-
-ous += $NUL
-    MSGBOX "LEN:" + STR$(LEN(ous)) + " sizeof:" + STR$(SIZEOF(ous)) + $CRLF + ous
-
 
 
 
@@ -128,6 +119,10 @@ ous += $NUL
    ' MSGBOX AD_GetObjectsInOU("OU=TestOU1,DC=test,DC=local", "(&(objectcategory=person)(objectclass=user)(sAMAccountName=" & "test" & "*)(displayName=Tes*))" , "memberOf", ";", "|")
     'MSGBOX AD_GetObjectsInOU("DC=sitoy,DC=group", "(&(objectcategory=person)(objectclass=user)(sAMAccountName=" & "he" & "*))" , "lastLogon", ";", "|")
 
+       dim filter as wstringz*1024, dataToRetrieve as wstringz*1024
+        filter = "(&(objectcategory=person)(objectclass=user)(sAMAccountName=hui*))"
+        dataToRetrieve = "sAMAccountName,displayName,userWorkstations,telephoneNumber,description,objectGUID,objectSid"
+        MSGBOX "Result:" + $CRLF + AD_GetObjectsInOU("DC=sitoy,DC=group", filter , dataToRetrieve, ";", "|")
 
 
 

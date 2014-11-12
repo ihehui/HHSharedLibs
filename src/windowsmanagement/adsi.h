@@ -93,77 +93,77 @@ private:
    QString m_lastErrorString;
 
 
-   typedef long (* AD_OpenFunction)(LPCWSTR, LPCWSTR, LPCWSTR, DWORD);
+   typedef long (WINAPI * AD_OpenFunction)(LPCWSTR, LPCWSTR, LPCWSTR, DWORD);
    AD_OpenFunction m_AD_Open;
 
-   typedef long (* AD_CloseFunction)();
+   typedef long (WINAPI * AD_CloseFunction)();
    AD_CloseFunction m_AD_Close;
 
-   typedef long (* AD_GetLastErrorCodeFunction)();
+   typedef long (WINAPI * AD_GetLastErrorCodeFunction)();
    AD_GetLastErrorCodeFunction m_AD_GetLastErrorCode;
 
-   typedef LPCWSTR (* AD_GetLastErrorStringFunction)();
+   typedef LPCWSTR (WINAPI * AD_GetLastErrorStringFunction)();
    AD_GetLastErrorStringFunction m_AD_GetLastErrorString;
 
-   typedef LPCWSTR (* AD_DefaultNamingContextFunction)();
+   typedef LPCWSTR (WINAPI * AD_DefaultNamingContextFunction)();
    AD_DefaultNamingContextFunction m_AD_DefaultNamingContext;
 
-   typedef long (* AD_ObjectExistsFunction)(LPCWSTR, LPCWSTR);
+   typedef long (WINAPI * AD_ObjectExistsFunction)(LPCWSTR, LPCWSTR);
    AD_ObjectExistsFunction m_AD_ObjectExists;
 
-   typedef long (* AD_RenameObjectFunction)(LPCWSTR, LPCWSTR);
+   typedef long (WINAPI * AD_RenameObjectFunction)(LPCWSTR, LPCWSTR);
    AD_RenameObjectFunction m_AD_RenameObject;
 
-   typedef long (* AD_MoveObjectFunction)(LPCWSTR, LPCWSTR, LPCWSTR);
+   typedef long (WINAPI * AD_MoveObjectFunction)(LPCWSTR, LPCWSTR, LPCWSTR);
    AD_MoveObjectFunction m_AD_MoveObject;
 
-   typedef long (* AD_DeleteObjectFunction)(LPCWSTR, LPCWSTR);
+   typedef long (WINAPI * AD_DeleteObjectFunction)(LPCWSTR, LPCWSTR);
    AD_DeleteObjectFunction m_AD_DeleteObject;
 
-   typedef long (* AD_UnlockObjectFunction)(LPCWSTR);
+   typedef long (WINAPI * AD_UnlockObjectFunction)(LPCWSTR);
    AD_UnlockObjectFunction m_AD_UnlockObject;
 
-   typedef long (* AD_EnableObjectFunction)(LPCWSTR, long);
+   typedef long (WINAPI * AD_EnableObjectFunction)(LPCWSTR, long);
    AD_EnableObjectFunction m_AD_EnableObject;
 
-   typedef long (* AD_IsObjectDisabledFunction)(LPCWSTR);
+   typedef long (WINAPI * AD_IsObjectDisabledFunction)(LPCWSTR);
    AD_IsObjectDisabledFunction m_AD_IsObjectDisabled;
 
-   typedef long (* AD_SetAccountExpireFunction)(LPCWSTR, LPCWSTR);
+   typedef long (WINAPI * AD_SetAccountExpireFunction)(LPCWSTR, LPCWSTR);
    AD_SetAccountExpireFunction m_AD_SetAccountExpire;
 
-   typedef long (* AD_SetPasswordExpireFunction)(LPCWSTR, long);
+   typedef long (WINAPI * AD_SetPasswordExpireFunction)(LPCWSTR, long);
    AD_SetPasswordExpireFunction m_AD_SetPasswordExpire;
 
-   typedef long (* AD_SetUserPasswordChangeFunction)(LPCWSTR, long);
+   typedef long (WINAPI * AD_SetUserPasswordChangeFunction)(LPCWSTR, long);
    AD_SetUserPasswordChangeFunction m_AD_SetUserPasswordChange;
 
-   typedef LPCWSTR (* AD_GetObjectAttributeFunction)(LPCWSTR, LPCWSTR);
+   typedef LPCWSTR (WINAPI * AD_GetObjectAttributeFunction)(LPCWSTR, LPCWSTR);
    AD_GetObjectAttributeFunction m_AD_GetObjectAttribute;
 
-   typedef long (* AD_ModifyAttributeFunction)(LPCWSTR, LPCWSTR, LPCWSTR, long);
+   typedef long (WINAPI * AD_ModifyAttributeFunction)(LPCWSTR, LPCWSTR, LPCWSTR, long);
    AD_ModifyAttributeFunction m_AD_ModifyAttribute;
 
-   typedef long (* AD_CreateOUFunction)(LPCWSTR, LPCWSTR);
+   typedef long (WINAPI * AD_CreateOUFunction)(LPCWSTR, LPCWSTR);
    AD_CreateOUFunction m_AD_CreateOU;
 
-   typedef LPCWSTR (* AD_GetAllOUsFunction)(LPCWSTR, LPCWSTR, LPCWSTR);
+   typedef LPCWSTR (WINAPI * AD_GetAllOUsFunction)(LPCWSTR, LPCWSTR, LPCWSTR);
    AD_GetAllOUsFunction m_AD_GetAllOUs;
 
-   typedef LPCWSTR (* AD_GetObjectsInOUFunction)(LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR);
+   typedef LPCWSTR (WINAPI * AD_GetObjectsInOUFunction)(LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR);
    AD_GetObjectsInOUFunction m_AD_GetObjectsInOU;
 
-   typedef long (* AD_CreateUserFunction)(LPCWSTR, LPCWSTR, LPCWSTR);
+   typedef long (WINAPI * AD_CreateUserFunction)(LPCWSTR, LPCWSTR, LPCWSTR);
    AD_CreateUserFunction m_AD_CreateUser;
 
-   typedef long (* AD_SetPasswordFunction)(LPCWSTR, LPCWSTR, long);
+   typedef long (WINAPI * AD_SetPasswordFunction)(LPCWSTR, LPCWSTR, long);
    AD_SetPasswordFunction m_AD_SetPassword;
 
 
-   typedef LPCWSTR (* ComputerNameFunction)();
+   typedef LPCWSTR (WINAPI * ComputerNameFunction)();
    ComputerNameFunction m_ComputerName;
 
-   typedef LPCWSTR (* UserNameOfCurrentThreadFunction)();
+   typedef LPCWSTR (WINAPI * UserNameOfCurrentThreadFunction)();
    UserNameOfCurrentThreadFunction m_UserNameOfCurrentThread;
 
 

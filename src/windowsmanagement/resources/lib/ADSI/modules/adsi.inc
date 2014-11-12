@@ -1701,18 +1701,21 @@ Function AD_GetObjectsInOU alias "AD_GetObjectsInOU" (BYREF sAD_OUParam as wstri
 	
 		oAD_RecordSet.MoveFirst
 		Do Until oAD_RecordSet.EOF
-			dim tempString as wstring
+			'dim tempString as wstring
+			dim tempStringArray(0 To PARSECOUNT(sAD_DataToRetrieve)-1) as wstringZ * 1024
 			For iCount1 = 0 To PARSECOUNT(sAD_DataToRetrieve)-1
 				fld = oAD_RecordSet.fields.Item(iCount1)
 				'vValue = fld.Value
-				tempString = tempString & convertADOVariantToString(fld.Value, aAD_DataToRetrieveArray(iCount1)) & sAD_AttributeSeparator
+				'tempString = tempString & convertADOVariantToString(fld.Value, aAD_DataToRetrieveArray(iCount1)) & sAD_AttributeSeparator
+				tempStringArray(iCount1) = convertADOVariantToString(fld.Value, aAD_DataToRetrieveArray(iCount1))
 			Next iCount1
-			tempString = CLIP$(RIGHT tempString, 1) 
-			aAD_Objects(iCount2) = tempString
+			'tempString = CLIP$(RIGHT tempString, 1) 
+			'aAD_Objects(iCount2) = tempString
+			aAD_Objects(iCount2) = JOIN$(tempStringArray(), sAD_AttributeSeparator)
 			
 			oAD_RecordSet.MoveNext
 			iCount2 += 1
-			tempString = ""
+			'tempString = ""
 		loop
 		
 	Else
