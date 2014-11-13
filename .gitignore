@@ -6,13 +6,17 @@
 *.la
 *.lai
 *.so
+**.dylib
+*.obj
 *.dll
 *.lib
-*.dylib
-*.obj
 *.exe
 *.embed.manifest
 *.exp
+*.exe_manifest.rc
+*.exe_manifest.res
+*.pdb
+*.ilk
 
 # Qt-es
 /.qmake.cache
