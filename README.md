@@ -1,4 +1,4 @@
-QtApps
+Shared Libs
 ======
 
 Qt Applications

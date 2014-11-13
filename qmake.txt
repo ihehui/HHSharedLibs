@@ -1,0 +1,50 @@
+ 
+//Qt中编译MySQL Plugin
+1.进入src\plugins\sqldrivers\mysql
+2.在mysql.pro中增加
+    DLLDESTDIR = $$[QT_INSTALL_PLUGINS]/mysql
+    DESTDIR = temp
+3.qmake "INCLUDEPATH+=E:\DEV\MySQL\MySQLServer5.5\lib\include" "LIBS+=E:\DEV\MySQL\MySQLServer5.5\lib/libmysql.lib" mysql.pro
+4.MSVC编译要先执行vcvarsall.bat,然后执行nmake
+ 
+ 
+ 
+
+//--------------Linux---------------
+#Starting: /usr/bin/qmake /opt/workspace/qt/APP/APP.pro -spec /usr/share/qt4/mkspecs/linux-g++ -r CONFIG+=debug_and_release CONFIG+=debug 
+/usr/bin/qmake /opt/workspace/qt/APP/APP.pro -spec /usr/share/qt4/mkspecs/linux-g++ -r  CONFIG+=debug 
+
+
+
+//-------------Windows--------------
+Starting: "qmake.exe" E:/workspace/Qt/HHSharedLibs/HHSharedLibs.pro -r -spec win32-g++ CONFIG+=debug_and_release 
+Starting: "qmake.exe" E:/workspace/Qt/APP/APP.pro -r -spec win32-g++ 
+
+
+
+//Qt4
+windows平台下qmake的Fix，为EXE程序添加图标和版本信息
+1.修改 qmake\generators\win32\winmakefile.cpp 中的processRcFileVar() //可注释掉 && project->values("RC_FILE").isEmpty()
+2.在代码
+        ts << "# if defined(UNDER_CE)" << endl;
+        ts << "#  include <winbase.h>" << endl;
+        ts << "# else" << endl;
+        ts << "#  include <winver.h>" << endl;
+        ts << "# endif" << endl;
+下添加以下代码
+        QStringList iconPath = project->values("APP_ICON");
+        if(!iconPath.isEmpty()){
+        	ts << endl;
+        	ts << "IDI_ICON1              ICON    DISCARDABLE     \"" << iconPath.first() << "\"" << endl;	
+        	ts << endl;
+        }
+3.重新编译qmake
+
+4.在app程序的工程文件中添加新变量APP_ICON，值为ico格式图标的位置。如：win32:APP_ICON = resources/images/app.ico
+5.重新生成工程Makefile
+6.重新编译工程
+
+
+
+Qt4.7.2以上版本中文件mkspecs\win32-g++\qmake.conf中配置
+QMAKE_LFLAGS = -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc

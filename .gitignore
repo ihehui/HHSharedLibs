@@ -7,9 +7,12 @@
 *.lai
 *.so
 *.dll
+*.lib
 *.dylib
 *.obj
 *.exe
+*.embed.manifest
+*.exp
 
 # Qt-es
 /.qmake.cache
@@ -20,8 +23,10 @@
 moc_*.cpp
 qrc_*.cpp
 ui_*.h
+*_resource.rc
 Makefile*
 *-build-*
+
 
 # QtCreator
 *.autosave
