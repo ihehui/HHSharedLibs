@@ -41,6 +41,7 @@
 #include <QProcess>
 #include <QImage>
 #include <QStandardPaths>
+#include <QVariant>
 
 #include <QDebug>
 
@@ -514,6 +515,345 @@ QString WindowsManagement::getUserNameOfCurrentThread() {
 
     return QString::fromWCharArray(username);
 
+}
+
+QString WindowsManagement::WinSysErrorMsg(LONG winErrorCode){
+    wchar_t buffer[8192];
+    ZeroMemory(buffer, 8192);
+
+    FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, 0, winErrorCode, 0, buffer, 8192, 0);
+    return QString::fromWCharArray(buffer).simplified();
+}
+
+//When running on 64-bit Windows if you want to read a value specific to the 64-bit environment you have to suffix the HK... with 64 i.e. HKLM64.
+bool WindowsManagement::parseRegKeyString(const QString &keyString, HKEY *rootKey, QString *subKeyString){
+    QString tempStr = keyString.trimmed();
+    if(tempStr.isEmpty() || (!rootKey) || (!subKeyString) ){return false;}
+
+    QString rootKeyString = tempStr.section("\\", 0, 0).toUpper();
+
+    QHash<QString, HKEY> rootKeysHash;
+    rootKeysHash.insert("HKEY_LOCAL_MACHINE", HKEY_LOCAL_MACHINE);
+    rootKeysHash.insert("HKLM", HKEY_LOCAL_MACHINE);
+    rootKeysHash.insert("HKEY_USERS", HKEY_USERS);
+    rootKeysHash.insert("HKU", HKEY_USERS);
+    rootKeysHash.insert("HKEY_CURRENT_USER", HKEY_CURRENT_USER);
+    rootKeysHash.insert("HKCU", HKEY_CURRENT_USER);
+    rootKeysHash.insert("HKEY_CLASSES_ROOT", HKEY_CLASSES_ROOT);
+    rootKeysHash.insert("HKCR", HKEY_CLASSES_ROOT);
+    rootKeysHash.insert("HKEY_CURRENT_CONFIG", HKEY_CURRENT_CONFIG);
+    rootKeysHash.insert("HKCR", HKEY_CURRENT_CONFIG);
+
+    if(rootKeysHash.keys().contains(rootKeyString)){
+        *rootKey = rootKeysHash.value(rootKeyString);
+        //*subKeyString = tempStr.remove(QString(rootKeyString + "\\"), Qt::CaseInsensitive);
+        *subKeyString = tempStr.remove(0, rootKeyString.size() + 1);
+        return true;
+    }else{
+        return false;
+    }
+
+}
+
+bool WindowsManagement::regOpen(const QString &key, HKEY *hKey, REGSAM samDesired){
+    if(!hKey){return false;}
+
+    HKEY rootKey;
+    QString subKeyString;
+    if(!parseRegKeyString(key, &rootKey, &subKeyString)){
+        qCritical()<<"ERROR! Invalid registry key string!";
+        return false;
+    }
+
+    DWORD dwRet = RegOpenKeyExW(rootKey, subKeyString.toStdWString().c_str(), 0, samDesired, hKey);
+    if(dwRet != ERROR_SUCCESS){
+        qCritical()<<"ERROR! RegOpenKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+        return false;
+    }
+
+    return true;
+}
+
+bool WindowsManagement::regRead(const QString &key, const QString &valueName, QString *value){
+
+    if(!value){return false;}
+
+    HKEY hKey;
+    if(!regOpen(key, &hKey)){return false;}
+
+    DWORD dwRet;
+    DWORD dwType;
+    DWORD bufferSize = 8192;
+    dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, &dwType, 0, &bufferSize);
+    if(dwRet != ERROR_SUCCESS){
+        qCritical()<<"ERROR! RegQueryValueExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+        RegCloseKey(hKey);
+        return false;
+    }
+
+    switch (dwType) {
+    case REG_DWORD:
+    {
+        DWORDLONG lResult = 0;
+        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)&lResult, &bufferSize);
+        *value = QString::number(lResult);
+    }
+        break;
+    case REG_BINARY:
+    {
+        char buffer[8192];
+        ZeroMemory(buffer, 8192);
+        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
+        QByteArray ba;
+        for(DWORD i=0;i<bufferSize;i++){
+            ba.append(buffer[i]);
+            //qDebug()<<i<<": "<<buffer[i]<<" "<<QByteArray(1,buffer[i]).toHex();
+        }
+        *value = ba.toHex().toUpper();
+    }
+        break;
+    case REG_SZ:
+    case REG_EXPAND_SZ:
+    {
+        wchar_t buffer[8192];
+        ZeroMemory(buffer, 8192);
+        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
+        *value = QString::fromWCharArray(buffer);
+    }
+        break;
+    case REG_MULTI_SZ:
+    {
+        wchar_t buffer[8192];
+        ZeroMemory(buffer, 8192);
+        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
+        int len = bufferSize / sizeof(wchar_t) - 1;
+        QByteArray ba;
+        for(int i=0;i<len;i++){
+            if(buffer[i] == '\0'){
+                buffer[i] = '\n';
+            }
+            ba.append(buffer[i]);
+            //qDebug()<<i<<": "<<buffer[i]<<" "<<QChar(buffer[i]);
+        }
+        *value = ba;
+    }
+        break;
+    default:
+        *value = "";
+        qCritical()<<"ERROR! Unknown data type: "<<dwType;
+        RegCloseKey(hKey);
+        return false;
+        break;
+    }
+
+    qDebug()<<"dwType:"<<dwType;
+    qDebug()<<"bufferSize:"<<bufferSize;
+
+    RegCloseKey(hKey);
+    return true;
+}
+
+bool WindowsManagement::regEnumVal(const QString &key, QStringList *valueNameList){
+    if(!valueNameList){return false;}
+
+    HKEY hKey;
+    if(!regOpen(key, &hKey)){return false;}
+
+    DWORD dwRet;
+    DWORD dwIndex= 0;
+
+    DWORD valueNameLen = 8192;
+    wchar_t valueName[8192];
+    ZeroMemory(valueName, 8192);
+
+    do{
+        dwRet = RegEnumValueW(hKey, dwIndex, valueName, &valueNameLen, 0, 0, 0, 0);
+        if(dwRet == ERROR_SUCCESS){
+            valueNameList->append(QString::fromWCharArray(valueName));
+            valueNameLen = 8192;
+            ZeroMemory(valueName, valueNameLen);
+            //qDebug()<<dwRet<<":"<<WinErrorMsg(dwRet);
+            dwIndex++;
+        }else if(dwRet == ERROR_NO_MORE_ITEMS){
+            break;
+        }else{
+            qCritical()<<"ERROR! RegEnumValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+            RegCloseKey(hKey);
+            return false;
+        }
+
+    }while(dwRet == ERROR_SUCCESS);
+
+    RegCloseKey(hKey);
+    return true;
+}
+
+bool WindowsManagement::regEnumKey(const QString &key, QStringList *keyNameList){
+    if(!keyNameList){return false;}
+
+    HKEY hKey;
+    if(!regOpen(key, &hKey)){return false;}
+
+    DWORD dwRet;
+    DWORD dwIndex= 0;
+
+    DWORD keyNameLen = 8192;
+    wchar_t keyName[8192];
+    ZeroMemory(keyName, 8192);
+
+    do{
+        dwRet = RegEnumKeyExW(hKey, dwIndex, keyName, &keyNameLen, 0, 0, 0, 0);
+        if(dwRet == ERROR_SUCCESS){
+            keyNameList->append(QString::fromWCharArray(keyName));
+            keyNameLen = 8192;
+            ZeroMemory(keyName, keyNameLen);
+            dwIndex++;
+        }else if(dwRet == ERROR_NO_MORE_ITEMS){
+            break;
+        }else{
+            qCritical()<<"ERROR! RegEnumKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+            RegCloseKey(hKey);
+            return false;
+        }
+
+    }while(dwRet == ERROR_SUCCESS);
+
+    RegCloseKey(hKey);
+    return true;
+}
+
+bool WindowsManagement::regCreateKey(const QString &key, const QString &subKeyName, HKEY *hSubKey){
+    HKEY hKey;
+    if(!regOpen(key, &hKey, KEY_WRITE|KEY_READ)){return false;}
+
+    HKEY hkResult;
+    DWORD dwDisposition;
+
+    DWORD dwRet = RegCreateKeyExW(hKey, subKeyName.toStdWString().c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
+    //DWORD dwRet = RegCreateKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\AutoIt v3\\QQQ", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
+
+    if(dwRet != ERROR_SUCCESS){
+        qCritical()<<"ERROR! RegCreateKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+        RegCloseKey(hKey);
+        return false;
+    }
+
+    if(hSubKey){
+        *hSubKey = hkResult;
+    }
+qDebug()<<"dwDisposition:"<<dwDisposition;
+    RegCloseKey(hKey);
+    return true;
+}
+
+bool WindowsManagement::regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType){
+
+    HKEY hKey;
+    if(!regOpen(key, &hKey, KEY_WRITE)){return false;}
+    return regSetValue(hKey, valueName, value, valueType);
+}
+
+bool WindowsManagement::regSetValue(HKEY hKey, const QString &valueName, const QString &value, DWORD valueType){
+
+    if(!hKey){
+        qCritical()<<"ERROR! Invalid key handle!";
+        return false;
+    }
+
+    DWORD dwRet;
+    DWORD bufferSize = 0;
+    wchar_t buffer[8192];
+    ZeroMemory(buffer, 8192);
+
+    switch (valueType) {
+    case REG_DWORD:
+    {
+        bufferSize = sizeof(DWORD);
+        buffer[0] = value.toULong();
+        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE*)buffer, bufferSize);
+    }
+        break;
+    case REG_BINARY:
+    {
+        //bufferSize = value.size() / 2;
+        QByteArray ba = QByteArray::fromHex(value.toLatin1());
+        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE*)ba.data(), ba.size());
+    }
+        break;
+    case REG_SZ:
+    case REG_EXPAND_SZ:
+    {
+        bufferSize = (value.size()) * sizeof(wchar_t);
+        wcscpy(buffer, value.toStdWString().c_str());
+        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE*)buffer, bufferSize);
+    }
+        break;
+    case REG_MULTI_SZ:
+    {
+        int len = value.size() + 1;
+        bufferSize = len * sizeof(wchar_t);
+        wcscpy(buffer, value.toStdWString().c_str());
+        for(int i=0;i<len;i++){
+            if(buffer[i] == '\n'){
+                buffer[i] = '\0';
+            }
+        }
+        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE*)buffer, bufferSize);
+    }
+        break;
+    default:
+        qCritical()<<"ERROR! Unknown data type!";
+        return false;
+        break;
+    }
+
+    if(dwRet != ERROR_SUCCESS){
+        qCritical()<<"ERROR! RegSetValueExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+        return false;
+    }
+
+    return true;
+}
+bool WindowsManagement::regDeleteKey(const QString &key, REGSAM samDesired){
+
+    HKEY rootKey;
+    QString subKeyString;
+    if(!parseRegKeyString(key, &rootKey, &subKeyString)){
+        qCritical()<<"ERROR! Invalid registry key string!";
+        return false;
+    }
+
+//#ifdef Q_OS_WIN32
+//    DWORD dwRet = SHDeleteKeyW(rootKey, subKeyString.toStdWString().c_str());
+//#else
+//    DWORD dwRet = RegDeleteKeyExW(rootKey, subKeyString.toStdWString().c_str(), samDesired, 0);
+//#endif
+
+    DWORD dwRet = RegDeleteKeyExW(rootKey, subKeyString.toStdWString().c_str(), samDesired, 0);
+    if(dwRet != ERROR_SUCCESS){
+        qCritical()<<"ERROR! RegDeleteKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+        return false;
+    }
+
+    return true;
+}
+
+bool WindowsManagement::regDeleteValue(const QString &key, const QString &valueName){
+
+    HKEY hKey;
+    if(!regOpen(key, &hKey, KEY_WRITE)){return false;}
+
+    DWORD dwRet = RegDeleteValueW(hKey, valueName.toStdWString().c_str());
+    if(dwRet != ERROR_SUCCESS){
+        qCritical()<<"ERROR! RegDeleteValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+        return false;
+    }
+
+    return true;
+}
+
+void WindowsManagement::regCloseKey(HKEY hKey){
+    RegCloseKey(hKey);
 }
 
 bool WindowsManagement::isUserAutoLogin(){
@@ -994,7 +1334,6 @@ QPair<QDateTime, QDateTime> WindowsManagement::getUserLastLogonAndLogoffTime(con
     netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
     if( netRet == NERR_Success )
     {
-
         DWORD lastLogon = 0, lastLogoff = 0;
         lastLogon = pUsr->usri2_last_logon;
         lastLogoff = pUsr->usri2_last_logoff;
@@ -1008,10 +1347,7 @@ QPair<QDateTime, QDateTime> WindowsManagement::getUserLastLogonAndLogoffTime(con
             lastLogoffTime = QDateTime::fromTime_t(lastLogoff);
         }
 
-
         //qWarning()<<"On:"<<lastLogonTime.toString("yyyy.MM.dd hh:mm:ss")<<" Off:"<<lastLogoffTime.toString("yyyy.MM.dd hh:mm:ss");
-
-
 
         NetApiBufferFree( pUsr);
 
@@ -1025,7 +1361,6 @@ QPair<QDateTime, QDateTime> WindowsManagement::getUserLastLogonAndLogoffTime(con
     pair.second = lastLogoffTime;
 
     return pair;
-
 
 }
 
@@ -1096,10 +1431,7 @@ QDateTime WindowsManagement::currentDateTimeOnServer(const QString &server){
         NetApiBufferFree(pBuf);
     }
 
-
     return dateTime;
-
-
 }
 
 bool WindowsManagement::setLocalTime(const QDateTime &datetime){
@@ -1130,8 +1462,6 @@ bool WindowsManagement::setLocalTime(const QDateTime &datetime){
     }
 
     return true;
-
-
 }
 
 void WindowsManagement::getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName){

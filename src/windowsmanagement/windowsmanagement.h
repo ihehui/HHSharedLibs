@@ -97,6 +97,21 @@ public:
     QStringList localCreatedUsers() ;
     QString getUserNameOfCurrentThread();
 
+    QString WinSysErrorMsg(LONG winErrorCode);
+
+    //Registry
+    bool parseRegKeyString(const QString &keyString, HKEY *rootKey, QString *subKeyString);
+    bool regOpen(const QString &key, HKEY *hKey, REGSAM samDesired = KEY_READ);
+    bool regRead(const QString &key, const QString &valueName, QString *value);
+    bool regEnumVal(const QString &key, QStringList *valueNameList);
+    bool regEnumKey(const QString &key, QStringList *keyNameList);
+    bool regCreateKey(const QString &key, const QString &subKeyName, HKEY *hSubKey = 0);
+    bool regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType);
+    bool regSetValue(HKEY hKey, const QString &valueName, const QString &value, DWORD valueType);
+    bool regDeleteKey(const QString &key, REGSAM samDesired = KEY_WOW64_32KEY);
+    bool regDeleteValue(const QString &key, const QString &valueName);
+    void regCloseKey(HKEY hKey);
+
     bool isUserAutoLogin();
     bool setUserAutoLogin(LPCWSTR userName, LPCWSTR password, bool autoLogin);
 
