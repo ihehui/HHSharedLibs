@@ -565,6 +565,12 @@ bool WindowsManagement::regOpen(const QString &key, HKEY *hKey, REGSAM samDesire
         return false;
     }
 
+//#if defined( _WIN64 )
+//    samDesired |= KEY_WOW64_64KEY;
+//#else
+//    samDesired |= KEY_WOW64_32KEY;
+//#endif
+
     DWORD dwRet = RegOpenKeyExW(rootKey, subKeyString.toStdWString().c_str(), 0, samDesired, hKey);
     if(dwRet != ERROR_SUCCESS){
         qCritical()<<"ERROR! RegOpenKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
@@ -574,12 +580,9 @@ bool WindowsManagement::regOpen(const QString &key, HKEY *hKey, REGSAM samDesire
     return true;
 }
 
-bool WindowsManagement::regRead(const QString &key, const QString &valueName, QString *value){
+bool WindowsManagement::regRead(HKEY hKey, const QString &valueName, QString *value){
 
     if(!value){return false;}
-
-    HKEY hKey;
-    if(!regOpen(key, &hKey)){return false;}
 
     DWORD dwRet;
     DWORD dwType;
@@ -587,7 +590,7 @@ bool WindowsManagement::regRead(const QString &key, const QString &valueName, QS
     dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, &dwType, 0, &bufferSize);
     if(dwRet != ERROR_SUCCESS){
         qCritical()<<"ERROR! RegQueryValueExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-        RegCloseKey(hKey);
+        //RegCloseKey(hKey);
         return false;
     }
 
@@ -641,7 +644,7 @@ bool WindowsManagement::regRead(const QString &key, const QString &valueName, QS
     default:
         *value = "";
         qCritical()<<"ERROR! Unknown data type: "<<dwType;
-        RegCloseKey(hKey);
+        //RegCloseKey(hKey);
         return false;
         break;
     }
@@ -649,15 +652,95 @@ bool WindowsManagement::regRead(const QString &key, const QString &valueName, QS
     qDebug()<<"dwType:"<<dwType;
     qDebug()<<"bufferSize:"<<bufferSize;
 
-    RegCloseKey(hKey);
+    //RegCloseKey(hKey);
     return true;
 }
 
-bool WindowsManagement::regEnumVal(const QString &key, QStringList *valueNameList){
-    if(!valueNameList){return false;}
+bool WindowsManagement::regRead(const QString &key, const QString &valueName, QString *value){
+
+    if(!value){return false;}
 
     HKEY hKey;
     if(!regOpen(key, &hKey)){return false;}
+
+    bool ret = regRead(hKey, valueName, value);
+    RegCloseKey(hKey);
+    return ret;
+
+//    DWORD dwRet;
+//    DWORD dwType;
+//    DWORD bufferSize = 8192;
+//    dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, &dwType, 0, &bufferSize);
+//    if(dwRet != ERROR_SUCCESS){
+//        qCritical()<<"ERROR! RegQueryValueExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+//        RegCloseKey(hKey);
+//        return false;
+//    }
+
+//    switch (dwType) {
+//    case REG_DWORD:
+//    {
+//        DWORDLONG lResult = 0;
+//        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)&lResult, &bufferSize);
+//        *value = QString::number(lResult);
+//    }
+//        break;
+//    case REG_BINARY:
+//    {
+//        char buffer[8192];
+//        ZeroMemory(buffer, 8192);
+//        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
+//        QByteArray ba;
+//        for(DWORD i=0;i<bufferSize;i++){
+//            ba.append(buffer[i]);
+//            //qDebug()<<i<<": "<<buffer[i]<<" "<<QByteArray(1,buffer[i]).toHex();
+//        }
+//        *value = ba.toHex().toUpper();
+//    }
+//        break;
+//    case REG_SZ:
+//    case REG_EXPAND_SZ:
+//    {
+//        wchar_t buffer[8192];
+//        ZeroMemory(buffer, 8192);
+//        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
+//        *value = QString::fromWCharArray(buffer);
+//    }
+//        break;
+//    case REG_MULTI_SZ:
+//    {
+//        wchar_t buffer[8192];
+//        ZeroMemory(buffer, 8192);
+//        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
+//        int len = bufferSize / sizeof(wchar_t) - 1;
+//        QByteArray ba;
+//        for(int i=0;i<len;i++){
+//            if(buffer[i] == '\0'){
+//                buffer[i] = '\n';
+//            }
+//            ba.append(buffer[i]);
+//            //qDebug()<<i<<": "<<buffer[i]<<" "<<QChar(buffer[i]);
+//        }
+//        *value = ba;
+//    }
+//        break;
+//    default:
+//        *value = "";
+//        qCritical()<<"ERROR! Unknown data type: "<<dwType;
+//        RegCloseKey(hKey);
+//        return false;
+//        break;
+//    }
+
+//    qDebug()<<"dwType:"<<dwType;
+//    qDebug()<<"bufferSize:"<<bufferSize;
+
+//    RegCloseKey(hKey);
+//    return true;
+}
+
+bool WindowsManagement::regEnumVal(HKEY hKey, QStringList *valueNameList){
+    if(!valueNameList){return false;}
 
     DWORD dwRet;
     DWORD dwIndex= 0;
@@ -678,21 +761,57 @@ bool WindowsManagement::regEnumVal(const QString &key, QStringList *valueNameLis
             break;
         }else{
             qCritical()<<"ERROR! RegEnumValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-            RegCloseKey(hKey);
+            //RegCloseKey(hKey);
             return false;
         }
 
     }while(dwRet == ERROR_SUCCESS);
 
-    RegCloseKey(hKey);
+    //RegCloseKey(hKey);
     return true;
 }
 
-bool WindowsManagement::regEnumKey(const QString &key, QStringList *keyNameList){
-    if(!keyNameList){return false;}
+bool WindowsManagement::regEnumVal(const QString &key, QStringList *valueNameList){
+    if(!valueNameList){return false;}
 
     HKEY hKey;
     if(!regOpen(key, &hKey)){return false;}
+
+    bool ret = regEnumVal(hKey, valueNameList);
+    RegCloseKey(hKey);
+    return ret;
+
+//    DWORD dwRet;
+//    DWORD dwIndex= 0;
+
+//    DWORD valueNameLen = 8192;
+//    wchar_t valueName[8192];
+//    ZeroMemory(valueName, 8192);
+
+//    do{
+//        dwRet = RegEnumValueW(hKey, dwIndex, valueName, &valueNameLen, 0, 0, 0, 0);
+//        if(dwRet == ERROR_SUCCESS){
+//            valueNameList->append(QString::fromWCharArray(valueName));
+//            valueNameLen = 8192;
+//            ZeroMemory(valueName, valueNameLen);
+//            //qDebug()<<dwRet<<":"<<WinErrorMsg(dwRet);
+//            dwIndex++;
+//        }else if(dwRet == ERROR_NO_MORE_ITEMS){
+//            break;
+//        }else{
+//            qCritical()<<"ERROR! RegEnumValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+//            RegCloseKey(hKey);
+//            return false;
+//        }
+
+//    }while(dwRet == ERROR_SUCCESS);
+
+//    RegCloseKey(hKey);
+//    return true;
+}
+
+bool WindowsManagement::regEnumKey(HKEY hKey, QStringList *keyNameList){
+    if(!keyNameList){return false;}
 
     DWORD dwRet;
     DWORD dwIndex= 0;
@@ -712,19 +831,55 @@ bool WindowsManagement::regEnumKey(const QString &key, QStringList *keyNameList)
             break;
         }else{
             qCritical()<<"ERROR! RegEnumKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-            RegCloseKey(hKey);
+            //RegCloseKey(hKey);
             return false;
         }
 
     }while(dwRet == ERROR_SUCCESS);
 
-    RegCloseKey(hKey);
+    //RegCloseKey(hKey);
     return true;
 }
 
-bool WindowsManagement::regCreateKey(const QString &key, const QString &subKeyName, HKEY *hSubKey){
+bool WindowsManagement::regEnumKey(const QString &key, QStringList *keyNameList){
+    if(!keyNameList){return false;}
+
     HKEY hKey;
-    if(!regOpen(key, &hKey, KEY_WRITE|KEY_READ)){return false;}
+    if(!regOpen(key, &hKey)){return false;}
+
+    bool ret = regEnumKey(hKey, keyNameList);
+    RegCloseKey(hKey);
+    return ret;
+
+//    DWORD dwRet;
+//    DWORD dwIndex= 0;
+
+//    DWORD keyNameLen = 8192;
+//    wchar_t keyName[8192];
+//    ZeroMemory(keyName, 8192);
+
+//    do{
+//        dwRet = RegEnumKeyExW(hKey, dwIndex, keyName, &keyNameLen, 0, 0, 0, 0);
+//        if(dwRet == ERROR_SUCCESS){
+//            keyNameList->append(QString::fromWCharArray(keyName));
+//            keyNameLen = 8192;
+//            ZeroMemory(keyName, keyNameLen);
+//            dwIndex++;
+//        }else if(dwRet == ERROR_NO_MORE_ITEMS){
+//            break;
+//        }else{
+//            qCritical()<<"ERROR! RegEnumKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+//            RegCloseKey(hKey);
+//            return false;
+//        }
+
+//    }while(dwRet == ERROR_SUCCESS);
+
+//    RegCloseKey(hKey);
+//    return true;
+}
+
+bool WindowsManagement::regCreateKey(HKEY hKey, const QString &subKeyName, HKEY *hSubKey){
 
     HKEY hkResult;
     DWORD dwDisposition;
@@ -734,23 +889,42 @@ bool WindowsManagement::regCreateKey(const QString &key, const QString &subKeyNa
 
     if(dwRet != ERROR_SUCCESS){
         qCritical()<<"ERROR! RegCreateKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-        RegCloseKey(hKey);
+        //RegCloseKey(hKey);
         return false;
     }
 
     if(hSubKey){
         *hSubKey = hkResult;
     }
-qDebug()<<"dwDisposition:"<<dwDisposition;
-    RegCloseKey(hKey);
+
+    //RegCloseKey(hKey);
     return true;
 }
 
-bool WindowsManagement::regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType){
-
+bool WindowsManagement::regCreateKey(const QString &key, const QString &subKeyName, HKEY *hSubKey){
     HKEY hKey;
-    if(!regOpen(key, &hKey, KEY_WRITE)){return false;}
-    return regSetValue(hKey, valueName, value, valueType);
+    if(!regOpen(key, &hKey, KEY_WRITE|KEY_READ)){return false;}
+
+    regCreateKey(hKey, subKeyName, hSubKey);
+
+//    HKEY hkResult;
+//    DWORD dwDisposition;
+
+//    DWORD dwRet = RegCreateKeyExW(hKey, subKeyName.toStdWString().c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
+//    //DWORD dwRet = RegCreateKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\AutoIt v3\\QQQ", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
+
+//    if(dwRet != ERROR_SUCCESS){
+//        qCritical()<<"ERROR! RegCreateKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+//        RegCloseKey(hKey);
+//        return false;
+//    }
+
+//    if(hSubKey){
+//        *hSubKey = hkResult;
+//    }
+
+//    RegCloseKey(hKey);
+//    return true;
 }
 
 bool WindowsManagement::regSetValue(HKEY hKey, const QString &valueName, const QString &value, DWORD valueType){
@@ -814,6 +988,36 @@ bool WindowsManagement::regSetValue(HKEY hKey, const QString &valueName, const Q
 
     return true;
 }
+
+bool WindowsManagement::regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType){
+
+    HKEY hKey;
+    if(!regOpen(key, &hKey, KEY_WRITE)){return false;}
+
+    bool ret = regSetValue(hKey, valueName, value, valueType);
+    RegCloseKey(hKey);
+    return ret;
+}
+
+bool WindowsManagement::regDeleteKey(HKEY hKey, const QString &subKeyName, REGSAM samDesired){
+
+    if(0 == samDesired){
+#if defined( _WIN64 )
+    samDesired |= KEY_WOW64_64KEY;
+#else
+    samDesired |= KEY_WOW64_32KEY;
+#endif
+    }
+
+    DWORD dwRet = RegDeleteKeyExW(hKey, subKeyName.toStdWString().c_str(), samDesired, 0);
+    if(dwRet != ERROR_SUCCESS){
+        qCritical()<<"ERROR! RegDeleteKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+        return false;
+    }
+
+    return true;
+}
+
 bool WindowsManagement::regDeleteKey(const QString &key, REGSAM samDesired){
 
     HKEY rootKey;
@@ -823,15 +1027,33 @@ bool WindowsManagement::regDeleteKey(const QString &key, REGSAM samDesired){
         return false;
     }
 
-//#ifdef Q_OS_WIN32
-//    DWORD dwRet = SHDeleteKeyW(rootKey, subKeyString.toStdWString().c_str());
-//#else
-//    DWORD dwRet = RegDeleteKeyExW(rootKey, subKeyString.toStdWString().c_str(), samDesired, 0);
-//#endif
+    bool ret = regDeleteKey(rootKey, subKeyString, samDesired);
+    RegCloseKey(rootKey);
+    return ret;
 
-    DWORD dwRet = RegDeleteKeyExW(rootKey, subKeyString.toStdWString().c_str(), samDesired, 0);
+
+//    if(0 == samDesired){
+//#if defined( _WIN64 )
+//    samDesired |= KEY_WOW64_64KEY;
+//#else
+//    samDesired |= KEY_WOW64_32KEY;
+//#endif
+//    }
+
+//    DWORD dwRet = RegDeleteKeyExW(rootKey, subKeyString.toStdWString().c_str(), samDesired, 0);
+//    if(dwRet != ERROR_SUCCESS){
+//        qCritical()<<"ERROR! RegDeleteKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+//        return false;
+//    }
+
+//    return true;
+}
+
+bool WindowsManagement::regDeleteValue(HKEY hKey, const QString &valueName){
+
+    DWORD dwRet = RegDeleteValueW(hKey, valueName.toStdWString().c_str());
     if(dwRet != ERROR_SUCCESS){
-        qCritical()<<"ERROR! RegDeleteKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+        qCritical()<<"ERROR! RegDeleteValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
         return false;
     }
 
@@ -843,17 +1065,39 @@ bool WindowsManagement::regDeleteValue(const QString &key, const QString &valueN
     HKEY hKey;
     if(!regOpen(key, &hKey, KEY_WRITE)){return false;}
 
-    DWORD dwRet = RegDeleteValueW(hKey, valueName.toStdWString().c_str());
-    if(dwRet != ERROR_SUCCESS){
-        qCritical()<<"ERROR! RegDeleteValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-        return false;
-    }
+    bool ret = regDeleteValue(hKey, valueName);
+    RegCloseKey(hKey);
+    return ret;
 
-    return true;
+//    DWORD dwRet = RegDeleteValueW(hKey, valueName.toStdWString().c_str());
+//    if(dwRet != ERROR_SUCCESS){
+//        qCritical()<<"ERROR! RegDeleteValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+//        return false;
+//    }
+
+//    RegCloseKey(hKey);
+//    return true;
 }
 
 void WindowsManagement::regCloseKey(HKEY hKey){
     RegCloseKey(hKey);
+}
+
+bool WindowsManagement::is64BitApplication(){
+    return 8 == sizeof( void * );
+    //return (sizeof(LPFN_ISWOW64PROCESS) == 8)? TRUE: FALSE;
+}
+
+bool WindowsManagement::isWow64()
+{
+    typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
+    LPFN_ISWOW64PROCESS fnIsWow64Process;
+    BOOL bIsWow64 = FALSE;
+    fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress( GetModuleHandleW(L"kernel32"), "IsWow64Process");
+    if (NULL != fnIsWow64Process){
+        fnIsWow64Process(GetCurrentProcess(),&bIsWow64);
+    }
+    return bIsWow64;
 }
 
 bool WindowsManagement::isUserAutoLogin(){

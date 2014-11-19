@@ -102,15 +102,24 @@ public:
     //Registry
     bool parseRegKeyString(const QString &keyString, HKEY *rootKey, QString *subKeyString);
     bool regOpen(const QString &key, HKEY *hKey, REGSAM samDesired = KEY_READ);
+    bool regRead(HKEY hKey, const QString &valueName, QString *value);
     bool regRead(const QString &key, const QString &valueName, QString *value);
+    bool regEnumVal(HKEY hKey, QStringList *valueNameList);
     bool regEnumVal(const QString &key, QStringList *valueNameList);
+    bool regEnumKey(HKEY hKey, QStringList *keyNameList);
     bool regEnumKey(const QString &key, QStringList *keyNameList);
+    bool regCreateKey(HKEY hKey, const QString &subKeyName, HKEY *hSubKey = 0);
     bool regCreateKey(const QString &key, const QString &subKeyName, HKEY *hSubKey = 0);
-    bool regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType);
     bool regSetValue(HKEY hKey, const QString &valueName, const QString &value, DWORD valueType);
-    bool regDeleteKey(const QString &key, REGSAM samDesired = KEY_WOW64_32KEY);
+    bool regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType);
+    bool regDeleteKey(HKEY hKey, const QString &subKeyName, REGSAM samDesired = 0);
+    bool regDeleteKey(const QString &key, REGSAM samDesired = 0);
+    bool regDeleteValue(HKEY hKey, const QString &valueName);
     bool regDeleteValue(const QString &key, const QString &valueName);
     void regCloseKey(HKEY hKey);
+
+    static bool is64BitApplication();
+    static bool isWow64();
 
     bool isUserAutoLogin();
     bool setUserAutoLogin(LPCWSTR userName, LPCWSTR password, bool autoLogin);
