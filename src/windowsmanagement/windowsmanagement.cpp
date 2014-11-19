@@ -649,19 +649,22 @@ bool WindowsManagement::regRead(HKEY hKey, const QString &valueName, QString *va
         break;
     }
 
-    qDebug()<<"dwType:"<<dwType;
-    qDebug()<<"bufferSize:"<<bufferSize;
-
     //RegCloseKey(hKey);
     return true;
 }
 
-bool WindowsManagement::regRead(const QString &key, const QString &valueName, QString *value){
+bool WindowsManagement::regRead(const QString &key, const QString &valueName, QString *value, bool on64BitView){
 
     if(!value){return false;}
 
+    REGSAM samDesired = KEY_READ;
+    if(on64BitView){
+        samDesired |= KEY_WOW64_64KEY;
+    }else{
+        samDesired |= KEY_WOW64_32KEY;
+    }
     HKEY hKey;
-    if(!regOpen(key, &hKey)){return false;}
+    if(!regOpen(key, &hKey, samDesired)){return false;}
 
     bool ret = regRead(hKey, valueName, value);
     RegCloseKey(hKey);
@@ -771,11 +774,17 @@ bool WindowsManagement::regEnumVal(HKEY hKey, QStringList *valueNameList){
     return true;
 }
 
-bool WindowsManagement::regEnumVal(const QString &key, QStringList *valueNameList){
+bool WindowsManagement::regEnumVal(const QString &key, QStringList *valueNameList, bool on64BitView){
     if(!valueNameList){return false;}
 
+    REGSAM samDesired = KEY_READ;
+    if(on64BitView){
+        samDesired |= KEY_WOW64_64KEY;
+    }else{
+        samDesired |= KEY_WOW64_32KEY;
+    }
     HKEY hKey;
-    if(!regOpen(key, &hKey)){return false;}
+    if(!regOpen(key, &hKey, samDesired)){return false;}
 
     bool ret = regEnumVal(hKey, valueNameList);
     RegCloseKey(hKey);
@@ -841,11 +850,17 @@ bool WindowsManagement::regEnumKey(HKEY hKey, QStringList *keyNameList){
     return true;
 }
 
-bool WindowsManagement::regEnumKey(const QString &key, QStringList *keyNameList){
+bool WindowsManagement::regEnumKey(const QString &key, QStringList *keyNameList, bool on64BitView){
     if(!keyNameList){return false;}
 
+    REGSAM samDesired = KEY_WRITE|KEY_READ;
+    if(on64BitView){
+        samDesired |= KEY_WOW64_64KEY;
+    }else{
+        samDesired |= KEY_WOW64_32KEY;
+    }
     HKEY hKey;
-    if(!regOpen(key, &hKey)){return false;}
+    if(!regOpen(key, &hKey, samDesired)){return false;}
 
     bool ret = regEnumKey(hKey, keyNameList);
     RegCloseKey(hKey);
@@ -901,11 +916,20 @@ bool WindowsManagement::regCreateKey(HKEY hKey, const QString &subKeyName, HKEY 
     return true;
 }
 
-bool WindowsManagement::regCreateKey(const QString &key, const QString &subKeyName, HKEY *hSubKey){
-    HKEY hKey;
-    if(!regOpen(key, &hKey, KEY_WRITE|KEY_READ)){return false;}
+bool WindowsManagement::regCreateKey(const QString &key, const QString &subKeyName, HKEY *hSubKey, bool on64BitView){
 
-    regCreateKey(hKey, subKeyName, hSubKey);
+    REGSAM samDesired = KEY_WRITE|KEY_READ;
+    if(on64BitView){
+        samDesired |= KEY_WOW64_64KEY;
+    }else{
+        samDesired |= KEY_WOW64_32KEY;
+    }
+    HKEY hKey;
+    if(!regOpen(key, &hKey, samDesired)){return false;}
+
+    bool ret = regCreateKey(hKey, subKeyName, hSubKey);
+    RegCloseKey(hKey);
+    return ret;
 
 //    HKEY hkResult;
 //    DWORD dwDisposition;
@@ -989,26 +1013,36 @@ bool WindowsManagement::regSetValue(HKEY hKey, const QString &valueName, const Q
     return true;
 }
 
-bool WindowsManagement::regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType){
+bool WindowsManagement::regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType, bool on64BitView){
 
+    REGSAM samDesired = KEY_WRITE;
+    if(on64BitView){
+        samDesired |= KEY_WOW64_64KEY;
+    }else{
+        samDesired |= KEY_WOW64_32KEY;
+    }
     HKEY hKey;
-    if(!regOpen(key, &hKey, KEY_WRITE)){return false;}
+    if(!regOpen(key, &hKey, samDesired)){return false;}
 
     bool ret = regSetValue(hKey, valueName, value, valueType);
     RegCloseKey(hKey);
     return ret;
 }
 
-bool WindowsManagement::regDeleteKey(HKEY hKey, const QString &subKeyName, REGSAM samDesired){
+bool WindowsManagement::regDeleteKey(HKEY hKey, const QString &subKeyName, bool on64BitView){
 
-    if(0 == samDesired){
-#if defined( _WIN64 )
-    samDesired |= KEY_WOW64_64KEY;
-#else
-    samDesired |= KEY_WOW64_32KEY;
-#endif
+//#if defined( _WIN64 )
+//    samDesired |= KEY_WOW64_64KEY;
+//#else
+//    samDesired |= KEY_WOW64_32KEY;
+//#endif
+
+    REGSAM samDesired;
+    if(on64BitView){
+        samDesired = KEY_WOW64_64KEY;
+    }else{
+        samDesired = KEY_WOW64_32KEY;
     }
-
     DWORD dwRet = RegDeleteKeyExW(hKey, subKeyName.toStdWString().c_str(), samDesired, 0);
     if(dwRet != ERROR_SUCCESS){
         qCritical()<<"ERROR! RegDeleteKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
@@ -1018,7 +1052,7 @@ bool WindowsManagement::regDeleteKey(HKEY hKey, const QString &subKeyName, REGSA
     return true;
 }
 
-bool WindowsManagement::regDeleteKey(const QString &key, REGSAM samDesired){
+bool WindowsManagement::regDeleteKey(const QString &key, bool on64BitView){
 
     HKEY rootKey;
     QString subKeyString;
@@ -1027,7 +1061,7 @@ bool WindowsManagement::regDeleteKey(const QString &key, REGSAM samDesired){
         return false;
     }
 
-    bool ret = regDeleteKey(rootKey, subKeyString, samDesired);
+    bool ret = regDeleteKey(rootKey, subKeyString, on64BitView);
     RegCloseKey(rootKey);
     return ret;
 
@@ -1060,10 +1094,16 @@ bool WindowsManagement::regDeleteValue(HKEY hKey, const QString &valueName){
     return true;
 }
 
-bool WindowsManagement::regDeleteValue(const QString &key, const QString &valueName){
+bool WindowsManagement::regDeleteValue(const QString &key, const QString &valueName, bool on64BitView){
 
+    REGSAM samDesired = KEY_WRITE;
+    if(on64BitView){
+        samDesired |= KEY_WOW64_64KEY;
+    }else{
+        samDesired |= KEY_WOW64_32KEY;
+    }
     HKEY hKey;
-    if(!regOpen(key, &hKey, KEY_WRITE)){return false;}
+    if(!regOpen(key, &hKey, samDesired)){return false;}
 
     bool ret = regDeleteValue(hKey, valueName);
     RegCloseKey(hKey);

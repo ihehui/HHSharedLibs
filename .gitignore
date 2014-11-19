@@ -13,8 +13,8 @@
 *.exe
 *.embed.manifest
 *.exp
-*.exe_manifest.rc
-*.exe_manifest.res
+*manifest.rc
+*manifest.res
 *.pdb
 *.ilk
 
