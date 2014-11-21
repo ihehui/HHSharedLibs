@@ -43,16 +43,8 @@
 #include <QPair>
 
 #ifdef Q_OS_WIN32
-    //#define _WIN32_WINNT 0x0500
-    #include <windows.h>
-
-//#include <winbase.h>
-//#include <Lm.h>
-////#include <lmcons.h>
-////#include <lmaccess.h>
-////#include <lmerr.h>
-////#include <lmapibuf.h>
-//#include <Tlhelp32.h>
+//#define _WIN32_WINNT 0x0500
+#include <windows.h>
 
 #endif
 
@@ -89,8 +81,6 @@ public:
 
     QString getEnvironmentVariable(const QString &environmentVariable);
 
-    bool runAs(const QString &userName, const QString &dowmainName, const QString &password, const QString &exeFilePath, const QString &parameters = "", bool show = true, const QString &workingDir = QCoreApplication::applicationDirPath(), bool wait = false);
-
     QString getExeFileVersion(const QString &exeFileName);
 
     QStringList localUsers() ;
@@ -122,7 +112,7 @@ public:
     static bool isWow64();
 
     bool isUserAutoLogin();
-    bool setUserAutoLogin(LPCWSTR userName, LPCWSTR password, bool autoLogin);
+    bool setUserAutoLogin(const QString &userName, const QString &password, bool autoLogin);
 
     bool initNewSitoyUser();
     bool userNeedInit(const QString &userName = "");
@@ -182,8 +172,6 @@ public:
     bool deleteUserFromLocalGroup(const QString &userName, const QString &groupName);
     bool deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName);
     QStringList getMembersOfLocalGroup(const QString &serverName, const QString &groupName);
-
-
     QStringList localGroups();
 
     bool setComputerName(const QString &newComputerName);
@@ -212,18 +200,21 @@ public:
     bool setupIME();
 
     void setLocation(Location location);
-//    void setNewComputerNameToBeUsed(const QString &m_newComputerNameToBeUsed);
+    //    void setNewComputerNameToBeUsed(const QString &m_newComputerNameToBeUsed);
 
 
-//////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////
+    bool runAs(const QString &userName, const QString &dowmainName, const QString &password,
+               const QString &exeFilePath, const QString &parameters = "", bool show = true,
+               const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
 
-    bool runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters = "", bool show = true, const QString &workingDir = QCoreApplication::applicationDirPath());
-
-//////////////////////////////////////////////////////
-
-
-
-
+    bool runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password,
+                                    const QString &exeFilePath, const QString &parameters = "", bool show = true,
+                                    const QString &workingDir = "");
+    bool runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password,
+                                    const QString &exeFilePath, const QString &parameters = "", bool show = true,
+                                    const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
+    //////////////////////////////////////////////////////
 
 
 #endif

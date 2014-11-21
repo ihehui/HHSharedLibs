@@ -56,7 +56,9 @@
 #include <Tlhelp32.h>
 #include <Lmjoin.h>
 
-#include "autoit3.h"
+#include <Userenv.h>
+
+//#include "autoit3.h"
 
 const int MaxUserAccountNameLength = 20;
 const int MaxUserPasswordLength = LM20_PWLEN;
@@ -182,7 +184,7 @@ bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, co
 
     emit signalProgressUpdate(QString(tr("Set Starting up with M$ windows ...")), 85);
     QCoreApplication::processEvents();
-    ok = setUserAutoLogin(id, pwd, true);
+    ok = setUserAutoLogin(userName, userPassword, true);
     if(!ok){
         m_outputMsgs.append(m_lastErrorString);
     }
@@ -298,99 +300,6 @@ QString WindowsManagement::getEnvironmentVariable(const QString &environmentVari
 
 }
 
-bool WindowsManagement::runAs(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait){
-    qDebug()<<"----WindowsManagement::runAs(...)";
-    //qDebug()<<"User Name Of CurrentThread:"<<getUserNameOfCurrentThread();
-
-    m_lastErrorString = "";
-
-    if(userName.simplified().isEmpty()){
-        m_lastErrorString = tr("Invalid user name!");
-        return false;
-    }
-
-    //     if(!QFileInfo(exeFilePath).exists()){
-    //         error = tr("Can not find file '%1'!").arg(exeFilePath);
-    //         return false;
-    //     }
-
-    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
-    wcscpy(name, userName.toStdWString().c_str());
-
-    wchar_t domain[MaxGroupNameLength*sizeof(wchar_t)+1];
-    wcscpy(domain, domainName.toStdWString().c_str());
-
-    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
-    wcscpy(pwd, password.toStdWString().c_str());
-
-
-    //服务程序以"SYSTEM"身份运行，无法调用CreateProcessWithLogonW，必须用LogonUser和CreateProcessAsUser
-    //You cannot call CreateProcessWithLogonW from a process that is running under the LocalSystem account,
-    //  because the function uses the logon SID in the caller token, and the token for the LocalSystem account does not contain this SID.
-    //  As an alternative, use the CreateProcessAsUser and LogonUser functions.
-    if(getUserNameOfCurrentThread().toUpper() == "SYSTEM"){
-//        HANDLE hToken = NULL;
-//        if(!LogonUserW(name, domain, pwd, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken)){
-//            m_lastErrorString = tr("Can not log user %1 on to this computer! Error code:%2").arg(userName).arg(GetLastError());
-//            return false;
-//        }
-
-//        QString cmdStr = QString("\"" + exeFilePath + "\" " + parameters);
-//        wchar_t cmdLine[32000*sizeof(wchar_t)+1];
-//        wcscpy(cmdLine, cmdStr.toStdWString().c_str());
-
-//        STARTUPINFO si;
-//        PROCESS_INFORMATION pi;
-//        ZeroMemory(&si, sizeof(STARTUPINFO));
-//        si.cb= sizeof(STARTUPINFO);
-
-//        wchar_t desktop[64];
-//        wcscpy(desktop, L"WinSta0\\Default");
-//        si.lpDesktop = desktop;
-//        si.dwFlags = STARTF_USESHOWWINDOW;
-//        if(show){
-//            si.wShowWindow = SW_SHOW;
-//        }else{
-//            si.wShowWindow = SW_HIDE;
-//        }
-
-
-//        bool ok = CreateProcessAsUserW(hToken, exeFilePath.toStdWString().c_str(), cmdLine, NULL, NULL, false, NORMAL_PRIORITY_CLASS, NULL,workingDir.toStdWString().c_str(), &si,&pi);
-//        DWORD dwRet = GetLastError();
-//        CloseHandle(hToken);
-//        if(!ok){
-//            m_lastErrorString = tr("Starting process '%1' failed! Error Code:%2").arg(exeFilePath).arg(dwRet);
-//            qWarning()<<m_lastErrorString;
-//            return false;
-//        }else{
-//            return true;
-//        }
-
-        return runAsForInteractiveService(userName, domainName, password, exeFilePath, parameters, show, workingDir);
-
-    }
-
-
-    LPCWSTR cmd = QString(exeFilePath + " " +parameters).toStdWString().c_str();
-    AU3_RunAsSet(name, domain, pwd, 0);
-
-    if(wait){
-        AU3_RunWait(cmd, workingDir.toStdWString().c_str(), show?SW_SHOW:SW_HIDE);
-    }else{
-        AU3_Run(cmd, workingDir.toStdWString().c_str(), show?SW_SHOW:SW_HIDE);
-    }
-
-    if(AU3_error()){
-        m_lastErrorString = tr("Failed to start program '%1' !").arg(exeFilePath);
-        return false;
-    }
-
-
-    return true;
-
-
-
-}
 
 QString WindowsManagement::getExeFileVersion(const QString &exeFileName){
     QString versionString = "0.0.0.0";
@@ -565,11 +474,11 @@ bool WindowsManagement::regOpen(const QString &key, HKEY *hKey, REGSAM samDesire
         return false;
     }
 
-//#if defined( _WIN64 )
-//    samDesired |= KEY_WOW64_64KEY;
-//#else
-//    samDesired |= KEY_WOW64_32KEY;
-//#endif
+    //#if defined( _WIN64 )
+    //    samDesired |= KEY_WOW64_64KEY;
+    //#else
+    //    samDesired |= KEY_WOW64_32KEY;
+    //#endif
 
     DWORD dwRet = RegOpenKeyExW(rootKey, subKeyString.toStdWString().c_str(), 0, samDesired, hKey);
     if(dwRet != ERROR_SUCCESS){
@@ -654,6 +563,7 @@ bool WindowsManagement::regRead(HKEY hKey, const QString &valueName, QString *va
 }
 
 bool WindowsManagement::regRead(const QString &key, const QString &valueName, QString *value, bool on64BitView){
+    //qDebug()<<"--WindowsManagement::regRead(...) "<<" key:"<<key<<" valueName:"<<valueName;
 
     if(!value){return false;}
 
@@ -670,76 +580,76 @@ bool WindowsManagement::regRead(const QString &key, const QString &valueName, QS
     RegCloseKey(hKey);
     return ret;
 
-//    DWORD dwRet;
-//    DWORD dwType;
-//    DWORD bufferSize = 8192;
-//    dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, &dwType, 0, &bufferSize);
-//    if(dwRet != ERROR_SUCCESS){
-//        qCritical()<<"ERROR! RegQueryValueExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-//        RegCloseKey(hKey);
-//        return false;
-//    }
+    //    DWORD dwRet;
+    //    DWORD dwType;
+    //    DWORD bufferSize = 8192;
+    //    dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, &dwType, 0, &bufferSize);
+    //    if(dwRet != ERROR_SUCCESS){
+    //        qCritical()<<"ERROR! RegQueryValueExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    //        RegCloseKey(hKey);
+    //        return false;
+    //    }
 
-//    switch (dwType) {
-//    case REG_DWORD:
-//    {
-//        DWORDLONG lResult = 0;
-//        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)&lResult, &bufferSize);
-//        *value = QString::number(lResult);
-//    }
-//        break;
-//    case REG_BINARY:
-//    {
-//        char buffer[8192];
-//        ZeroMemory(buffer, 8192);
-//        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
-//        QByteArray ba;
-//        for(DWORD i=0;i<bufferSize;i++){
-//            ba.append(buffer[i]);
-//            //qDebug()<<i<<": "<<buffer[i]<<" "<<QByteArray(1,buffer[i]).toHex();
-//        }
-//        *value = ba.toHex().toUpper();
-//    }
-//        break;
-//    case REG_SZ:
-//    case REG_EXPAND_SZ:
-//    {
-//        wchar_t buffer[8192];
-//        ZeroMemory(buffer, 8192);
-//        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
-//        *value = QString::fromWCharArray(buffer);
-//    }
-//        break;
-//    case REG_MULTI_SZ:
-//    {
-//        wchar_t buffer[8192];
-//        ZeroMemory(buffer, 8192);
-//        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
-//        int len = bufferSize / sizeof(wchar_t) - 1;
-//        QByteArray ba;
-//        for(int i=0;i<len;i++){
-//            if(buffer[i] == '\0'){
-//                buffer[i] = '\n';
-//            }
-//            ba.append(buffer[i]);
-//            //qDebug()<<i<<": "<<buffer[i]<<" "<<QChar(buffer[i]);
-//        }
-//        *value = ba;
-//    }
-//        break;
-//    default:
-//        *value = "";
-//        qCritical()<<"ERROR! Unknown data type: "<<dwType;
-//        RegCloseKey(hKey);
-//        return false;
-//        break;
-//    }
+    //    switch (dwType) {
+    //    case REG_DWORD:
+    //    {
+    //        DWORDLONG lResult = 0;
+    //        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)&lResult, &bufferSize);
+    //        *value = QString::number(lResult);
+    //    }
+    //        break;
+    //    case REG_BINARY:
+    //    {
+    //        char buffer[8192];
+    //        ZeroMemory(buffer, 8192);
+    //        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
+    //        QByteArray ba;
+    //        for(DWORD i=0;i<bufferSize;i++){
+    //            ba.append(buffer[i]);
+    //            //qDebug()<<i<<": "<<buffer[i]<<" "<<QByteArray(1,buffer[i]).toHex();
+    //        }
+    //        *value = ba.toHex().toUpper();
+    //    }
+    //        break;
+    //    case REG_SZ:
+    //    case REG_EXPAND_SZ:
+    //    {
+    //        wchar_t buffer[8192];
+    //        ZeroMemory(buffer, 8192);
+    //        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
+    //        *value = QString::fromWCharArray(buffer);
+    //    }
+    //        break;
+    //    case REG_MULTI_SZ:
+    //    {
+    //        wchar_t buffer[8192];
+    //        ZeroMemory(buffer, 8192);
+    //        dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
+    //        int len = bufferSize / sizeof(wchar_t) - 1;
+    //        QByteArray ba;
+    //        for(int i=0;i<len;i++){
+    //            if(buffer[i] == '\0'){
+    //                buffer[i] = '\n';
+    //            }
+    //            ba.append(buffer[i]);
+    //            //qDebug()<<i<<": "<<buffer[i]<<" "<<QChar(buffer[i]);
+    //        }
+    //        *value = ba;
+    //    }
+    //        break;
+    //    default:
+    //        *value = "";
+    //        qCritical()<<"ERROR! Unknown data type: "<<dwType;
+    //        RegCloseKey(hKey);
+    //        return false;
+    //        break;
+    //    }
 
-//    qDebug()<<"dwType:"<<dwType;
-//    qDebug()<<"bufferSize:"<<bufferSize;
+    //    qDebug()<<"dwType:"<<dwType;
+    //    qDebug()<<"bufferSize:"<<bufferSize;
 
-//    RegCloseKey(hKey);
-//    return true;
+    //    RegCloseKey(hKey);
+    //    return true;
 }
 
 bool WindowsManagement::regEnumVal(HKEY hKey, QStringList *valueNameList){
@@ -790,33 +700,33 @@ bool WindowsManagement::regEnumVal(const QString &key, QStringList *valueNameLis
     RegCloseKey(hKey);
     return ret;
 
-//    DWORD dwRet;
-//    DWORD dwIndex= 0;
+    //    DWORD dwRet;
+    //    DWORD dwIndex= 0;
 
-//    DWORD valueNameLen = 8192;
-//    wchar_t valueName[8192];
-//    ZeroMemory(valueName, 8192);
+    //    DWORD valueNameLen = 8192;
+    //    wchar_t valueName[8192];
+    //    ZeroMemory(valueName, 8192);
 
-//    do{
-//        dwRet = RegEnumValueW(hKey, dwIndex, valueName, &valueNameLen, 0, 0, 0, 0);
-//        if(dwRet == ERROR_SUCCESS){
-//            valueNameList->append(QString::fromWCharArray(valueName));
-//            valueNameLen = 8192;
-//            ZeroMemory(valueName, valueNameLen);
-//            //qDebug()<<dwRet<<":"<<WinErrorMsg(dwRet);
-//            dwIndex++;
-//        }else if(dwRet == ERROR_NO_MORE_ITEMS){
-//            break;
-//        }else{
-//            qCritical()<<"ERROR! RegEnumValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-//            RegCloseKey(hKey);
-//            return false;
-//        }
+    //    do{
+    //        dwRet = RegEnumValueW(hKey, dwIndex, valueName, &valueNameLen, 0, 0, 0, 0);
+    //        if(dwRet == ERROR_SUCCESS){
+    //            valueNameList->append(QString::fromWCharArray(valueName));
+    //            valueNameLen = 8192;
+    //            ZeroMemory(valueName, valueNameLen);
+    //            //qDebug()<<dwRet<<":"<<WinErrorMsg(dwRet);
+    //            dwIndex++;
+    //        }else if(dwRet == ERROR_NO_MORE_ITEMS){
+    //            break;
+    //        }else{
+    //            qCritical()<<"ERROR! RegEnumValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    //            RegCloseKey(hKey);
+    //            return false;
+    //        }
 
-//    }while(dwRet == ERROR_SUCCESS);
+    //    }while(dwRet == ERROR_SUCCESS);
 
-//    RegCloseKey(hKey);
-//    return true;
+    //    RegCloseKey(hKey);
+    //    return true;
 }
 
 bool WindowsManagement::regEnumKey(HKEY hKey, QStringList *keyNameList){
@@ -866,32 +776,32 @@ bool WindowsManagement::regEnumKey(const QString &key, QStringList *keyNameList,
     RegCloseKey(hKey);
     return ret;
 
-//    DWORD dwRet;
-//    DWORD dwIndex= 0;
+    //    DWORD dwRet;
+    //    DWORD dwIndex= 0;
 
-//    DWORD keyNameLen = 8192;
-//    wchar_t keyName[8192];
-//    ZeroMemory(keyName, 8192);
+    //    DWORD keyNameLen = 8192;
+    //    wchar_t keyName[8192];
+    //    ZeroMemory(keyName, 8192);
 
-//    do{
-//        dwRet = RegEnumKeyExW(hKey, dwIndex, keyName, &keyNameLen, 0, 0, 0, 0);
-//        if(dwRet == ERROR_SUCCESS){
-//            keyNameList->append(QString::fromWCharArray(keyName));
-//            keyNameLen = 8192;
-//            ZeroMemory(keyName, keyNameLen);
-//            dwIndex++;
-//        }else if(dwRet == ERROR_NO_MORE_ITEMS){
-//            break;
-//        }else{
-//            qCritical()<<"ERROR! RegEnumKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-//            RegCloseKey(hKey);
-//            return false;
-//        }
+    //    do{
+    //        dwRet = RegEnumKeyExW(hKey, dwIndex, keyName, &keyNameLen, 0, 0, 0, 0);
+    //        if(dwRet == ERROR_SUCCESS){
+    //            keyNameList->append(QString::fromWCharArray(keyName));
+    //            keyNameLen = 8192;
+    //            ZeroMemory(keyName, keyNameLen);
+    //            dwIndex++;
+    //        }else if(dwRet == ERROR_NO_MORE_ITEMS){
+    //            break;
+    //        }else{
+    //            qCritical()<<"ERROR! RegEnumKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    //            RegCloseKey(hKey);
+    //            return false;
+    //        }
 
-//    }while(dwRet == ERROR_SUCCESS);
+    //    }while(dwRet == ERROR_SUCCESS);
 
-//    RegCloseKey(hKey);
-//    return true;
+    //    RegCloseKey(hKey);
+    //    return true;
 }
 
 bool WindowsManagement::regCreateKey(HKEY hKey, const QString &subKeyName, HKEY *hSubKey){
@@ -900,7 +810,7 @@ bool WindowsManagement::regCreateKey(HKEY hKey, const QString &subKeyName, HKEY 
     DWORD dwDisposition;
 
     DWORD dwRet = RegCreateKeyExW(hKey, subKeyName.toStdWString().c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
-    //DWORD dwRet = RegCreateKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\AutoIt v3\\QQQ", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
+    //DWORD dwRet = RegCreateKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\AutoIt v3\\QQQ", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
 
     if(dwRet != ERROR_SUCCESS){
         qCritical()<<"ERROR! RegCreateKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
@@ -931,24 +841,24 @@ bool WindowsManagement::regCreateKey(const QString &key, const QString &subKeyNa
     RegCloseKey(hKey);
     return ret;
 
-//    HKEY hkResult;
-//    DWORD dwDisposition;
+    //    HKEY hkResult;
+    //    DWORD dwDisposition;
 
-//    DWORD dwRet = RegCreateKeyExW(hKey, subKeyName.toStdWString().c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
-//    //DWORD dwRet = RegCreateKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\AutoIt v3\\QQQ", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
+    //    DWORD dwRet = RegCreateKeyExW(hKey, subKeyName.toStdWString().c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
+    //    //DWORD dwRet = RegCreateKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\AutoIt v3\\QQQ", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
 
-//    if(dwRet != ERROR_SUCCESS){
-//        qCritical()<<"ERROR! RegCreateKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-//        RegCloseKey(hKey);
-//        return false;
-//    }
+    //    if(dwRet != ERROR_SUCCESS){
+    //        qCritical()<<"ERROR! RegCreateKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    //        RegCloseKey(hKey);
+    //        return false;
+    //    }
 
-//    if(hSubKey){
-//        *hSubKey = hkResult;
-//    }
+    //    if(hSubKey){
+    //        *hSubKey = hkResult;
+    //    }
 
-//    RegCloseKey(hKey);
-//    return true;
+    //    RegCloseKey(hKey);
+    //    return true;
 }
 
 bool WindowsManagement::regSetValue(HKEY hKey, const QString &valueName, const QString &value, DWORD valueType){
@@ -1014,6 +924,7 @@ bool WindowsManagement::regSetValue(HKEY hKey, const QString &valueName, const Q
 }
 
 bool WindowsManagement::regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType, bool on64BitView){
+    //qDebug()<<"--WindowsManagement::regSetValue(...) "<<" key:"<<key<<" valueName:"<<valueName<<" value:"<<value;
 
     REGSAM samDesired = KEY_WRITE;
     if(on64BitView){
@@ -1031,19 +942,29 @@ bool WindowsManagement::regSetValue(const QString &key, const QString &valueName
 
 bool WindowsManagement::regDeleteKey(HKEY hKey, const QString &subKeyName, bool on64BitView){
 
-//#if defined( _WIN64 )
-//    samDesired |= KEY_WOW64_64KEY;
-//#else
-//    samDesired |= KEY_WOW64_32KEY;
-//#endif
+    //#if defined( _WIN64 )
+    //    samDesired |= KEY_WOW64_64KEY;
+    //#else
+    //    samDesired |= KEY_WOW64_32KEY;
+    //#endif
 
-    REGSAM samDesired;
-    if(on64BitView){
-        samDesired = KEY_WOW64_64KEY;
+    DWORD dwRet;
+
+    typedef DWORD (WINAPI *FN_RegDeleteKeyExW) (HKEY, LPCWSTR, REGSAM, DWORD);
+    FN_RegDeleteKeyExW fnRegDeleteKeyExW;
+    fnRegDeleteKeyExW = (FN_RegDeleteKeyExW)GetProcAddress( GetModuleHandleW(L"advapi32"), "RegDeleteKeyExW");
+    if (NULL != fnRegDeleteKeyExW){
+        REGSAM samDesired;
+        if(on64BitView){
+            samDesired = KEY_WOW64_64KEY;
+        }else{
+            samDesired = KEY_WOW64_32KEY;
+        }
+        dwRet = fnRegDeleteKeyExW(hKey, subKeyName.toStdWString().c_str(), samDesired, 0);
     }else{
-        samDesired = KEY_WOW64_32KEY;
+        dwRet = RegDeleteKeyW(hKey, subKeyName.toStdWString().c_str());
     }
-    DWORD dwRet = RegDeleteKeyExW(hKey, subKeyName.toStdWString().c_str(), samDesired, 0);
+
     if(dwRet != ERROR_SUCCESS){
         qCritical()<<"ERROR! RegDeleteKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
         return false;
@@ -1066,21 +987,21 @@ bool WindowsManagement::regDeleteKey(const QString &key, bool on64BitView){
     return ret;
 
 
-//    if(0 == samDesired){
-//#if defined( _WIN64 )
-//    samDesired |= KEY_WOW64_64KEY;
-//#else
-//    samDesired |= KEY_WOW64_32KEY;
-//#endif
-//    }
+    //    if(0 == samDesired){
+    //#if defined( _WIN64 )
+    //    samDesired |= KEY_WOW64_64KEY;
+    //#else
+    //    samDesired |= KEY_WOW64_32KEY;
+    //#endif
+    //    }
 
-//    DWORD dwRet = RegDeleteKeyExW(rootKey, subKeyString.toStdWString().c_str(), samDesired, 0);
-//    if(dwRet != ERROR_SUCCESS){
-//        qCritical()<<"ERROR! RegDeleteKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-//        return false;
-//    }
+    //    DWORD dwRet = RegDeleteKeyExW(rootKey, subKeyString.toStdWString().c_str(), samDesired, 0);
+    //    if(dwRet != ERROR_SUCCESS){
+    //        qCritical()<<"ERROR! RegDeleteKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    //        return false;
+    //    }
 
-//    return true;
+    //    return true;
 }
 
 bool WindowsManagement::regDeleteValue(HKEY hKey, const QString &valueName){
@@ -1109,14 +1030,14 @@ bool WindowsManagement::regDeleteValue(const QString &key, const QString &valueN
     RegCloseKey(hKey);
     return ret;
 
-//    DWORD dwRet = RegDeleteValueW(hKey, valueName.toStdWString().c_str());
-//    if(dwRet != ERROR_SUCCESS){
-//        qCritical()<<"ERROR! RegDeleteValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
-//        return false;
-//    }
+    //    DWORD dwRet = RegDeleteValueW(hKey, valueName.toStdWString().c_str());
+    //    if(dwRet != ERROR_SUCCESS){
+    //        qCritical()<<"ERROR! RegDeleteValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    //        return false;
+    //    }
 
-//    RegCloseKey(hKey);
-//    return true;
+    //    RegCloseKey(hKey);
+    //    return true;
 }
 
 void WindowsManagement::regCloseKey(HKEY hKey){
@@ -1143,22 +1064,16 @@ bool WindowsManagement::isWow64()
 bool WindowsManagement::isUserAutoLogin(){
     m_lastErrorString = "";
 
-    LPCWSTR key = QString("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon").toStdWString().c_str();
-    LPCWSTR valueName = QString("AutoAdminLogon").toStdWString().c_str();
-    int size = sizeof(REG_SZ) + 1;
-
-    LPWSTR value = new wchar_t[size];
-//    value[size-1] = L'\0';
-
-    AU3_RegRead(key, valueName, value, size);
-
-    QString v = QString::fromWCharArray(value, size);
-    delete [] value;
-
-    return v.toInt();
+    QString value = "0";
+    bool ok = regRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AutoAdminLogon", &value, true);
+    if(!ok){
+        return false;
+    }
+    qDebug()<<"value:"<<value;
+    return value.toInt();
 }
 
-bool WindowsManagement::setUserAutoLogin(LPCWSTR userName, LPCWSTR password, bool autoLogin)
+bool WindowsManagement::setUserAutoLogin(const QString &userName, const QString &password, bool autoLogin)
 {
 
     m_lastErrorString = "";
@@ -1168,29 +1083,24 @@ bool WindowsManagement::setUserAutoLogin(LPCWSTR userName, LPCWSTR password, boo
         return false;
     }
 
-    LPCWSTR key = L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon";
-    LPCWSTR valueName = L"AutoAdminLogon";
-    LPCWSTR autoLoginValue = autoLogin?L"1":L"0";
+    QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon";
 
-    AU3_RegWrite(key, valueName, L"REG_SZ", autoLoginValue);
-    AU3_RegWrite(key, L"DefaultUserName", L"REG_SZ", autoLogin?userName:L"");
-    if(AU3_error()){
-        AU3_RegWrite(key, valueName, L"REG_SZ", L"0");
+    bool ok = regSetValue(key, "AutoAdminLogon", autoLogin?"1":"0", REG_SZ, true);
+    if(!ok){
+        m_lastErrorString = tr("Can not set 'AutoAdminLogon' for 'AutoAdminLogon'!");
+    }
+
+    ok = regSetValue(key, "DefaultUserName", autoLogin?userName:"", REG_SZ, true);
+    if(!ok){
         m_lastErrorString = tr("Can not set 'DefaultUserName' for 'AutoAdminLogon'!");
-        return false;
     }
 
-
-    AU3_RegWrite(key, L"DefaultPassword", L"REG_SZ", autoLogin?password:L"");
-    if(AU3_error()){
-        AU3_RegWrite(key, valueName, L"REG_SZ", L"0");
+    ok = regSetValue(key, "DefaultPassword", autoLogin?password:"", REG_SZ, true);
+    if(!ok){
         m_lastErrorString = tr("Can not set 'DefaultPassword' for 'AutoAdminLogon'!");
-        return false;
     }
 
-
-    return true;
-
+    return ok;
 }
 
 bool WindowsManagement::initNewSitoyUser(){
@@ -1338,7 +1248,6 @@ bool WindowsManagement::initNewSitoyUser(){
     m_lastErrorString = "";
     emit signalInitializingUserJobDone(true);
     return true;
-
 
 }
 
@@ -2123,7 +2032,7 @@ bool WindowsManagement::addUserToLocalSystem(LPWSTR userName, LPWSTR userPasswor
     if (nStatus == NERR_Success)
     {
         qDebug()<<"User '"<<userName<<"' successfully added to Local system.\n";
-        //wprintf(stderr, L"User %s has been successfully added on %s\n",
+        //wprintf(stderr, "User %s has been successfully added on %s\n",
         //szUserName, szServerName);
         m_lastErrorString = "";
         return true;
@@ -2154,7 +2063,7 @@ bool WindowsManagement::deleteUserFromLocalSystem(LPWSTR userName){
     nStatus = NetUserDel(NULL, userName);
 
     if (nStatus == NERR_Success) {
-        //fwprintf(stderr, L"User %s has been successfully deleted! \n", userName);
+        //fwprintf(stderr, "User %s has been successfully deleted! \n", userName);
         qDebug()<<"User"<< userName<<" has been successfully deleted!";
         m_lastErrorString = "";
         return true;
@@ -2311,12 +2220,12 @@ QStringList WindowsManagement::getMembersOfLocalGroup(const QString &serverName,
     {
         nStatus = NetLocalGroupGetMembers(serverName.toStdWString().c_str(),
                                           groupName.toStdWString().c_str(),
-                                   dwLevel,
-                                   (LPBYTE*)&pBuf,
-                                   dwPrefMaxLen,
-                                   &dwEntriesRead,
-                                   &dwTotalEntries,
-                                   &dwResumeHandle);
+                                          dwLevel,
+                                          (LPBYTE*)&pBuf,
+                                          dwPrefMaxLen,
+                                          &dwEntriesRead,
+                                          &dwTotalEntries,
+                                          &dwResumeHandle);
 
         if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA))
         {
@@ -2366,17 +2275,15 @@ bool WindowsManagement::setComputerName(const QString &newComputerName) {
         return false;
     }
 
-    LPCWSTR computerName = newComputerName.toStdWString().c_str();
-
-    AU3_RegWrite(QString("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters").toStdWString().c_str(), L"NV Hostname", L"REG_SZ", computerName);
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters", "NV Hostname", newComputerName, REG_SZ, true);
 
     //if (SetComputerNameExW(ComputerNamePhysicalDnsHostname, computerName)){
-    if (SetComputerNameW(computerName)){
+    if (SetComputerNameW(newComputerName.toStdWString().c_str())){
         m_lastErrorString = "";
         return true;
     }else{
-        qCritical()<< "Can not set computer name to " << computerName;
-        m_lastErrorString = tr("Can not set computer name to '%1'").arg(QString::fromWCharArray(computerName));
+        qCritical()<< "Can not set computer name to " << newComputerName;
+        m_lastErrorString = tr("Can not set computer name to '%1'").arg(newComputerName);
         return false;
     }
 
@@ -3003,45 +2910,36 @@ bool WindowsManagement::setupIME(){
 
     QString wbID = "";
     QString keyName = "HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Control\\Keyboard Layouts\\";
-    int nBufSize = 64;
-    LPWSTR szResult = new wchar_t[nBufSize];
 
     QString imeFileKey = "Ime File";
-    LPWSTR imeFileValue = new wchar_t[nBufSize] ;
+    QString imeFileValue = "";
     //QString imeNameKey = "Layout Text" ;
     //QString imeNameValue = "";
-
-    for(int i = 0; i < 64; ++i){
-        AU3_RegEnumKey(keyName.toStdWString().c_str(), i, szResult, nBufSize);
-        QString imeKey = QString::fromWCharArray(szResult);
+    QStringList imeKeys;
+    regEnumKey(keyName, &imeKeys);
+    foreach (QString imeKey, imeKeys) {
         if(imeKey.length() != 8){
             continue;
         }
         QString imeKey2 = keyName + "\\" + imeKey;
-        AU3_RegRead(imeKey2.toStdWString().c_str(), imeFileKey.toStdWString().c_str(), imeFileValue, nBufSize);
-        if(QString::fromWCharArray(imeFileValue) == QString("WB.IME")){
+        imeFileValue = "";
+        regRead(imeKey2, imeFileKey, &imeFileValue);
+        if(imeFileValue == "WB.IME"){
             wbID = imeKey;
             qDebug()<<"wbID:"<<wbID;
             break;
         }
-
     }
-
-
-    delete [] imeFileValue;
-    delete [] szResult;
 
     if(wbID.isEmpty()){
         m_lastErrorString = tr("Can Not Find WB IME Key");
         return false;
     }
 
-
-    AU3_RegWrite(L"HKEY_CURRENT_USER\\Keyboard Layout\\Preload", L"1", L"REG_SZ", L"00000404");
-    AU3_RegWrite(L"HKEY_CURRENT_USER\\Keyboard Layout\\Preload", L"2", L"REG_SZ", wbID.toStdWString().c_str());
+    regSetValue("HKEY_CURRENT_USER\\Keyboard Layout\\Preload", "1", "00000404", REG_SZ);
+    regSetValue("HKEY_CURRENT_USER\\Keyboard Layout\\Preload", "2", wbID, REG_SZ);
 
     LoadKeyboardLayoutW(wbID.toStdWString().c_str(), 0x1);
-
 
     return true;
 
@@ -3051,21 +2949,16 @@ bool WindowsManagement::isStartupWithWin(const QString &applicationFilePath, con
 {
     m_lastErrorString = "";
 
-    LPCWSTR key = QString("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run").toStdWString().c_str();
-    LPCWSTR valueName = L"";
+    QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+    QString valueName = "";
     if(valueNameString.trimmed().isEmpty()){
-        //valueName = QFileInfo(applicationFilePath).fileName().toStdWString().c_str();
-        valueName = applicationFilePath.toStdWString().c_str();
+        valueName = applicationFilePath;
     }else{
-        valueName = valueNameString.toStdWString().c_str();
+        valueName = valueNameString;
     }
 
-    int size = 256;
-    LPWSTR value = new wchar_t[size];
-    AU3_RegRead(key, valueName, value, size);
-
-    QString valueString = QString::fromWCharArray(value);
-    delete [] value;
+    QString valueString = "";
+    regRead(key, valueName, &valueString, true);
 
     QString targetString = QDir::toNativeSeparators(applicationFilePath);
     if(!parameters.trimmed().isEmpty()){
@@ -3089,33 +2982,28 @@ bool WindowsManagement::setStartupWithWin(const QString &applicationFilePath, co
         return false;
     }
 
-
     QString nativeApplicationFilePath = QDir::toNativeSeparators(applicationFilePath);
 
-    LPCWSTR key = L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
-    LPCWSTR valueName;
+    QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+    QString valueName;
     if(valueNameString.trimmed().isEmpty()){
-        //valueName = QFileInfo(applicationFilePath).baseName().toStdWString().c_str();
-        //valueName = QFileInfo(applicationFilePath).fileName().toStdWString().c_str();
-        valueName = nativeApplicationFilePath.toStdWString().c_str();
+        valueName = nativeApplicationFilePath;
     }else{
-        valueName = valueNameString.toStdWString().c_str();
+        valueName = valueNameString;
     }
 
-    long result;
-
+    bool ok = false;
     if(startupWithWin){
         QString valueString = nativeApplicationFilePath;
         if(!parameters.trimmed().isEmpty()){
             valueString += QString(" " + parameters);
         }
-        LPCWSTR value = valueString.toStdWString().c_str();
-        result = AU3_RegWrite(key, valueName, L"REG_SZ", value);
+        ok = regSetValue(key, valueName, valueString, REG_SZ, true);
     }else{
-        result = AU3_RegDeleteVal(key, valueName);
+        ok = regDeleteValue(key, valueName, true);
     }
 
-    if(AU3_error()){
+    if(!ok){
         m_lastErrorString = tr("Failure writing to the system registry! Can not %1 '%2' to start with M$ Windows!").arg(startupWithWin?tr("enable"):tr("disable")).arg(applicationFilePath);
         return false;
     }
@@ -3123,7 +3011,6 @@ bool WindowsManagement::setStartupWithWin(const QString &applicationFilePath, co
     return true;
 
 }
-
 
 
 bool WindowsManagement::addOEMailAccount(const QString &userName, const QString &department, bool intEmail, const QString &storeRoot, const QString &accountName)
@@ -3148,55 +3035,51 @@ bool WindowsManagement::addOEMailAccount(const QString &userName, const QString 
         smtpServer = "smtp.sitoy.com" ;
     }
 
-    LPCWSTR key = QString("HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Account Manager").toStdWString().c_str();
-    LPCWSTR valueName = QString("Default Mail Account").toStdWString().c_str();
-    LPCWSTR value = num.toStdWString().c_str();
-    AU3_RegWrite(key, valueName, L"REG_SZ", value);
+    QString key = "HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Account Manager";
+    QString valueName = "Default Mail Account";
+    QString value = num;
+    regSetValue(key, valueName, value, REG_SZ, false);
 
-    key = QString("HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Account Manager\\Accounts\\"+num).toStdWString().c_str();
-    //valueName = QString("Account Name").toStdWString().c_str();
-    //value = popServer.toStdWString().c_str();
-    //    AU3_RegWrite(key, QString("Account Name").toStdWString().c_str(), L"REG_SZ", popServer.toStdWString().c_str());
-    AU3_RegWrite(key, QString("Account Name").toStdWString().c_str(), L"REG_SZ", emailAddress.toStdWString().c_str());
-    AU3_RegWrite(key, QString("Connection Type").toStdWString().c_str(), L"REG_DWORD", QString("3").toStdWString().c_str());
-    AU3_RegWrite(key, QString("POP3 Prompt for Password").toStdWString().c_str(), L"REG_DWORD", QString("0").toStdWString().c_str());
-    AU3_RegWrite(key, QString("POP3 Server").toStdWString().c_str(), L"REG_SZ", popServer.toStdWString().c_str());
-    AU3_RegWrite(key, QString("POP3 Use Sicily").toStdWString().c_str(), L"REG_DWORD", QString("0").toStdWString().c_str());
-    AU3_RegWrite(key, QString("POP3 User Name").toStdWString().c_str(), L"REG_SZ", accountName.toStdWString().c_str());
-    AU3_RegWrite(key, QString("SMTP Display Name").toStdWString().c_str(), L"REG_SZ", accountName.toStdWString().c_str());
-    AU3_RegWrite(key, QString("SMTP Email Address").toStdWString().c_str(), L"REG_SZ", emailAddress.toStdWString().c_str());
-    AU3_RegWrite(key, QString("SMTP Server").toStdWString().c_str(), L"REG_SZ", smtpServer.toStdWString().c_str());
-    if(!intEmail){
-        AU3_RegWrite(key, QString("SMTP Port").toStdWString().c_str(), L"REG_DWORD", QString("465").toStdWString().c_str());
-        AU3_RegWrite(key, QString("SMTP Secure Connection").toStdWString().c_str(), L"REG_DWORD", QString("1").toStdWString().c_str());
-        AU3_RegWrite(key, QString("SMTP Use Sicily").toStdWString().c_str(), L"REG_DWORD", QString("2").toStdWString().c_str());
+    key = "HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Account Manager\\Accounts\\" + num;
+    HKEY hKey;
+    bool ok = regOpen(key, &hKey);
+    if(!ok){
+        m_lastErrorString = tr("Failed to open registry '%1'!").arg(key);
+        return false;
     }
 
+    regSetValue(hKey, QString("Account Name"), emailAddress, REG_SZ);
+    regSetValue(hKey, QString("Connection Type"), QString("3"), REG_DWORD);
+    regSetValue(hKey, QString("POP3 Prompt for Password"), QString("0"), REG_DWORD);
+    regSetValue(hKey, QString("POP3 Server"), popServer, REG_SZ);
+    regSetValue(hKey, QString("POP3 Use Sicily"), QString("0"), REG_DWORD);
+    regSetValue(hKey, QString("POP3 User Name"), accountName, REG_SZ);
+    regSetValue(hKey, QString("SMTP Display Name"), accountName, REG_SZ);
+    regSetValue(hKey, QString("SMTP Email Address"), emailAddress, REG_SZ);
+    regSetValue(hKey, QString("SMTP Server"), smtpServer, REG_SZ);
+    if(!intEmail){
+        regSetValue(hKey, QString("SMTP Port"), QString("465"), REG_DWORD);
+        regSetValue(hKey, QString("SMTP Secure Connection"), QString("1"), REG_DWORD);
+        regSetValue(hKey, QString("SMTP Use Sicily"), QString("2"), REG_DWORD);
+    }
+    regCloseKey(hKey);
 
-    key = L"HKEY_CURRENT_USER\\Identities";
-    valueName = L"Default User ID";
-    int nBufSize = 64;
-    LPWSTR defaultUserID = new wchar_t[nBufSize];
-    AU3_RegRead(key, valueName, defaultUserID, nBufSize);
-    qDebug()<<"~~defaultUserID:"<<QString::fromWCharArray(defaultUserID);
+    key = "HKEY_CURRENT_USER\\Identities";
+    valueName = "Default User ID";
+    QString defaultUserID = "";
+    regRead(key, valueName, &defaultUserID);
 
-    key = QString("HKEY_CURRENT_USER\\Identities\\" + QString::fromWCharArray(defaultUserID) + "\\Software\\Microsoft\\Outlook Express\\5.0").toStdWString().c_str();
-    AU3_RegWrite(key, L"Store Root", L"REG_SZ", mailFolderPath.toStdWString().c_str());
+    key = "HKEY_CURRENT_USER\\Identities\\" + defaultUserID + "\\Software\\Microsoft\\Outlook Express\\5.0";
+    regSetValue(key, "Store Root", mailFolderPath, REG_SZ);
 
-    key = QString("HKEY_CURRENT_USER\\Identities\\" + QString::fromWCharArray(defaultUserID) + "\\Software\\Microsoft\\Outlook Express\\5.0\\Mail").toStdWString().c_str();
-    AU3_RegWrite(key, QString("Safe Attachments").toStdWString().c_str(), L"REG_DWORD", QString("0").toStdWString().c_str());
-
-    delete [] defaultUserID;
-    delete [] value;
-    delete [] valueName;
-    delete [] key;
+    key = "HKEY_CURRENT_USER\\Identities\\" + defaultUserID + "\\Software\\Microsoft\\Outlook Express\\5.0\\Mail";
+    regSetValue(key, "Safe Attachments", QString("0"), REG_DWORD);
 
     CreateDirectoryW(storeRoot.toStdWString().c_str(), NULL);
     CreateDirectoryW(mailFolderPath.toStdWString().c_str(), NULL);
 
     m_lastErrorString = "";
     return true;
-
 }
 
 bool WindowsManagement::addLiveMailAccount(const QString &userName, const QString &department, bool intEmail, const QString &storeRoot, const QString &accountName)
@@ -3307,24 +3190,23 @@ bool WindowsManagement::addLiveMailAccount(const QString &userName, const QStrin
     }
 
 
-    LPCWSTR key = QString("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows Live Mail").toStdWString().c_str();
-    LPCWSTR valueName = QString("Default Mail Account").toStdWString().c_str();
-    LPCWSTR value = mailAccountConfigFileName.toStdWString().c_str();
-    AU3_RegWrite(key, valueName, L"REG_SZ", value);
+    QString key = "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows Live Mail";
+    QString valueName = "Default Mail Account";
+    QString value = mailAccountConfigFileName;
+    regSetValue(key, valueName, value, REG_SZ);
 
 
-    valueName = QString("Store Root").toStdWString().c_str();
-    value = liveMailFolderPath.toStdWString().c_str();
-    AU3_RegWrite(key, valueName, L"REG_SZ", value);
+    valueName = "Store Root";
+    value = liveMailFolderPath;
+    regSetValue(key, valueName, value, REG_SZ);
 
-    key = QString("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows Live Mail\\mail").toStdWString().c_str();
-    valueName = QString("Safe Attachments").toStdWString().c_str();
-    value = QString("0").toStdWString().c_str();
-    AU3_RegWrite(key, valueName, L"REG_DWORD", value);
+    key = "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows Live Mail\\mail";
+    valueName = "Safe Attachments";
+    value = "0";
+    regSetValue(key, valueName, value, REG_DWORD);
 
     m_lastErrorString = "";
     return true;
-
 }
 
 bool WindowsManagement::addOutlookMailAccount(const QString &userName, const QString &department, bool intEmail, const QString &storeRoot, const QString &accountName)
@@ -3343,9 +3225,9 @@ bool WindowsManagement::addOutlookMailAccount(const QString &userName, const QSt
     if (intEmail) {
         num = "00000004";
         miniUID = "127761513";
-        emailAddress = accountName+"@sitoydg.com";
-        popServer = "200.200.200.4" ;
-        smtpServer = "200.200.200.4" ;
+        emailAddress = accountName+"@sitoy.cn";
+        popServer = "pop3.sitoy.com" ;
+        smtpServer = "pop3.sitoy.com" ;
     }else{
         num = "00000003" ;
         miniUID = "4196440948";
@@ -3355,26 +3237,24 @@ bool WindowsManagement::addOutlookMailAccount(const QString &userName, const QSt
     }
 
 
-    LPCWSTR key = QString("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows Messaging Subsystem\\Profiles\\Outlook\\9375CFF0413111d3B88A00104B2A6676\\"+num).toStdWString().c_str();
-    AU3_RegWrite(key, QString("Account Name").toStdWString().c_str(), L"REG_BINARY", stringToOutlookHexString(emailAddress).toStdWString().c_str());
+    QString key = "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows Messaging Subsystem\\Profiles\\Outlook\\9375CFF0413111d3B88A00104B2A6676\\" + num;
+    regSetValue(key, QString("Account Name"), stringToOutlookHexString(emailAddress), REG_BINARY);
 
-    AU3_RegWrite(key, QString("clsid").toStdWString().c_str(), L"REG_SZ", L"{ED475411-B0D6-11D2-8C3B-00104B2A6676}");
-    //    AU3_RegWrite(key, QString("Display Name").toStdWString().c_str(), L"REG_BINARY", stringToOutlookHexString(popServer).toStdWString().c_str());
-    AU3_RegWrite(key, QString("Display Name").toStdWString().c_str(), L"REG_BINARY", stringToOutlookHexString(emailAddress).toStdWString().c_str());
-    AU3_RegWrite(key, QString("Email").toStdWString().c_str(), L"REG_BINARY", stringToOutlookHexString(emailAddress).toStdWString().c_str());
-    AU3_RegWrite(key, QString("Mini UID").toStdWString().c_str(), L"REG_DWORD", miniUID.toStdWString().c_str());
-    AU3_RegWrite(key, QString("POP3 Server").toStdWString().c_str(), L"REG_BINARY", stringToOutlookHexString(popServer).toStdWString().c_str());
-    AU3_RegWrite(key, QString("POP3 User").toStdWString().c_str(), L"REG_BINARY", stringToOutlookHexString(accountName).toStdWString().c_str());
-    AU3_RegWrite(key, QString("SMTP Server").toStdWString().c_str(), L"REG_BINARY", stringToOutlookHexString(smtpServer).toStdWString().c_str());
+    regSetValue(key, QString("clsid"), "{ED475411-B0D6-11D2-8C3B-00104B2A6676}", REG_SZ);
+    //regSetValue(key, QString("Display Name"), stringToOutlookHexString(popServer), REG_BINARY);
+    regSetValue(key, QString("Display Name"), stringToOutlookHexString(emailAddress), REG_BINARY);
+    regSetValue(key, QString("Email"), stringToOutlookHexString(emailAddress), REG_BINARY);
+    regSetValue(key, QString("Mini UID"), miniUID, REG_DWORD);
+    regSetValue(key, QString("POP3 Server"), stringToOutlookHexString(popServer), REG_BINARY);
+    regSetValue(key, QString("POP3 User"), stringToOutlookHexString(accountName), REG_BINARY);
+    regSetValue(key, QString("SMTP Server"), stringToOutlookHexString(smtpServer), REG_BINARY);
 
     if(!intEmail){
-        AU3_RegWrite(key, QString("SMTP Port").toStdWString().c_str(), L"REG_DWORD", QString("465").toStdWString().c_str());
-        AU3_RegWrite(key, QString("SMTP Use Auth").toStdWString().c_str(), L"REG_DWORD", QString("1").toStdWString().c_str());
-        AU3_RegWrite(key, QString("SMTP Use SSL").toStdWString().c_str(), L"REG_DWORD", QString("1").toStdWString().c_str());
+        regSetValue(key, QString("SMTP Port"), QString("465"), REG_DWORD);
+        regSetValue(key, QString("SMTP Use Auth"), QString("1"), REG_DWORD);
+        regSetValue(key, QString("SMTP Use SSL"), QString("1"), REG_DWORD);
     }
 
-
-    delete [] key;
 
     //CreateDirectoryW(storeRoot.toStdWString().c_str(), NULL);
     //CreateDirectoryW(mailFolderPath.toStdWString().c_str(), NULL);
@@ -3402,20 +3282,15 @@ QString WindowsManagement::stringToOutlookHexString(const QString &string){
     //qWarning()<<"temp:"<<byteArray;
 
     return byteArray;
-
 }
 
 QString WindowsManagement::outlookInstalledPath(){
 
-    LPCWSTR key = QString("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\OUTLOOK.EXE").toStdWString().c_str();
-    //LPCWSTR valueName = QString("Path").toStdWString().c_str();
-    int size = 256;
-    LPWSTR value = new wchar_t[size];
-    //AU3_RegRead(key, valueName, value, size);
-    AU3_RegRead(key, L"", value, size);
+    QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\OUTLOOK.EXE";
+    QString value = "";
+    regRead(key, "", &value);
 
-    return QString::fromWCharArray(value);
-
+    return value;
 }
 
 void WindowsManagement::cleanTemporaryFiles(){
@@ -3503,60 +3378,58 @@ void WindowsManagement::deleteFiles(const QString &path, const QStringList & nam
 void WindowsManagement::modifySystemSettings(){
     //    qDebug()<<"----WindowsManagement::modifySystemSettings()";
 
-    AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\lanmanserver\\parameters", L"AutoShareServer", L"REG_DWORD", L"1");
-    AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\lanmanserver\\parameters", L"AutoShareWks", L"REG_DWORD", L"1");
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\lanmanserver\\parameters", "AutoShareServer", "1", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\lanmanserver\\parameters", "AutoShareWks", "1", REG_DWORD);
     //经典共享方式
-    //RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Control\\Lsa", L"forceguest", L"REG_DWORD", L"0");
-    AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa", L"forceguest", L"REG_DWORD", L"0");
-    AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa", L"restrictanonymous", L"REG_DWORD", L"0");
+    //RegWrite("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Control\\Lsa", "forceguest", "0", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa", "forceguest", "0", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa", "restrictanonymous", "0", REG_DWORD);
 
-    AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\RemoteRegistry", L"Start", L"REG_DWORD", L"2");
-    AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\Schedule", L"Start", L"REG_DWORD", L"2");
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\RemoteRegistry", "Start", "2", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\Schedule", "Start", "2", REG_DWORD);
 
-    AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\seclogon", L"Start", L"REG_DWORD", L"2");
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\seclogon", "Start", "2", REG_DWORD);
 
     //Disable Firewall
     if(isNT6OS()){
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\FirewallRules", L"RemoteDesktop-In-TCP", L"REG_SZ", L"v2.10|Action=Allow|Active=TRUE|Dir=In|Protocol=6|LPort=3389|App=System|Name=@FirewallAPI.dll,-28753|Desc=@FirewallAPI.dll,-28756|EmbedCtxt=@FirewallAPI.dll,-28752|");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\PublicProfile", L"EnableFirewall", L"REG_DWORD", L"0");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile", L"EnableFirewall", L"REG_DWORD", L"0");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\DomainProfile", L"EnableFirewall", L"REG_DWORD", L"0");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\MpsSvc", L"Start", L"REG_DWORD", L"4");
-
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\FirewallRules", "RemoteDesktop-In-TCP", "v2.10|Action=Allow|Active=TRUE|Dir=In|Protocol=6|LPort=3389|App=System|Name=@FirewallAPI.dll,-28753|Desc=@FirewallAPI.dll,-28756|EmbedCtxt=@FirewallAPI.dll,-28752|", REG_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\PublicProfile", "EnableFirewall", "0", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile", "EnableFirewall", "0", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\DomainProfile", "EnableFirewall", "0", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\MpsSvc", "Start", "4", REG_DWORD);
     }else{
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile", L"EnableFirewall", L"REG_DWORD", L"0");
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile", "EnableFirewall", "0", REG_DWORD);
     }
 
     if(QSysInfo::windowsVersion() > QSysInfo::WV_2000){
-        //        qDebug()<<"~~QSysInfo::windowsVersion() > QSysInfo::WV_2000";
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server", L"fDenyTSConnections", L"REG_DWORD", L"0");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server", L"fSingleSessionPerUser", L"REG_DWORD", L"0");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\TermService", L"Start", L"REG_DWORD", L"2");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\wscsvc", L"Start", L"REG_DWORD", L"4");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\Software\\Microsoft\\TelnetServer\\1.0", L"SecurityMechanism", L"REG_DWORD", L"6");
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server", "fDenyTSConnections", "0", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server", "fSingleSessionPerUser", "0", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\TermService", "Start", "2", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\wscsvc", "Start", "4", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\TelnetServer\\1.0", "SecurityMechanism", "6", REG_DWORD);
     }else{
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\Software\\Microsoft\\TelnetServer\\1.0", L"NTLM", L"REG_DWORD", L"0");
+        regSetValue("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\TelnetServer\\1.0", "NTLM", "0", REG_DWORD);
     }
 
     if(QSysInfo::windowsVersion() == QSysInfo::WV_XP){
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\Licensing Core", L"EnableConcurrentSessions", L"REG_DWORD", L"1");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", L"EnableConcurrentSessions", L"REG_DWORD", L"1");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", L"AllowMultipleTSSessions", L"REG_DWORD", L"1");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Terminal Services", L"MaxInstanceCount", L"REG_DWORD", L"5");
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\Licensing Core", "EnableConcurrentSessions", "1", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "EnableConcurrentSessions", "1", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AllowMultipleTSSessions", "1", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Terminal Services", "MaxInstanceCount", "5", REG_DWORD);
 
     }
     
     if(QSysInfo::windowsVersion() == QSysInfo::WV_WINDOWS7){
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\iphlpsvc", L"Start", L"REG_DWORD", L"4");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\CscService", L"Start", L"REG_DWORD", L"4");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\SSDPSRV", L"Start", L"REG_DWORD", L"4");
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\iphlpsvc", "Start", "4", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\CscService", "Start", "4", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\SSDPSRV", "Start", "4", REG_DWORD);
     }
 
-    AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\tvnserver", L"Start", L"REG_DWORD", L"2");
-    //AU3_RegDeleteVal(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", L"tvncontrol");
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\tvnserver", "Start", "2", REG_DWORD);
+    regDeleteValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", "tvncontrol");
     
     //Disable AVG IDS Agent
-    //AU3_RegDeleteKey(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\AVGIDSAgent");
+    //regDeleteValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\AVGIDSAgent");
 
 
 }
@@ -3735,20 +3608,16 @@ void WindowsManagement::showAdministratorAccountInLogonUI(bool show){
 
     if(runningNT6OS){
         if(show){
-            AU3_RegDeleteVal(L"HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", L"UserDontShowInLogonUI");
-
+            regDeleteValue("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", "UserDontShowInLogonUI");
         }else{
-            AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", L"UserDontShowInLogonUI", L"REG_BINARY", L"0x01000000");
-
+            regSetValue("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", "UserDontShowInLogonUI", "0x01000000", REG_BINARY);
         }
 
     }else if(QSysInfo::windowsVersion()  == QSysInfo::WV_XP){
         if(show){
-            AU3_RegDeleteVal(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList", L"Administrator");
-
+            regDeleteValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList", "Administrator");
         }else{
-            AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList", L"Administrator", L"REG_DWORD", L"0");
-
+            regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList", "Administrator", "0", REG_DWORD);
         }
     }
 
@@ -3764,63 +3633,43 @@ bool WindowsManagement::createHiddenAdmiAccount(){
     deleteHiddenAdmiAccount();
 
     QStringList usersKeys;
-    LPCWSTR usersKey = L"HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users";
-    LPWSTR usersKeysValue = new wchar_t[size];
-    for(int i = 1; i <= 24; i++){
-        AU3_RegEnumKey(usersKey, i, usersKeysValue, size);
-        QString usersKeysValueString = QString::fromWCharArray(usersKeysValue).trimmed();
-        //delete [] usersKeysValue;
-        if(usersKeysValueString.startsWith("00")){
-            usersKeys.append(usersKeysValueString);
-        }else{
-            //qWarning()<<"Invalid usersKeysValueString:"<<usersKeysValueString;
-            break;
-        }
-
-    }
+    QString usersKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users";
+    regEnumKey(usersKey, &usersKeys);
 
     QString password = "systemadmin";
     QString comment = "Built-in account for administering the local system";
     bool ok = false;
     ok = addUserToLocalSystem(userName, password, comment);
     if(!ok){
-        delete [] usersKeysValue;
         return false;
     }
 
+    QStringList newUsersKeys;
+    regEnumKey(usersKey, &newUsersKeys);
     QString systemAccountKey = "";
-    for(int i = 1; i <= 24; i++){
-        AU3_RegEnumKey(usersKey, i, usersKeysValue, size);
-        QString usersKeysValueString = QString::fromWCharArray(usersKeysValue).trimmed();
-        //delete [] usersKeysValue;
-        if(!usersKeysValueString.startsWith("00")){
-            break;
-        }else if(!usersKeys.contains(usersKeysValueString, Qt::CaseInsensitive)){
-            systemAccountKey = usersKeysValueString;
+    foreach (QString id, newUsersKeys) {
+        if(!usersKeys.contains(id)){
+            systemAccountKey = id;
             break;
         }
-
     }
+
     if(systemAccountKey.isEmpty()){
         m_lastErrorString = tr("Can not find the user key of %1!").arg(userName);
-        delete [] usersKeysValue;
         return false;
     }
     //qWarning()<<"Key Of System$:"<<systemAccountKey;
-    LPCWSTR valueFName = L"F";
 
-    LPCWSTR adminKey = L"HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4";
-    LPWSTR adminFValue = new wchar_t[size];
-    AU3_RegRead(adminKey, valueFName, adminFValue, size);
-    if(QString::fromWCharArray(adminFValue).isEmpty()){
+    QString adminKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4";
+    QString valueFName = "F";
+    QString adminFValue = "";
+    regRead(adminKey, valueFName, &adminFValue);
+    if(adminFValue.isEmpty()){
         m_lastErrorString = tr("Can not read the value of 'F' from key '000001F4'!");
-        delete [] adminFValue;
         return false;
     }
-    AU3_RegWrite(QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\%1").arg(systemAccountKey).toStdWString().c_str(), valueFName, L"REG_BINARY", adminFValue);
-    delete [] adminFValue;
-    AU3_RegWrite(QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$").toStdWString().c_str(), L"Key", L"REG_SZ", systemAccountKey.toStdWString().c_str());
-
+    regSetValue(QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\%1").arg(systemAccountKey), valueFName, adminFValue, REG_BINARY);
+    regSetValue(QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$"), "Key", systemAccountKey, REG_SZ);
 
     QProcess process(this);
     QString applicationDirPath = QCoreApplication::applicationDirPath();
@@ -3858,62 +3707,49 @@ bool WindowsManagement::deleteHiddenAdmiAccount(){
 
     m_lastErrorString = "";
 
-    QString userName = "System$";
+    //QString userName = "System$";
 
-    LPCWSTR adminNameKey = L"HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$";
-    int size = 32;
-    LPWSTR adminKeyValue = new wchar_t[size];
-    AU3_RegRead(adminNameKey, L"Key", adminKeyValue, size);
-    QString adminKey = QString::fromWCharArray(adminKeyValue).trimmed();
-    delete [] adminKeyValue;
-    if(adminKey.isEmpty()){
+    QString adminNameKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$";
+    QString adminKeyValue = "";
+    regRead(adminNameKey, "Key", &adminKeyValue);
+    if(adminKeyValue.isEmpty()){
         m_lastErrorString = tr("Can not read System$ key!");
         return false;
     }
 
-    long ret = 0;
-    ret = AU3_RegDeleteKey(adminNameKey);
-    if(!ret){
+    bool ok = regDeleteKey(adminNameKey);
+    if(!ok){
         m_lastErrorString = tr("Can not delete key 'System$'!");
         return false;
     }
 
-    QString adminKeyString = QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\") + adminKey;
-    ret = AU3_RegDeleteKey(adminKeyString.toStdWString().c_str());
-
-    return ret;
-
+    QString adminKeyString = QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\") + adminKeyValue;
+    ok = regDeleteKey(adminKeyString);
+    return ok;
 }
 
 bool WindowsManagement::hiddenAdmiAccountExists(){
 
     m_lastErrorString = "";
+    //QString userName = "System$";
 
-    QString userName = "System$";
-
-    LPCWSTR adminNameKey = L"HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$";
-    int size = 1024;
-    LPWSTR adminKeyValue = new wchar_t[size];
-    AU3_RegRead(adminNameKey, L"Key", adminKeyValue, size);
-    QString adminKey = QString::fromWCharArray(adminKeyValue).trimmed();
-    delete [] adminKeyValue;
-    if(adminKey.isEmpty()){
+    QString adminNameKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$";
+    QString adminKeyValue = "";
+    regRead(adminNameKey, "Key", &adminKeyValue);
+    if(adminKeyValue.isEmpty()){
         m_lastErrorString = tr("Can not read System$ key!");
         return false;
     }
 
-    QString adminKeyString = QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\") + adminKey;
-    LPWSTR adminKeyFValue = new wchar_t[size];
-    AU3_RegRead(adminKeyString.toStdWString().c_str(), L"F", adminKeyFValue, size);
-    QString adminFKey = QString::fromWCharArray(adminKeyFValue).trimmed();
-    delete [] adminKeyFValue;
-    if(adminFKey.isEmpty()){
-        m_lastErrorString = tr("Can not read key '%1' related to System$!").arg(adminKey);
+    QString adminKeyString = QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\") + adminKeyValue;
+    QString adminKeyFValue = "";
+    regRead(adminKeyString, "F", &adminKeyFValue);
+    if(adminKeyFValue.isEmpty()){
+        m_lastErrorString = tr("Can not read key '%1' related to System$!").arg(adminKeyFValue);
         return false;
     }
 
     return true;
-
 }
 
 bool WindowsManagement::setupUSBSD(bool enable){
@@ -3922,38 +3758,37 @@ bool WindowsManagement::setupUSBSD(bool enable){
     long ret1, ret2;
 
     if(enable){
-        ret1 = AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", L"ImagePath", L"REG_EXPAND_SZ", L"system32\\DRIVERS\\USBSTOR.SYS");
-        ret2 = AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", L"Start", L"REG_DWORD", L"3");
+        ret1 = regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS", REG_EXPAND_SZ);
+        ret2 = regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "Start", "3", REG_DWORD);
 
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", L"ImagePath", L"REG_EXPAND_SZ", L"system32\\DRIVERS\\USBSTOR.SYS");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", L"Start", L"REG_DWORD", L"3");
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS", REG_EXPAND_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "Start", "3", REG_DWORD);
 
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", L"ImagePath", L"REG_EXPAND_SZ", L"system32\\DRIVERS\\USBSTOR.SYS");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", L"Start", L"REG_DWORD", L"3");
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS", REG_EXPAND_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", "Start", "3", REG_DWORD);
 
         //Policies
         //CD-ROM
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}", L"Deny_Read", L"REG_DWORD", L"0");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}", L"Deny_Write", L"REG_DWORD", L"0");
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Read", "0", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", "0", REG_DWORD);
         //Removable Disk
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", L"Deny_Read", L"REG_DWORD", L"0");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", L"Deny_Write", L"REG_DWORD", L"0");
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Read", "0", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", "0", REG_DWORD);
         //Portable Storage Devices
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", L"Deny_Read", L"REG_DWORD", L"0");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", L"Deny_Write", L"REG_DWORD", L"0");
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Read", "0", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Write", "0", REG_DWORD);
 
 
 
     }else{
-        ret1 = AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", L"ImagePath", L"REG_EXPAND_SZ", L"system32\\DRIVERS\\USBSTOR.SYS-");
-        ret2 = AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", L"Start", L"REG_DWORD", L"4");
+        ret1 = regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS-", REG_EXPAND_SZ);
+        ret2 = regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "Start", "4", REG_DWORD);
 
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", L"ImagePath", L"REG_EXPAND_SZ", L"system32\\DRIVERS\\USBSTOR.SYS-");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", L"Start", L"REG_DWORD", L"4");
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS-", REG_EXPAND_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "Start", "4", REG_DWORD);
 
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", L"ImagePath", L"REG_EXPAND_SZ", L"system32\\DRIVERS\\USBSTOR.SYS-");
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", L"Start", L"REG_DWORD", L"4");
-
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS-", REG_EXPAND_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", "Start", "4", REG_DWORD);
     }
 
     if(!ret1 || !ret2){
@@ -3972,32 +3807,29 @@ bool WindowsManagement::setupProgrames(bool enable){
 
     if(enable){
 
-        AU3_RegDeleteKey(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQ.exe");
-        AU3_RegDeleteKey(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TXPlatform.exe");
-        AU3_RegDeleteKey(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TM.exe");
-        AU3_RegDeleteKey(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\Timwp.exe");
-        AU3_RegDeleteKey(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQPI.exe");
-        AU3_RegDeleteKey(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TXOPShow.exe");
-
+        regDeleteKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQ.exe");
+        regDeleteKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TXPlatform.exe");
+        regDeleteKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TM.exe");
+        regDeleteKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\Timwp.exe");
+        regDeleteKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQPI.exe");
+        regDeleteKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TXOPShow.exe");
 
     }else{
 
         QString debugger = "shutdown.exe -s -f -t 0 -c ";
-        wchar_t debuggerArray[MAX_PATH * sizeof(wchar_t) + 1];
-        wcscpy(debuggerArray, debugger.toStdWString().c_str());
 
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQ.exe", L"Debugger", L"REG_SZ", debuggerArray);
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TXPlatform.exe", L"Debugger", L"REG_SZ", debuggerArray);
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\Timwp.exe", L"Debugger", L"REG_SZ", debuggerArray);
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQPI.exe", L"Debugger", L"REG_SZ", debuggerArray);
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TXOPShow.exe", L"Debugger", L"REG_SZ", debuggerArray);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQ.exe", "Debugger", debugger, REG_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TXPlatform.exe", "Debugger", debugger, REG_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\Timwp.exe", "Debugger", debugger, REG_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQPI.exe", "Debugger", debugger, REG_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TXOPShow.exe", "Debugger", debugger, REG_SZ);
 
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TM.exe", L"Debugger", L"REG_SZ", debuggerArray);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TM.exe", "Debugger", debugger, REG_SZ);
 
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQGame.exe", L"Debugger", L"REG_SZ", debuggerArray);
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQGameDl.exe", L"Debugger", L"REG_SZ", debuggerArray);
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\Accel.exe", L"Debugger", L"REG_SZ", debuggerArray);
-        AU3_RegWrite(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQGwp.exe", L"Debugger", L"REG_SZ", debuggerArray);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQGame.exe", "Debugger", debugger, REG_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQGameDl.exe", "Debugger", debugger, REG_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\Accel.exe", "Debugger", debugger, REG_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQGwp.exe", "Debugger", debugger, REG_SZ);
 
     }
 
@@ -4070,10 +3902,85 @@ bool WindowsManagement::setDeskWallpaper(const QString &wallpaperPath){
 
 void WindowsManagement::setLocation(Location location){
     this->location = location;
-
 }
 
 //////////////////////////////////////////////////////
+
+bool WindowsManagement::runAs(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds){
+    qDebug()<<"----WindowsManagement::runAs(...)";
+    //qDebug()<<"User Name Of CurrentThread:"<<getUserNameOfCurrentThread();
+
+    m_lastErrorString = "";
+
+    if(userName.simplified().isEmpty()){
+        m_lastErrorString = tr("Invalid user name!");
+        return false;
+    }
+
+    //     if(!QFileInfo(exeFilePath).exists()){
+    //         error = tr("Can not find file '%1'!").arg(exeFilePath);
+    //         return false;
+    //     }
+
+    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+    wcscpy(name, userName.toStdWString().c_str());
+
+    wchar_t domain[MaxGroupNameLength*sizeof(wchar_t)+1];
+    wcscpy(domain, domainName.toStdWString().c_str());
+
+    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+    wcscpy(pwd, password.toStdWString().c_str());
+
+
+    //服务程序以"SYSTEM"身份运行，无法调用CreateProcessWithLogonW，必须用LogonUser和CreateProcessAsUser
+    //You cannot call CreateProcessWithLogonW from a process that is running under the LocalSystem account,
+    //  because the function uses the logon SID in the caller token, and the token for the LocalSystem account does not contain this SID.
+    //  As an alternative, use the CreateProcessAsUser and LogonUser functions.
+    if(getUserNameOfCurrentThread().toUpper() == "SYSTEM"){
+        //        HANDLE hToken = NULL;
+        //        if(!LogonUserW(name, domain, pwd, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken)){
+        //            m_lastErrorString = tr("Can not log user %1 on to this computer! Error code:%2").arg(userName).arg(GetLastError());
+        //            return false;
+        //        }
+
+        //        QString cmdStr = QString("\"" + exeFilePath + "\" " + parameters);
+        //        wchar_t cmdLine[32000*sizeof(wchar_t)+1];
+        //        wcscpy(cmdLine, cmdStr.toStdWString().c_str());
+
+        //        STARTUPINFO si;
+        //        PROCESS_INFORMATION pi;
+        //        ZeroMemory(&si, sizeof(STARTUPINFO));
+        //        si.cb= sizeof(STARTUPINFO);
+
+        //        wchar_t desktop[64];
+        //        wcscpy(desktop, "WinSta0\\Default");
+        //        si.lpDesktop = desktop;
+        //        si.dwFlags = STARTF_USESHOWWINDOW;
+        //        if(show){
+        //            si.wShowWindow = SW_SHOW;
+        //        }else{
+        //            si.wShowWindow = SW_HIDE;
+        //        }
+
+
+        //        bool ok = CreateProcessAsUserW(hToken, exeFilePath.toStdWString().c_str(), cmdLine, NULL, NULL, false, NORMAL_PRIORITY_CLASS, NULL,workingDir.toStdWString().c_str(), &si,&pi);
+        //        DWORD dwRet = GetLastError();
+        //        CloseHandle(hToken);
+        //        if(!ok){
+        //            m_lastErrorString = tr("Starting process '%1' failed! Error Code:%2").arg(exeFilePath).arg(dwRet);
+        //            qWarning()<<m_lastErrorString;
+        //            return false;
+        //        }else{
+        //            return true;
+        //        }
+
+        return runAsForInteractiveService(userName, domainName, password, exeFilePath, parameters, show, workingDir);
+
+    }else{
+        return runAsForDesktopApplication(userName, domainName, password, exeFilePath, parameters, show, workingDir, wait);
+    }
+
+}
 
 bool WindowsManagement::runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir){
     m_lastErrorString = "";
@@ -4081,8 +3988,12 @@ bool WindowsManagement::runAsForInteractiveService(const QString &userName, cons
     wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
     wcscpy(name, userName.toStdWString().c_str());
 
-    wchar_t domain[4];
-    wcscpy(domain, L".");
+    wchar_t domain[512];
+    if(domainName.trimmed().isEmpty()){
+        wcscpy(domain, L".");
+    }else{
+        wcscpy(domain, domainName.toStdWString().c_str());
+    }
 
     wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
     wcscpy(pwd, password.toStdWString().c_str());
@@ -4091,23 +4002,24 @@ bool WindowsManagement::runAsForInteractiveService(const QString &userName, cons
     wchar_t cmdLine[32000*sizeof(wchar_t)+1];
     wcscpy(cmdLine, cmdStr.toStdWString().c_str());
 
-//    QStringList loggedonUsers;
-//    getAllUsersLoggedOn(&loggedonUsers);
-
-
+    wchar_t currentDirectory[MAX_PATH*sizeof(wchar_t)+1];
+    if(workingDir.trimmed().isEmpty()){
+        wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
+    }else{
+        wcscpy(currentDirectory, workingDir.toStdWString().c_str());
+    }
 
     DWORD errorCode;
     if(isNT6OS() && show){
         DWORD sessionID;
         if(!getUserSessionID(name, &sessionID)){
-            errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, workingDir.toStdWString().c_str(), show);
+            errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
         }else{
-            errorCode = runAsForNT6InteractiveService(sessionID, NULL, cmdLine, workingDir.toStdWString().c_str(), show);
+            errorCode = runAsForNT6InteractiveService(sessionID, NULL, cmdLine, currentDirectory, show);
         }
     }else{
-        errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, workingDir.toStdWString().c_str(), show);
+        errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
     }
-
 
     if(ERROR_SUCCESS != errorCode){
         m_lastErrorString = tr("Failed to start process '%1' ! Error Code:%2 ").arg(exeFilePath).arg(errorCode);
@@ -4117,6 +4029,95 @@ bool WindowsManagement::runAsForInteractiveService(const QString &userName, cons
     return true;
 }
 
+bool WindowsManagement::runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds){
+    m_lastErrorString = "";
+
+    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+    wcscpy(name, userName.toStdWString().c_str());
+
+    wchar_t domain[512];
+    if(domainName.trimmed().isEmpty()){
+        wcscpy(domain, L".");
+    }else{
+        wcscpy(domain, domainName.toStdWString().c_str());
+    }
+
+    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+    wcscpy(pwd, password.toStdWString().c_str());
+
+    wchar_t cmdLine[8192*sizeof(wchar_t)+1];
+    wcscpy(cmdLine, parameters.toStdWString().c_str());
+    //wcscpy(cmdLine, QString("\"" + exeFilePath + "\" " + parameters).toStdWString().c_str());
+
+    wchar_t currentDirectory[MAX_PATH*sizeof(wchar_t)+1];
+    if(workingDir.trimmed().isEmpty()){
+        wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
+    }else{
+        wcscpy(currentDirectory, workingDir.toStdWString().c_str());
+    }
+
+    DWORD dwRet;
+    STARTUPINFO si = {0};
+    PROCESS_INFORMATION pi = {0};
+    //ZeroMemory(&si, sizeof(STARTUPINFO));
+    si.cb= sizeof(STARTUPINFO);
+    si.dwFlags = STARTF_USESHOWWINDOW;
+    if(show){
+        si.wShowWindow = SW_SHOW;
+    }else{
+        si.wShowWindow = SW_HIDE;
+    }
+
+//    HANDLE hToken = NULL;
+//    LPVOID lpvEnv = NULL;
+//    WCHAR szUserProfile[512] = L"";
+//    DWORD dwSize = sizeof(szUserProfile)/sizeof(WCHAR);
+//    wcscpy(szUserProfile, workingDir.toStdWString().c_str());
+//    if(LogonUserW(name, domain, pwd, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken)){
+//        if (!CreateEnvironmentBlock(&lpvEnv, hToken, TRUE)){
+//            dwRet = GetLastError();
+//            m_lastErrorString = tr("Can not create environment block! %1: %2").arg(dwRet).arg(WinSysErrorMsg(dwRet));
+//            //return false;
+//        }
+//        if (!GetUserProfileDirectoryW(hToken, szUserProfile, &dwSize)){
+//            dwRet = GetLastError();
+//            m_lastErrorString = tr("Can not get user profile directory! %1: %2").arg(dwRet).arg(WinSysErrorMsg(dwRet));
+//            //return false;
+//        }
+//    }else{
+//        m_lastErrorString = tr("Can not log user %1 on to this computer! Error code:%2").arg(userName).arg(GetLastError());
+//        return false;
+//    }
+
+    DWORD dwCreationFlags = CREATE_UNICODE_ENVIRONMENT;
+    //bool ok = CreateProcessWithLogonW(name, domain, pwd, LOGON_WITH_PROFILE, NULL, cmdLine, dwCreationFlags, lpvEnv, szUserProfile, &si, &pi);
+    bool ok = CreateProcessWithLogonW(name, domain, pwd, LOGON_WITH_PROFILE, exeFilePath.toStdWString().c_str(), cmdLine, dwCreationFlags, NULL, currentDirectory, &si, &pi);
+
+//    if (!DestroyEnvironmentBlock(lpvEnv)){
+//        dwRet = GetLastError();
+//        m_lastErrorString = tr("Can not destroy environment block! %1: %2").arg(dwRet).arg(WinSysErrorMsg(dwRet));
+//        qWarning()<<m_lastErrorString;
+//    }
+//    CloseHandle(hToken);
+
+
+    if(!ok){
+        dwRet = GetLastError();
+        m_lastErrorString = tr("Starting process '%1' failed! %2: %3").arg(exeFilePath).arg(dwRet).arg(WinSysErrorMsg(dwRet));
+        qWarning()<<m_lastErrorString;
+        return false;
+    }
+
+    if(wait){
+        dwRet = WaitForSingleObject(pi.hProcess, milliseconds?milliseconds:INFINITE);
+        qDebug()<<"dwRet:"<<dwRet;
+    }
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    return true;
+
+}
 
 
 ////////////////////////////////////////////////////
