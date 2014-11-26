@@ -82,25 +82,13 @@ MainWindowBase::~MainWindowBase() {
 
 }
 
-void MainWindowBase::languageChange() {
-    retranslateUi();
-
-    if(m_languageMenu){
-        m_languageMenu->setTitle(tr("&Language"));
-        actionLanguageDefaultEnglish->setText(tr("Default(English)"));
+bool MainWindowBase::event( QEvent * e ){
+    if(e->type() == QEvent::LanguageChange){
+        languageChanged();
     }
-
-    if(m_styleMenu){
-        m_styleMenu->setTitle(tr("&Style"));
-        actionUseStylesPalette->setText(tr("Use Style's Palette"));
-    }
-
-    if(m_pluginsMenu){
-        m_pluginsMenu->setTitle(tr("&Plugins"));
-        actionPluginsManagement->setText(tr("&Management"));
-    }
-
+    return QMainWindow::event(e);
 }
+
 
 /*
  void MainWindowBase::restoreWindowState() {
@@ -423,8 +411,31 @@ void MainWindowBase::changeStyle(const QString &style) {
 
 }
 
+void MainWindowBase::languageChanged() {
+    qDebug()<<"--MainWindowBase::languageChanged()";
+
+    retranslateUi();
+
+    if(m_languageMenu){
+        m_languageMenu->setTitle(tr("&Language"));
+        actionLanguageDefaultEnglish->setText(tr("Default(English)"));
+    }
+
+    if(m_styleMenu){
+        m_styleMenu->setTitle(tr("&Style"));
+        actionUseStylesPalette->setText(tr("Use Style's Palette"));
+    }
+
+    if(m_pluginsMenu){
+        m_pluginsMenu->setTitle(tr("&Plugins"));
+        actionPluginsManagement->setText(tr("&Management"));
+    }
+
+}
+
+
 void MainWindowBase::slotChangeLanguage(QAction *action) {
-    qDebug("----MainWindowBase::slotChangeLanguage(QAction *action)");
+    qWarning("----MainWindowBase::slotChangeLanguage(QAction *action)");
 
     QString lang = action->data().toString();
     //        if (!Utilities::availableTranslationLanguages(qmPath).contains(lang)){

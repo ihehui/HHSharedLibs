@@ -169,7 +169,6 @@ bool LoginBase::verifyUser() {
     }
 
 
-
     QSqlDatabase db;
     db = QSqlDatabase::database(LOCAL_CONFIG_DB_CONNECTION_NAME);
     QSqlQueryModel model(this);
@@ -197,19 +196,18 @@ bool LoginBase::verifyUser() {
         if(query.exec(string)){
             query.exec(insertStatement);
         }
-
     }
 
     if(!db.tables().contains("systemadministrators", Qt::CaseInsensitive)){
         QString createTableStatement = QString("CREATE TABLE `systemadministrators` ( `UserID` varchar(24) NOT NULL PRIMARY KEY,  `UserName` varchar(24) NOT NULL,  `BusinessAddress` varchar(16) NOT NULL,  `PassWD` varchar(56) NOT NULL ,  `LastLoginTime` timestamp NOT NULL ,  `Remark` varchar(255) )");
         QString insertStatement = QString("INSERT INTO `systemadministrators` VALUES ('hehui','','DG','KlcsSsfmfp6B3ya+LliE2bHO2uc=','','')");
-        QString insertStatement2 = QString("INSERT INTO `systemadministrators` VALUES ('admindg','','DG','qqm+JnGsAucXYTP64xZxft19UTQ=','','')"); //dgadmin2012
-        QString insertStatement3 = QString("INSERT INTO `systemadministrators` VALUES ('adminyd','','YD','iCh+4zMRXyy6cwIJg52wAygBOzE=','','')"); //ydadmin2012
-        QString insertStatement4 = QString("INSERT INTO `systemadministrators` VALUES ('acheng','','DG','Zxz8fvdl/KvIgyFc3OytAk48Fuc=','','')"); //acheng2012
-        QString insertStatement5 = QString("INSERT INTO `systemadministrators` VALUES ('king','','DG','Gk3RNnPP3gWYWXeGpm+WpZpWXWc=','','')");
-        QString insertStatement6 = QString("INSERT INTO `systemadministrators` VALUES ('yu','','DG','hH31n3sy+MMr4htA6fzq0tpDG3g=','','')");
-        QString insertStatement7 = QString("INSERT INTO `systemadministrators` VALUES ('afu','','DG','eeUVF466PDPoBQqc8taxKRbtLKA=','','')"); //afu2012
-        QString insertStatement8 = QString("INSERT INTO `systemadministrators` VALUES ('jing','','DG','nR49X4Yv/rRZs3OzOKwgPRffTzg=','','')"); //jing2012
+        QString insertStatement2 = QString("INSERT INTO `systemadministrators` VALUES ('admindg','','DG','4r0+BGnQSAKdmIXHyGI8vVoKjsk=','','')"); //admin.dg.2014
+        QString insertStatement3 = QString("INSERT INTO `systemadministrators` VALUES ('adminyd','','YD','vWdLKOBN+2qAcbjw7QrQr3nRLBQ=','','')"); //admin.yd.2014
+        QString insertStatement4 = QString("INSERT INTO `systemadministrators` VALUES ('king','','DG','apJt8QFtRPAZaUawJkZZTVFEiOo=','','')"); //king.2014
+        QString insertStatement5 = QString("INSERT INTO `systemadministrators` VALUES ('lhc','','DG','es9NRQZZf2kbdGvMp/GrkV0+OV0=','','')"); //cheng.2014
+        QString insertStatement6 = QString("INSERT INTO `systemadministrators` VALUES ('lj','','DG','v+7twKPCWLNfk9pWrsDVB/CEQ1c=','','')"); //jian.2014
+        QString insertStatement7 = QString("INSERT INTO `systemadministrators` VALUES ('ljf','','DG','RvhSIcEL1/AeICOvyeoCNMvXh3g=','','')"); //fu.2014
+        QString insertStatement8 = QString("INSERT INTO `systemadministrators` VALUES ('zk','','DG','usJrQRUF6lLB0kUaoWJco3bFht8=','','')"); //kui.2014
 
         model.setQuery(QSqlQuery(createTableStatement, db));
         model.setQuery(QSqlQuery(insertStatement, db));

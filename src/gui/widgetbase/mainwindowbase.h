@@ -113,13 +113,14 @@ private:
     virtual void initStatusBar();
 
     void changeStyle(const QString &style);
+    void languageChanged();
 
     virtual void savePreferedStyle(const QString &preferedStyle, bool useStylePalette) = 0;
     virtual void savePreferedLanguage(const QString &preferedLanguage) = 0;
 
 
 protected:
-    void languageChange();
+    bool event( QEvent * e );
     void closeEvent ( QCloseEvent * event ) = 0;
 
 

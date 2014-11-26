@@ -163,7 +163,7 @@ bool Utilities::changeLangeuage(const QString &translationFilesDir, const QStrin
         }else{
             delete translator;
             translator = 0;
-            qDebug()<<"XXLoading language file failed:"<<file;
+            qCritical()<<"ERROR! Loading language file failed:"<<file;
         }
 
     }

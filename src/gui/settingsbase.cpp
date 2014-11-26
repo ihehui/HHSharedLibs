@@ -62,7 +62,7 @@ QString SettingsBase::getStyle() const
 {
 
 #ifdef Q_OS_WIN
-    return value("MainWindow/Style", QString("plastique")).toString();
+    return value("MainWindow/Style", QString("fusion")).toString();
 #endif
 
     return value("MainWindow/Style","").toString();

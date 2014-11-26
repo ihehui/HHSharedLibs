@@ -224,6 +224,7 @@ void GUIPluginBase::addActionToMenu(QAction *action){
 }
 
 bool GUIPluginBase::event( QEvent * e ){
+
     if(e->type() == QEvent::LanguageChange){
         if(m_menu){
             m_menu->setTitle(name());
@@ -232,12 +233,10 @@ bool GUIPluginBase::event( QEvent * e ){
             actionMain->setText(name());    
         }
         retranslateUi();
-        return true;
     }
-    
-    //return false;
     return QObject::event(e);
 }
+
 
 void GUIPluginBase::slotSetDefaultActionForMenuAction(QAction * action) {
     qDebug("----GUIPluginBase::slotSetDefaultActionForMenuAction(QAction * action)");

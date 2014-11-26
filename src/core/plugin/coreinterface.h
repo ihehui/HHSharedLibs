@@ -69,7 +69,7 @@ class CORE_LIB_API CoreInterface : public AbstractPluginInterface{
 
 }
 
-Q_DECLARE_INTERFACE(HEHUI::CoreInterface, "org.hehui.Interface.CoreInterface/2012.1")
+Q_DECLARE_INTERFACE(HEHUI::CoreInterface, "org.hehui.Interface.CoreInterface/2014.11")
 
 
 

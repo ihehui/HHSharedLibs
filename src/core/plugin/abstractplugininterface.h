@@ -71,7 +71,7 @@ public:
 }
 
 
-#define AbstractPluginInterface_IID "org.hehui.Interface.AbstractPluginInterface/2013.1"
+#define AbstractPluginInterface_IID "org.hehui.Interface.AbstractPluginInterface/2014.11"
 Q_DECLARE_INTERFACE(HEHUI::AbstractPluginInterface, AbstractPluginInterface_IID)
 
 

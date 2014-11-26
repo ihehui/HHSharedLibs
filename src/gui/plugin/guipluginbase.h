@@ -77,6 +77,7 @@ public:
 protected:
     bool event( QEvent * e );
 
+
 signals:
     void signalPluginToBeUnloaded();
 

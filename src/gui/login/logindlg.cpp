@@ -141,7 +141,7 @@ void LoginDlg::on_loginButton_clicked() {
 
         user->setPassword(password);
 
-        //qWarning()<<"~~ password:"<<ui.passwordLineEdit->text();
+        //qWarning()<<"~~ password:"<<ui->passwordLineEdit->text();
         //qWarning()<<"~~ password.toBase64():"<<password.toBase64();
 
         ui->passwordLineEdit->clear();
