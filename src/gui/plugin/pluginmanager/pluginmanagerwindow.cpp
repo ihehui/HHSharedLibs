@@ -105,7 +105,7 @@ bool PluginManagerWindow::eventFilter(QObject *object, QEvent *event){
 }
 */
 
-void PluginManagerWindow::on_toolButtonDetails_clicked(bool checked) {
+void PluginManagerWindow::on_pushButtonDetails_clicked(bool checked) {
     if (checked) {
         ui->groupBoxDetails->show();
         slotUpdateUI(ui->tableView->currentIndex());
@@ -115,7 +115,7 @@ void PluginManagerWindow::on_toolButtonDetails_clicked(bool checked) {
 
 }
 
-void PluginManagerWindow::on_toolButtonLoad_clicked(){
+void PluginManagerWindow::on_pushButtonLoad_clicked(){
     QString filterString;
 #ifdef Q_OS_WIN
     filterString = tr("DLL (*.dll);;All Files (*.*)");
@@ -160,8 +160,8 @@ void PluginManagerWindow::on_toolButtonLoad_clicked(){
 
 }
 
-void PluginManagerWindow::on_toolButtonUnload_clicked(){
-    qDebug("----PluginManagerWindow::on_toolButtonunload_clicked()");
+void PluginManagerWindow::on_pushButtonUnload_clicked(){
+    qDebug("----PluginManagerWindow::on_pushButtonUnload_clicked()");
 
     QModelIndex index = ui->tableView->currentIndex();
     if(!index.isValid()){
@@ -191,7 +191,7 @@ void PluginManagerWindow::on_toolButtonUnload_clicked(){
 void PluginManagerWindow::slotUpdateUI(const QModelIndex &index){
     qDebug("----PluginManagerWindow::slotUpdateUI(const QModelIndex &index)");
 
-    ui->toolButtonUnload->setEnabled(index.isValid());
+    ui->pushButtonUnload->setEnabled(index.isValid());
 
     if((!index.isValid()) || ui->groupBoxDetails->isHidden()){
         ui->labelAuthor->clear();

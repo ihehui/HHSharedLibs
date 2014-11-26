@@ -23,7 +23,7 @@
    <item row="2" column="0" colspan="2">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QToolButton" name="toolButtonDetails">
+      <widget class="QPushButton" name="pushButtonDetails">
        <property name="text">
         <string>&amp;Details</string>
        </property>
@@ -46,14 +46,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QToolButton" name="toolButtonLoad">
+      <widget class="QPushButton" name="pushButtonLoad">
        <property name="text">
         <string>&amp;Load</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="toolButtonUnload">
+      <widget class="QPushButton" name="pushButtonUnload">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -128,7 +128,16 @@
          <string>Description</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
           <number>2</number>
          </property>
          <item row="0" column="0">
@@ -147,7 +156,16 @@
          <string>License</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
           <number>2</number>
          </property>
          <item row="0" column="0">
@@ -177,9 +195,6 @@
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
-     <attribute name="horizontalHeaderStretchLastSection">
-      <bool>true</bool>
-     </attribute>
      <attribute name="horizontalHeaderStretchLastSection">
       <bool>true</bool>
      </attribute>

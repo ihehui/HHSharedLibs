@@ -53,9 +53,9 @@ public:
     ~PluginManagerWindow();
 
 public slots:
-    void on_toolButtonDetails_clicked(bool checked);
-    void on_toolButtonLoad_clicked();
-    void on_toolButtonUnload_clicked();
+    void on_pushButtonDetails_clicked(bool checked);
+    void on_pushButtonLoad_clicked();
+    void on_pushButtonUnload_clicked();
 
 private slots:
     void slotUpdateUI(const QModelIndex &index);
