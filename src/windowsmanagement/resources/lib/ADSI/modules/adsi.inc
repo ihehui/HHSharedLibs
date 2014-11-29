@@ -956,7 +956,7 @@ Function AD_SetUserPasswordChange alias "AD_SetUserPasswordChange" (BYREF sAD_Ob
    IF FAILED(hr) THEN
       SetError(2, OBJRESULT$(hr))
       #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code:" & STR$(hr) & " Function:" & FUNCNAME$
-      MSGBOX OBJRESULT$(hr) & $CRLF & "Code:" & STR$(hr), %MB_ICONERROR, "Error"
+      'MSGBOX OBJRESULT$(hr) & $CRLF & "Code:" & STR$(hr), %MB_ICONERROR, "Error"
       FUNCTION = 0
       EXIT FUNCTION
    END IF
@@ -1011,6 +1011,133 @@ Function AD_SetUserPasswordChange alias "AD_SetUserPasswordChange" (BYREF sAD_Ob
 
 
 End Function   '==>AD_SetUserPasswordChange
+
+
+'---------------------------------------------------------------------------------------------------------------------------
+' #FUNCTION# ====================================================================================================================
+' Name...........: AD_GetUserPasswordChange
+' Description ...: Get the 'User Cannot Change Password' option enabled or disabled
+' Syntax.........: AD_GetUserPasswordChange(sAD_Object, bCanChangePassword)
+' Parameters ....: sAD_ObjectParam - User account to enable or disable changing the password (sAMAccountName or FQDN)
+'                  bCanChangePassword - If allowing the user to change their password, user can not change the password:0
+' Return values .: Success - 1
+'                  Failure - 0, sets @error to:
+'                  |1 - $sAD_Object does not exist
+'                  |x - Error returned by SetInfo function (Missing permission etc.)
+' Author ........: KenE
+' Modified.......: water
+' Remarks .......:
+' Related .......: _AD_IsPasswordExpired, _AD_GetPasswordExpired, _AD_GetPasswordDontExpire, _AD_SetPassword, _AD_DisablePasswordExpire, _AD_EnablePasswordExpire, _AD_DisablePasswordChange, _AD_GetPasswordInfo
+' Link ..........: Example VBS see: http://gallery.technet.microsoft.com/ScriptCenter/en-us/ced14c6c-d16a-4cd8-b7d1-90d716c0445f or How to use Visual Basic and ADsSecurity.dll to properly order ACEs in an ACL.
+' Example .......: Yes
+' ===============================================================================================================================
+'Function AD_GetUserPasswordChange alias "AD_SetUserPasswordChange" (byval sAD_ObjectParam as wstring, BYREF bCanChangePassword as long) export as long
+Function AD_GetUserPasswordChange alias "AD_GetUserPasswordChange" (BYREF sAD_ObjectParam as wstringz, BYREF bCanChangePassword as long) export as long
+
+	local USER_CHANGE_PASSWORD as wstring
+	USER_CHANGE_PASSWORD = "{ab721a53-1e2f-11d0-9819-00aa0040529b}" ' See: http://msdn.microsoft.com/en-us/library/cc223637(PROT.13).aspx
+	local ADS_ACETYPE_ACCESS_ALLOWED_OBJECT, ADS_ACETYPE_ACCESS_DENIED_OBJECT, oldACETYPE, newACETYPE as integer
+	ADS_ACETYPE_ACCESS_ALLOWED_OBJECT = &H5
+	'ADS_ACETYPE_ACCESS_DENIED_OBJECT = &H6
+	
+
+   SetError(0, "")
+
+   DIM sAD_Object AS WSTRINGZ * 256
+   sAD_Object = sAD_ObjectParam
+
+   If isfalse AD_ObjectExists(sAD_Object, "") Then
+      SetError(1, "Object does not exist!")
+      #DEBUG PRINT "Error! " & sAD_LastErrorString & " Function:" & FUNCNAME$
+      'MSGBOX sAD_LastErrorString, %MB_ICONERROR, "Error"
+      FUNCTION = 0
+      EXIT FUNCTION
+   end if
+
+   If Mid$(sAD_Object, 3, 1) <> "=" Then
+       sAD_Object = AD_SamAccountNameToFQDN(sAD_Object) ' sAMAccountName provided
+   end if
+
+   local sAD_Self, sAD_Everyone as wstring
+   'sAD_Self = "NT AUTHORITY\SELF"
+   sAD_Everyone = "EVERYONE"
+
+
+   LOCAL oAD_Object AS IADsUser
+   oAD_Object = AD_ObjGet("LDAP://" & sAD_HostServer & "/" & sAD_Object, $IID_IADsUser)
+   local oAD_SD as  IADsSecurityDescriptor, tempVariant as Variant
+   tempVariant = oAD_Object.Get("nTSecurityDescriptor")
+   oAD_SD = tempVariant
+   Local oAD_DACL as IADsAccessControlList 'IADsAccessControlList
+   oAD_DACL = oAD_SD.DiscretionaryAcl
+   ' Search for ACE's for Change Password and modify
+
+   local oAD_ACE as  IADsAccessControlEntry
+   local  pDisp as IDispatch, pUnk as IUnknown, pEnum as IEnumVARIANT, iid AS GUID, hr as long, varValue as variant, nFetch as long
+   pUnk = oAD_DACL.NewEnum_
+   iid = $IID_IEnumVARIANT
+   hr = pUnk.QueryInterface(byref iid, byref pEnum )
+   IF FAILED(hr) THEN
+      SetError(2, OBJRESULT$(hr))
+      #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code:" & STR$(hr) & " Function:" & FUNCNAME$
+      'MSGBOX OBJRESULT$(hr) & $CRLF & "Code:" & STR$(hr), %MB_ICONERROR, "Error"
+      FUNCTION = 0
+      EXIT FUNCTION
+   END IF
+
+   hr = pEnum.Next(1, varValue, nFetch)
+
+   while (hr = %S_OK)
+       if nFetch = 1 THEN
+           if variantvt(varValue) <> %VT_DISPATCH THEN
+               exit loop
+           END IF
+
+           pDisp = varValue
+			  local iid2 as GUID
+			  iid2 = $IID_IADsAccessControlEntry
+           hr = pDisp.QueryInterface(byref iid2, byref oAD_ACE)
+			
+           if SUCCEEDED(hr) THEN
+               If UCASE$(oAD_ACE.objectType) = UCASE$(USER_CHANGE_PASSWORD) Then
+                   'If UCASE$(oAD_ACE.Trustee) = sAD_Self Then							 
+                    '   If oAD_ACE.AceType = ADS_ACETYPE_ACCESS_ALLOWED_OBJECT Then
+							'	  bCanChangePassword = 1
+							'	elseif oAD_ACE.AceType = ADS_ACETYPE_ACCESS_DENIED_OBJECT THEN
+							'	  bCanChangePassword = 0	  
+                     '  End If
+                   'End If
+						 
+                   If UCASE$(oAD_ACE.Trustee) = sAD_Everyone Then
+                       If oAD_ACE.AceType = ADS_ACETYPE_ACCESS_ALLOWED_OBJECT Then
+								  bCanChangePassword = 1
+								else
+								  bCanChangePassword = 0	  
+                       End If
+
+							  VariantClear(varValue)
+							  EXIT LOOP
+                   End If
+						 
+               End If
+
+           END IF
+           VariantClear(varValue)
+
+       END IF
+
+       hr = pEnum.Next(1, varValue, nFetch)
+   WEND
+
+
+	IF OBJRESULT <> 0 THEN
+      FUNCTION = 0
+	else
+		function = 1	
+   END IF
+
+
+End Function   '==>AD_GetUserPasswordChange
 
 
 

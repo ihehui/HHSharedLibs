@@ -57,6 +57,7 @@ ADSI::ADSI(QObject *parent) :
     m_AD_SetAccountExpire = 0;
     m_AD_SetPasswordExpire = 0;
     m_AD_SetUserPasswordChange = 0;
+    m_AD_GetUserPasswordChange = 0;
     m_AD_GetObjectAttribute = 0;
     m_AD_ModifyAttribute = 0;
     m_AD_CreateOU = 0;
@@ -214,6 +215,14 @@ bool ADSI::loadLibrary(const QString &fileName){
         return false;
     }
 
+    m_AD_GetUserPasswordChange = (AD_GetUserPasswordChangeFunction) adsiLibrary->resolve("AD_GetUserPasswordChange");
+    if(!m_AD_GetUserPasswordChange){
+        unloadLibrary();
+        m_lastErrorString = "Failed to resolve function  'AD_GetUserPasswordChange' !" ;
+        qCritical()<<m_lastErrorString;
+        return false;
+    }
+
     m_AD_GetObjectAttribute = (AD_GetObjectAttributeFunction) adsiLibrary->resolve("AD_GetObjectAttribute");
     if(!m_AD_GetObjectAttribute){
         unloadLibrary();
@@ -318,6 +327,7 @@ bool ADSI::unloadLibrary(){
     m_AD_SetAccountExpire = 0;
     m_AD_SetPasswordExpire = 0;
     m_AD_SetUserPasswordChange = 0;
+    m_AD_GetUserPasswordChange = 0;
     m_AD_GetObjectAttribute = 0;
     m_AD_ModifyAttribute = 0;
     m_AD_CreateOU = 0;
@@ -410,6 +420,10 @@ bool ADSI::AD_SetUserPasswordChange(const QString &object, bool enableChange){
     return m_AD_SetUserPasswordChange(object.toStdWString().c_str(), enableChange?1:0);
 }
 
+bool ADSI::AD_GetUserPasswordChange(const QString &object, long *userCanChangePassword){
+    return m_AD_GetUserPasswordChange(object.toStdWString().c_str(), userCanChangePassword);
+}
+
 QString ADSI::AD_GetObjectAttribute(const QString &object, const QString &attribute){
     qDebug()<<"ADSI::AD_GetObjectAttribute(...)";
 
@@ -481,6 +495,31 @@ bool ADSI::AD_SetPassword(const QString &userName, const QString &password, bool
     return m_AD_SetPassword(userName.toStdWString().c_str(), password.toStdWString().c_str(), expire?1:0);
 }
 
+bool ADSI::accountDisabled(const QString &samAccountName){
+    return m_AD_IsObjectDisabled(samAccountName.toStdWString().c_str());
+}
+
+bool ADSI::userMustChangePassword(const QString &samAccountName){
+    QString pwdLastSet = AD_GetObjectAttribute(samAccountName, "pwdLastSet");
+    if(pwdLastSet.isEmpty() || (pwdLastSet== "0")){
+        return true;
+    }
+    return false;
+}
+
+bool ADSI::userCanChangePassword(const QString &samAccountName){
+    long userCanChangePassword = 1;
+    if(!AD_GetUserPasswordChange(samAccountName, &userCanChangePassword)){
+        qCritical()<<AD_GetLastErrorString();
+    }
+    return userCanChangePassword;
+}
+
+bool ADSI::passwordNeverExpires(const QString &samAccountName){
+    unsigned long ADS_UF_DONT_EXPIRE_PASSWD = 0x10000;
+    unsigned long userAccountControl = AD_GetObjectAttribute(samAccountName, "userAccountControl").toULong();
+    return userAccountControl&ADS_UF_DONT_EXPIRE_PASSWD;
+}
 
 QString ADSI::ComputerName(){
     //return QString::fromWCharArray(m_ComputerName());

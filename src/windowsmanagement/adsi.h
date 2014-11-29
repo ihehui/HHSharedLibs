@@ -72,6 +72,7 @@ public:
     bool AD_SetAccountExpire(const QString &object, const QString &expireDateTime);
     bool AD_SetPasswordExpire(const QString &object, bool enableExpire);
     bool AD_SetUserPasswordChange(const QString &object, bool enableChange);
+    bool AD_GetUserPasswordChange(const QString &object, long *userCanChangePassword);
     QString AD_GetObjectAttribute(const QString &object, const QString &attribute);
     bool AD_ModifyAttribute(const QString &object, const QString &attribute, const QString &value, long option = 0);
     bool AD_CreateOU(const QString &parentOU, const QString &ouName);
@@ -79,6 +80,12 @@ public:
     QString AD_GetObjectsInOU(const QString &ou, const QString &filter, const QString &dataToRetrieve, const QString &itemSeparator, const QString &attributeSeparator);
     bool AD_CreateUser(const QString &ou, const QString &userName, const QString &userCN);
     bool AD_SetPassword(const QString &userName, const QString &password, bool expire = false);
+
+    bool accountDisabled(const QString &samAccountName);
+    bool userMustChangePassword(const QString &samAccountName);
+    bool userCanChangePassword(const QString &samAccountName);
+    bool passwordNeverExpires(const QString &samAccountName);
+
 
     QString ComputerName();
     QString UserNameOfCurrentThread();
@@ -137,6 +144,9 @@ private:
 
    typedef long (WINAPI * AD_SetUserPasswordChangeFunction)(LPCWSTR, long);
    AD_SetUserPasswordChangeFunction m_AD_SetUserPasswordChange;
+
+   typedef long (WINAPI * AD_GetUserPasswordChangeFunction)(LPCWSTR, long *);
+   AD_GetUserPasswordChangeFunction m_AD_GetUserPasswordChange;
 
    typedef LPCWSTR (WINAPI * AD_GetObjectAttributeFunction)(LPCWSTR, LPCWSTR);
    AD_GetObjectAttributeFunction m_AD_GetObjectAttribute;
