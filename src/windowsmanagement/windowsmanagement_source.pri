@@ -10,7 +10,7 @@ RESOURCES +=
 
 win32 { 
     INCLUDEPATH += resources/lib/AutoIt3 \
-                    resources/lib/WinAPI
+                    resources/lib/WindowsAPI
     LIBS += -luser32 \
         -lNetAPI32 \
         -lAdvapi32 \
@@ -20,7 +20,7 @@ win32 {
         -lUserenv \
         #-Lresources/lib/AutoIt3 \
         #-lAutoItX3 \
-        -Lresources/lib/WinAPI \
+        -Lresources/lib/WindowsAPI \
         -lWindowsAPI
 
     win32-g++{

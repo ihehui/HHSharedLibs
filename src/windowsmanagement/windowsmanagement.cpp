@@ -70,7 +70,6 @@ const int MaxGroupNameLength = 256;
 #endif
 
 
-//#include "string.h"
 using namespace std;
 
 

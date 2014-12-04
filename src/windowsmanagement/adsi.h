@@ -38,7 +38,7 @@
 #include <QLibrary>
 
 #include <windows.h>
-#include <string.h>
+//#include <string.h>
 
 #include "wmlib.h"
 
@@ -71,7 +71,9 @@ public:
     bool AD_IsObjectDisabled(const QString &object);
     bool AD_SetAccountExpire(const QString &object, const QString &expireDateTime);
     bool AD_SetPasswordExpire(const QString &object, bool enableExpire);
-    bool AD_SetUserPasswordChange(const QString &object, bool enableChange);
+    bool AD_SetUserCannotChangePassword(const QString &samAccountName, bool bCannotChangePassword);
+    bool AD_GetUserCannotChangePassword(const QString &samAccountName, long *bCannotChangePassword); //-!!!SLOW!!!-
+    bool AD_SetUserPasswordChange(const QString &object, bool enableChange); //-!!!INVALID!!!-
     bool AD_GetUserPasswordChange(const QString &object, long *userCanChangePassword);
     QString AD_GetObjectAttribute(const QString &object, const QString &attribute);
     bool AD_ModifyAttribute(const QString &object, const QString &attribute, const QString &value, long option = 0);
@@ -141,6 +143,12 @@ private:
 
    typedef long (WINAPI * AD_SetPasswordExpireFunction)(LPCWSTR, long);
    AD_SetPasswordExpireFunction m_AD_SetPasswordExpire;
+
+   typedef long (WINAPI * AD_SetUserCannotChangePasswordFunction)(LPCWSTR, long);
+   AD_SetUserCannotChangePasswordFunction m_AD_SetUserCannotChangePassword;
+
+   typedef long (WINAPI * AD_GetUserCannotChangePasswordFunction)(LPCWSTR, long *);
+   AD_GetUserCannotChangePasswordFunction m_AD_GetUserCannotChangePassword;
 
    typedef long (WINAPI * AD_SetUserPasswordChangeFunction)(LPCWSTR, long);
    AD_SetUserPasswordChangeFunction m_AD_SetUserPasswordChange;

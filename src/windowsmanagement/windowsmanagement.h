@@ -87,7 +87,7 @@ public:
     QStringList localCreatedUsers() ;
     QString getUserNameOfCurrentThread();
 
-    QString WinSysErrorMsg(LONG winErrorCode);
+    static QString WinSysErrorMsg(LONG winErrorCode);
 
     //Registry
     bool parseRegKeyString(const QString &keyString, HKEY *rootKey, QString *subKeyString);

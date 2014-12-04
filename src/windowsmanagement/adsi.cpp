@@ -35,6 +35,7 @@
 
 
 
+
 ADSI::ADSI(QObject *parent) :
     QObject(parent)
 {
@@ -56,6 +57,8 @@ ADSI::ADSI(QObject *parent) :
     m_AD_IsObjectDisabled = 0;
     m_AD_SetAccountExpire = 0;
     m_AD_SetPasswordExpire = 0;
+    m_AD_SetUserCannotChangePassword = 0;
+    m_AD_GetUserCannotChangePassword = 0;
     m_AD_SetUserPasswordChange = 0;
     m_AD_GetUserPasswordChange = 0;
     m_AD_GetObjectAttribute = 0;
@@ -207,6 +210,22 @@ bool ADSI::loadLibrary(const QString &fileName){
         return false;
     }
 
+    m_AD_SetUserCannotChangePassword = (AD_SetUserCannotChangePasswordFunction) adsiLibrary->resolve("AD_SetUserCannotChangePassword");
+    if(!m_AD_SetUserCannotChangePassword){
+        unloadLibrary();
+        m_lastErrorString = "Failed to resolve function  'AD_SetUserCannotChangePassword' !" ;
+        qCritical()<<m_lastErrorString;
+        return false;
+    }
+
+    m_AD_GetUserCannotChangePassword = (AD_GetUserCannotChangePasswordFunction) adsiLibrary->resolve("AD_GetUserCannotChangePassword");
+    if(!m_AD_GetUserCannotChangePassword){
+        unloadLibrary();
+        m_lastErrorString = "Failed to resolve function  'AD_GetUserCannotChangePassword' !" ;
+        qCritical()<<m_lastErrorString;
+        return false;
+    }
+
     m_AD_SetUserPasswordChange = (AD_SetUserPasswordChangeFunction) adsiLibrary->resolve("AD_SetUserPasswordChange");
     if(!m_AD_SetUserPasswordChange){
         unloadLibrary();
@@ -327,6 +346,8 @@ bool ADSI::unloadLibrary(){
     m_AD_SetAccountExpire = 0;
     m_AD_SetPasswordExpire = 0;
     m_AD_SetUserPasswordChange = 0;
+    m_AD_SetUserCannotChangePassword = 0;
+    m_AD_GetUserCannotChangePassword = 0;
     m_AD_GetUserPasswordChange = 0;
     m_AD_GetObjectAttribute = 0;
     m_AD_ModifyAttribute = 0;
@@ -414,6 +435,14 @@ bool ADSI::AD_SetAccountExpire(const QString &object, const QString &expireDateT
 
 bool ADSI::AD_SetPasswordExpire(const QString &object, bool enableExpire){
     return m_AD_SetPasswordExpire(object.toStdWString().c_str(), enableExpire?1:0);
+}
+
+bool ADSI::AD_SetUserCannotChangePassword(const QString &samAccountName, bool bCannotChangePassword){
+    return m_AD_SetUserCannotChangePassword(samAccountName.toStdWString().c_str(), bCannotChangePassword);
+}
+
+bool ADSI::AD_GetUserCannotChangePassword(const QString &samAccountName, long *bCannotChangePassword){
+    return m_AD_GetUserCannotChangePassword(samAccountName.toStdWString().c_str(), bCannotChangePassword);
 }
 
 bool ADSI::AD_SetUserPasswordChange(const QString &object, bool enableChange){
@@ -534,6 +563,9 @@ QString ADSI::UserNameOfCurrentThread(){
     if(!temp){return "";}
     return QString::fromWCharArray(temp);
 }
+
+
+
 
 
 
