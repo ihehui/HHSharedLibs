@@ -85,7 +85,7 @@ public:
 
     bool accountDisabled(const QString &samAccountName);
     bool userMustChangePassword(const QString &samAccountName);
-    bool userCanChangePassword(const QString &samAccountName);
+    bool userCannotChangePassword(const QString &samAccountName);
     bool passwordNeverExpires(const QString &samAccountName);
 
 

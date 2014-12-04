@@ -536,12 +536,12 @@ bool ADSI::userMustChangePassword(const QString &samAccountName){
     return false;
 }
 
-bool ADSI::userCanChangePassword(const QString &samAccountName){
+bool ADSI::userCannotChangePassword(const QString &samAccountName){
     long userCanChangePassword = 1;
     if(!AD_GetUserPasswordChange(samAccountName, &userCanChangePassword)){
         qCritical()<<AD_GetLastErrorString();
     }
-    return userCanChangePassword;
+    return !userCanChangePassword;
 }
 
 bool ADSI::passwordNeverExpires(const QString &samAccountName){

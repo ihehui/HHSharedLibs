@@ -1,7 +1,7 @@
 #RESOURCE VERSIONINFO
 
 #RESOURCE FILEFLAGS %VS_FF_SPECIALBUILD
-#RESOURCE FILEVERSION 2014, 11, 28, 1
+#RESOURCE FILEVERSION 2014, 12, 4, 2
 '#RESOURCE PRODUCTVERSION 2012, 10, 29, 1
 
 #RESOURCE STRINGINFO "0804", "04B0"
@@ -9,14 +9,14 @@
 #RESOURCE VERSION$ "Comments",         "ADSI Wrapper DLL"
 #RESOURCE VERSION$ "CompanyName",      "HeHui Inc."
 #RESOURCE VERSION$ "FileDescription",  "ADSI Wrapper"
-'#RESOURCE VERSION$ "FileVersion",      "2014.10.23.1"
+'#RESOURCE VERSION$ "FileVersion",      "2014.12.4.1"
 #RESOURCE VERSION$ "InternalName",     "ADSI"
 #RESOURCE VERSION$ "LegalCopyright",   "Copyright (C) 2007 - 2014 He Hui"
 #RESOURCE VERSION$ "LegalTrademarks",  "Built By HeHui"
 #RESOURCE VERSION$ "OriginalFilename", "ADSI.DLL"
 '#RESOURCE VERSION$ "PrivateBuild",     "Private info"
 #RESOURCE VERSION$ "ProductName",      "ADSI Wrapper"
-#RESOURCE VERSION$ "ProductVersion",   "2014.11.28.1"
+#RESOURCE VERSION$ "ProductVersion",   "2014.12.4.2"
 '#RESOURCE VERSION$ "SpecialBuild",     "Special info"
 
 

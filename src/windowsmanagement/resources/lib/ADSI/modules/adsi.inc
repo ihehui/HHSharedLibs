@@ -282,8 +282,8 @@ FUNCTION AD_LastError() AS LONG
         DIM hr AS LONG
         hr = ADsGetLastError(BYREF lError, BYREF sErrorBuf, dwErrorBufLen, BYREF sNameBuf, dwNameBufLen)
         IF FAILED(hr) THEN
-            #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code:" & STR$(hr) & " Function:" & FUNCNAME$
-            'MsgBox OBJRESULT$(hr) & $CrLf & "Code:" & Str$(hr), %MB_ICONERROR, "Error:" & FuncName$
+				#DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code: 0x" & HEX$(hr, 8) & " Function:" & FUNCNAME$
+				'MSGBOX OBJRESULT$(hr) & $CRLF & "Code: 0x" & HEX$(hr, 8) & $CRLF & " Function:" & FUNCNAME$, %MB_ICONERROR, "ADSI Error"
 
             'sAD_LastErrorString = OBJRESULT$(hr)
             'lAD_LastErrorCode = hr
@@ -353,8 +353,8 @@ FUNCTION AD_ObjGet(BYREF sAD_FQDN AS WSTRINGz, OPTIONAL BYVAL riidParam AS GUID)
 
     IF FAILED(hr) THEN
         SetError(3, OBJRESULT$(hr))
-        #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code:" & STR$(hr) & " Function:" & FUNCNAME$
-        MSGBOX OBJRESULT$(hr) & $CRLF & "Code:" & STR$(hr), %MB_ICONERROR, "Error"
+        #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code: 0x" & HEX$(hr, 8) & " Function:" & FUNCNAME$
+        'MSGBOX OBJRESULT$(hr) & $CRLF & "Code: 0x" & HEX$(hr, 8) & $CRLF & " Function:" & FUNCNAME$, %MB_ICONERROR, "ADSI Error"
         'MsgBox FORMAT$(hr)
 
         'Function = %Null
@@ -878,7 +878,139 @@ Function AD_SetPasswordExpire alias "AD_SetPasswordExpire" (BYREF sAD_ObjectPara
 End Function   '==>AD_SetPasswordExpire
 
 
+'---------------------------------------------------------------------------------------------------------------------------
+' #FUNCTION# ====================================================================================================================
+' Name...........: AD_SetUserCannotChangePassword
+' Description ...: Enable or disables the 'User Cannot Change Password' option
+' Syntax.........: AD_SetUserCannotChangePassword(sAD_UserSAMAccount, bCannotChangePassword)
+' Parameters ....: sAD_UserSAMAccount - User account to enable or disable changing the password (sAMAccountName)
+'                  bCannotChangePassword - If allowing the user to change their password, 0:user can not change the password 
+' Return values .: Success - 1
+'                  Failure - 0, sets @error to:
+'                  |1 - $sAD_Object does not exist
+'                  |x - Error returned by SetInfo function (Missing permission etc.)
+' Author ........: He Hui
+' Modified.......: He Hui
+' Remarks .......:
+' Related .......: _AD_IsPasswordExpired, _AD_GetPasswordExpired, _AD_GetPasswordDontExpire, _AD_SetPassword, _AD_DisablePasswordExpire, _AD_EnablePasswordExpire, AD_GetUserCannotChangePassword, _AD_GetPasswordInfo
+' Link ..........: Example VBS see: http://msdn.microsoft.com/en-us/library/aa746399.aspx or How to use Visual Basic and ADsSecurity.dll to properly order ACEs in an ACL.
+' Example .......: Yes
+' ===============================================================================================================================
+FUNCTION AD_SetUserCannotChangePassword alias "AD_SetUserCannotChangePassword" (BYREF sAD_UserSAMAccountParam AS WSTRINGZ, byval bCannotChangePassword AS DWORD) export as long
+	    
+		 
+	 LOCAL sAD_UserSAMAccount AS WSTRINGZ * 128
+    sAD_UserSAMAccount = sAD_UserSAMAccountParam	 
+		 
+		 
+	 IF ISFALSE AD_ObjectExists(sAD_UserSAMAccount, "") THEN
+      SetError(1, "Object '" & sAD_UserSAMAccount & "' does not exist!")
+      #DEBUG PRINT "Error! " & sAD_LastErrorString & " Function:" & FUNCNAME$
+      'MSGBOX sAD_LastErrorString, %MB_ICONERROR, "Error"
+      FUNCTION = 0
+      EXIT FUNCTION
+    END IF	 
+		 		 
+	 DIM strADsPath AS WSTRINGZ*1024
+    strADsPath = "WinNT://"
+    strADsPath += sAD_HostServer
+    strADsPath += "/"
+    strADsPath += sAD_UserSAMAccount
+	 strADsPath += ",user"
+	 
+	 DIM hr AS LONG
+	 DIM oADsUser AS IADsUser
+	 
+	 oADsUser = AD_ObjGet(strADsPath, $IID_IADsUser)
+	 
+	' hr = ADsOpenObject(BYREF strADsPath, BYREF sAD_UserId, BYREF sAD_Password, %ADS_SECURE_AUTHENTICATION, $IID_IADsUser, BYREF ads)
+   ' IF FAILED(hr) THEN	  
+   '     SetError(3, OBJRESULT$(hr))
+   '     #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code: 0x" & HEX$(hr, 8) & " Function:" & FUNCNAME$
+   '     'MSGBOX OBJRESULT$(hr) & $CRLF & "Code: 0x" & HEX$(hr, 8) & $CRLF & " Function:" & FUNCNAME$, %MB_ICONERROR, "ADSI Error"	  				 
+	'	  FUNCTION = 0
+   '     EXIT FUNCTION
+   ' END IF
+	 
+	 DIM dFlags AS DWORD
+    dFlags = VARIANT#(oADsUser.Get("userFlags"))
+    if bCannotChangePassword THEN
+		dFlags = dFlags OR %ADS_UF_PASSWD_CANT_CHANGE
+    else
+      dFlags = dFlags AND (dFlags XOR %ADS_UF_PASSWD_CANT_CHANGE)
+    END IF
 
+    'Perform the change.
+    oADsUser.Put("userFlags", dFlags)
+
+    'Commit the change.
+    oADsUser.SetInfo()
+	 
+	IF OBJRESULT <> %S_OK THEN
+      FUNCTION = 0
+	else
+		function = 1	
+   END IF
+
+END FUNCTION
+
+
+'---------------------------------------------------------------------------------------------------------------------------
+' #FUNCTION# ====================================================================================================================
+' Name...........: AD_GetUserCannotChangePassword
+' Description ...: Enable or disables the 'User Cannot Change Password' option
+' Syntax.........: AD_GetUserCannotChangePassword(sAD_UserSAMAccount, bCannotChangePassword)
+' Parameters ....: _IN_  sAD_UserSAMAccount - User account to enable or disable changing the password (sAMAccountName)
+'                  _OUT_ bCannotChangePassword - If allowing the user to change their password, 0:user can not change the password 
+' Return values .: Success - 1
+'                  Failure - 0, sets @error to:
+'                  |1 - $sAD_Object does not exist
+'                  |x - Error returned by SetInfo function (Missing permission etc.)
+' Author ........: He Hui
+' Modified.......: He Hui
+' Remarks .......:
+' Related .......: _AD_IsPasswordExpired, _AD_GetPasswordExpired, _AD_GetPasswordDontExpire, _AD_SetPassword, _AD_DisablePasswordExpire, AD_SetUserCannotChangePassword, _AD_GetPasswordInfo
+' Link ..........: Example VBS see: http://msdn.microsoft.com/en-us/library/aa746449(v=vs.85).aspx or How to use Visual Basic and ADsSecurity.dll to properly order ACEs in an ACL.
+' Example .......: Yes
+' ===============================================================================================================================
+FUNCTION AD_GetUserCannotChangePassword alias "AD_GetUserCannotChangePassword" (BYREF sAD_UserSAMAccount AS WSTRINGZ, BYREF bCannotChangePassword AS DWORD) export as long
+	    
+	 IF ISFALSE AD_ObjectExists(sAD_UserSAMAccount, "") THEN
+      SetError(1, "Object '" & sAD_UserSAMAccount & "' does not exist!")
+      #DEBUG PRINT "Error! " & sAD_LastErrorString & " Function:" & FUNCNAME$
+      'MSGBOX sAD_LastErrorString, %MB_ICONERROR, "Error"
+      FUNCTION = 0
+      EXIT FUNCTION
+    END IF	 
+		 		 
+	 DIM strADsPath AS WSTRINGZ*1024
+    strADsPath = "WinNT://"
+    strADsPath += sAD_HostServer
+    strADsPath += "/"
+    strADsPath += sAD_UserSAMAccount
+	 strADsPath += ",user"
+	 
+	 DIM hr AS LONG
+	 DIM oADsUser AS IADsUser
+	 
+	 oADsUser = AD_ObjGet(strADsPath, $IID_IADsUser)
+ 	 
+	 If (VARIANT#(oADsUser.Get("userFlags")) And %ADS_UF_PASSWD_CANT_CHANGE) <> 0 Then
+        bCannotChangePassword = 1
+    Else
+        bCannotChangePassword = 0
+    End If
+	 
+	IF OBJRESULT <> %S_OK THEN
+      FUNCTION = 0
+	else
+		function = 1	
+   END IF
+
+END FUNCTION
+
+
+'!!!!!!!!!!!!!!!!!!!!!!INVALID!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 '---------------------------------------------------------------------------------------------------------------------------
 ' #FUNCTION# ====================================================================================================================
 ' Name...........: AD_SetUserPasswordChange
@@ -948,6 +1080,10 @@ Function AD_SetUserPasswordChange alias "AD_SetUserPasswordChange" (BYREF sAD_Ob
    local oAD_ACE as  IADsAccessControlEntry
    'local aceCount as long
    'aceCount = oAD_DACL.AceCount
+	
+	local bAD_Self, bAD_Everyone, bAD_Modified AS INTEGER
+	bAD_Self = bAD_Everyone = bAD_Modified = 0
+
 
    local  pDisp as IDispatch, pUnk as IUnknown, pEnum as IEnumVARIANT, iid AS GUID, hr as long, varValue as variant, nFetch as long
    pUnk = oAD_DACL.NewEnum_
@@ -956,13 +1092,12 @@ Function AD_SetUserPasswordChange alias "AD_SetUserPasswordChange" (BYREF sAD_Ob
    IF FAILED(hr) THEN
       SetError(2, OBJRESULT$(hr))
       #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code:" & STR$(hr) & " Function:" & FUNCNAME$
-      'MSGBOX OBJRESULT$(hr) & $CRLF & "Code:" & STR$(hr), %MB_ICONERROR, "Error"
+      'MSGBOX OBJRESULT$(hr) & $CRLF & "Code: &H" & HEX$(hr, 8), %MB_ICONERROR, "ADSI Error"
       FUNCTION = 0
       EXIT FUNCTION
    END IF
 
    hr = pEnum.Next(1, varValue, nFetch)
-
    while (hr = %S_OK)
        if nFetch = 1 THEN
            if variantvt(varValue) <> %VT_DISPATCH THEN
@@ -977,8 +1112,8 @@ Function AD_SetUserPasswordChange alias "AD_SetUserPasswordChange" (BYREF sAD_Ob
            if SUCCEEDED(hr) THEN
                If UCASE$(oAD_ACE.objectType) = UCASE$(USER_CHANGE_PASSWORD) Then
                    If UCASE$(oAD_ACE.Trustee) = sAD_Self Then
-                       If oAD_ACE.AceType = oldACETYPE Then
-                           oAD_ACE.AceType = newACETYPE						
+                       If oAD_ACE.AceType = oldACETYPE Then				
+                           oAD_ACE.AceType = newACETYPE					
 									'oAD_DACL.RemoveAce(oAD_ACE)
                        End If
                    End If
@@ -992,7 +1127,12 @@ Function AD_SetUserPasswordChange alias "AD_SetUserPasswordChange" (BYREF sAD_Ob
 
            END IF
            VariantClear(varValue)
-
+			  			  
+			      If UCASE$(oAD_ACE.objectType) = UCASE$(USER_CHANGE_PASSWORD) Then
+                   If UCASE$(oAD_ACE.Trustee) = sAD_Self Then	
+							End If
+               End If			  
+			  
        END IF
 
        hr = pEnum.Next(1, varValue, nFetch)
@@ -1080,7 +1220,7 @@ Function AD_GetUserPasswordChange alias "AD_GetUserPasswordChange" (BYREF sAD_Ob
    IF FAILED(hr) THEN
       SetError(2, OBJRESULT$(hr))
       #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code:" & STR$(hr) & " Function:" & FUNCNAME$
-      'MSGBOX OBJRESULT$(hr) & $CRLF & "Code:" & STR$(hr), %MB_ICONERROR, "Error"
+      'MSGBOX OBJRESULT$(hr) & $CRLF & "Code: &H" & HEX$(hr, 8), %MB_ICONERROR, "ADSI Error"
       FUNCTION = 0
       EXIT FUNCTION
    END IF
@@ -2791,7 +2931,7 @@ END FUNCTION
 '        IF FAILED(hr) THEN
 '            SetError(3, OBJRESULT$(hr))
 '            #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code:" & STR$(hr) & " Function:" & FUNCNAME$
-'            MSGBOX OBJRESULT$(hr) & $CRLF & "Code:" & STR$(hr), %MB_ICONERROR, "Error"
+'            MSGBOX OBJRESULT$(hr) & $CRLF & "Code: &H" & HEX$(hr, 8), %MB_ICONERROR, "ADSI Error"
 '                FUNCTION = 0
 '                EXIT FUNCTION
 '        END IF
@@ -2814,7 +2954,7 @@ END FUNCTION
 '        IF NOT ISOBJECT(oAD_PropertyEntry) THEN
 '               SetError(2, "No values for the specified property '" & oAD_Item.Name & "'.")
 '            #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code:" & STR$(hr) & " Function:" & FUNCNAME$
-'            MSGBOX OBJRESULT$(hr) & $CRLF & "Code:" & STR$(hr), %MB_ICONERROR, "Error"
+'            MSGBOX OBJRESULT$(hr) & $CRLF & "Code: &H" & HEX$(hr, 8), %MB_ICONERROR, "ADSI Error"
 '                FUNCTION = 0
 '                EXIT FUNCTION
 '        ELSE
