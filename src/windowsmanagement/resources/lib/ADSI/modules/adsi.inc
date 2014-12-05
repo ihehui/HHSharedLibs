@@ -1775,22 +1775,21 @@ Function AD_GetAllOUs alias "AD_GetAllOUs" (BYREF sAD_RootParam as wstringz, opt
 	oAD_Command.CommandText = "<LDAP://" & sAD_HostServer & "/" & sAD_Root & ">;" & "(objectCategory=organizationalUnit)" & ";distinguishedName;subtree"
 	LOCAL oAD_RecordSet AS ADORecordset 
 	oAD_RecordSet = oAD_Command.Execute
-	Local iCount1 as long
-	iCount1 = oAD_RecordSet.RecordCount
-	If iCount1 = 0 Then 
+	Local iRecordCount as long
+	iRecordCount = oAD_RecordSet.RecordCount
+	If iRecordCount = 0 Then 
 			SetError(1, "No OUs found!")
 			#DEBUG PRINT "Error! " & sAD_LastErrorString & " Function:" & FUNCNAME$
 			'MSGBOX sAD_LastErrorString, %MB_ICONERROR, "Error"
 			FUNCTION = $$NUL
 			EXIT FUNCTION 
 	end if
-	dim aAD_OUs(1 to iCount1) as wstring
-	Local iCount2 as long
+	
+	dim aAD_OUs(1 to iRecordCount) as wstring, iCount2 as long
 	iCount2 = 1
-	oAD_RecordSet.MoveFirst
 	
 	LOCAL fld AS ADOField, sOUName AS wstring
-	 
+	oAD_RecordSet.MoveFirst
 	Do Until oAD_RecordSet.EOF
 		'aAD_OUs(iCount2, 1) = oAD_RecordSet.Fields("distinguishedName").Value
 		fld = oAD_RecordSet.fields.Item(0)
@@ -1815,6 +1814,10 @@ Function AD_GetAllOUs alias "AD_GetAllOUs" (BYREF sAD_RootParam as wstringz, opt
 		aAD_OUs(iCount2) = sOUName
 	
 		iCount2 += 1
+		if iCount2 > iRecordCount THEN
+			EXIT LOOP
+		END IF
+		
 		oAD_RecordSet.MoveNext
 	loop
   
@@ -1876,8 +1879,8 @@ End Function   '==>AD_GetAllOUs
 'Function AD_GetObjectsInOU alias "AD_GetObjectsInOU" (BYVAL sAD_OUParam as wstring, BYVAL sAD_FilterParam as wstring,  BYVAL sAD_DataToRetrieveParam as wstring, _
 '																			 BYVAL sAD_ItemSeparatorParam as wstring, BYVAL sAD_AttributeSeparatorParam as wstring ) export as wstring
 '                                                     ' byval sAD_SortByParam as wstring, byval iAD_SearchScopeParam as long) export as wstring
-Function AD_GetObjectsInOU alias "AD_GetObjectsInOU" (BYREF sAD_OUParam as wstringz, BYREF sAD_FilterParam as wstringz,  BYREF sAD_DataToRetrieveParam as wstringz, _
-																			 BYREF sAD_ItemSeparatorParam as wstringz, BYREF sAD_AttributeSeparatorParam as wstringz ) export as wstring														  
+Function AD_GetObjectsInOU alias "AD_GetObjectsInOU" (BYVAL spBuffer AS WSTRINGZ PTR, BYVAL pdBufferSize AS DWORD PTR, BYREF sAD_OUParam as wstringz, BYREF sAD_FilterParam as wstringz,  BYREF sAD_DataToRetrieveParam as wstringz, _
+																			 BYREF sAD_ItemSeparatorParam as wstringz, BYREF sAD_AttributeSeparatorParam as wstringz ) export as LONG														  
 	
 	SetError(0, "")	
 
@@ -1894,8 +1897,8 @@ Function AD_GetObjectsInOU alias "AD_GetObjectsInOU" (BYREF sAD_OUParam as wstri
 			
 	'iAD_SearchScope = iAD_SearchScopeParam
 	'sAD_SortBy = sAD_SortByParam
-
-
+	
+	
 	If sAD_OU = "" Then
 		sAD_OU = sAD_DNSDomain
 	Else
@@ -1903,7 +1906,7 @@ Function AD_GetObjectsInOU alias "AD_GetObjectsInOU" (BYREF sAD_OUParam as wstri
 			SetError(1, "OU '" & sAD_OU & "' does not exist!")
 			#DEBUG PRINT "Error! " & sAD_LastErrorString & " Function:" & FUNCNAME$
 			'MSGBOX sAD_LastErrorString, %MB_ICONERROR, "Error"
-			FUNCTION = $$NUL
+			FUNCTION = 0
 			EXIT FUNCTION  
 		end if
 			
@@ -1934,26 +1937,26 @@ Function AD_GetObjectsInOU alias "AD_GetObjectsInOU" (BYREF sAD_OUParam as wstri
 		SetError(2, "No records returned from Active Directory! sAD_DataToRetrieve is invalid (attribute may not exist)")
 		#DEBUG PRINT "Error! " & sAD_LastErrorString & " Function:" & FUNCNAME$
 		'MSGBOX sAD_LastErrorString, %MB_ICONERROR, "Error"
-		FUNCTION = $$NUL
+		FUNCTION = 0
 		EXIT FUNCTION  
 	end if
 
-	Local iCount1 as long
-	iCount1 = oAD_RecordSet.RecordCount	
-	If iCount1 = 0 Then 
+	Local iRecordCount as long
+	iRecordCount = oAD_RecordSet.RecordCount	
+	If iRecordCount = 0 Then 
 		SetError(3, "No records returned from Active Directory! sAD_Filter didn't return a record")
 		#DEBUG PRINT "Error! " & sAD_LastErrorString & " Function:" & FUNCNAME$
 		'MSGBOX sAD_LastErrorString, %MB_ICONERROR, "Error"
-		FUNCTION = $$NUL	
+		FUNCTION = 0	
 		EXIT FUNCTION
 	end if
 
-	dim fld AS ADOField, aAD_Objects(1 to iCount1) as wstring, iCount2 as long
+	dim fld AS ADOField, aAD_Objects(1 to iRecordCount) as wstringZ*8192, iCount1 as long, iCount2 as long
 	'If bAD_Count Then Return oAD_RecordSet.RecordCount
 
 	If VERIFY(",", sAD_DataToRetrieve) = 0 Then
 		
-		dim aAD_DataToRetrieveArray( PARSECOUNT(sAD_DataToRetrieve) ) as wstring
+		dim aAD_DataToRetrieveArray( PARSECOUNT(sAD_DataToRetrieve) ) as wstringZ*64
 		PARSE sAD_DataToRetrieve, aAD_DataToRetrieveArray(), ","
 		'aAD_DataToRetrieve = StringSplit(sAD_DataToRetrieve, ",")
 		'Local aAD_Objects[iCount1 + 1][aAD_DataToRetrieve[0]]
@@ -1964,12 +1967,13 @@ Function AD_GetObjectsInOU alias "AD_GetObjectsInOU" (BYREF sAD_OUParam as wstri
 		
 		'dim aAD_Objects(1 to iCount1) as wstring
 		dim vValue as variant
+		iCount1 = 0
 		iCount2 = 1
-	
+		
 		oAD_RecordSet.MoveFirst
 		Do Until oAD_RecordSet.EOF
 			'dim tempString as wstring
-			dim tempStringArray(0 To PARSECOUNT(sAD_DataToRetrieve)-1) as wstringZ * 1024
+			dim tempStringArray(0 To PARSECOUNT(sAD_DataToRetrieve)-1) as wstringZ*4096
 			For iCount1 = 0 To PARSECOUNT(sAD_DataToRetrieve)-1
 				fld = oAD_RecordSet.fields.Item(iCount1)
 				'vValue = fld.Value
@@ -1978,13 +1982,20 @@ Function AD_GetObjectsInOU alias "AD_GetObjectsInOU" (BYREF sAD_OUParam as wstri
 			Next iCount1
 			'tempString = CLIP$(RIGHT tempString, 1) 
 			'aAD_Objects(iCount2) = tempString
-			aAD_Objects(iCount2) = JOIN$(tempStringArray(), sAD_AttributeSeparator)
+			aAD_Objects(iCount2) = JOIN$(tempStringArray(), sAD_AttributeSeparator) + $$NUL  
 			
-			oAD_RecordSet.MoveNext
 			iCount2 += 1
 			'tempString = ""
+			
+			if iCount2 > iRecordCount THEN
+				EXIT LOOP
+			END IF
+			
+			oAD_RecordSet.MoveNext
+
 		loop
 		
+
 	Else
 		'Local aAD_Objects[iCount1 + 1]
 		'aAD_Objects[0] = UBound(aAD_Objects) - 1
@@ -2004,8 +2015,24 @@ Function AD_GetObjectsInOU alias "AD_GetObjectsInOU" (BYREF sAD_OUParam as wstri
 	End If
 	'oAD_Command.Properties("Sort On") = "" ' Reset sort property
 	
-
-	function = JOIN$(aAD_Objects(), sAD_ItemSeparator) + $$NUL  
+		
+	DIM dataString AS WSTRING, dataLength AS DWORD	
+	dataString = JOIN$(aAD_Objects(), sAD_ItemSeparator) + $$NUL  
+	dataLength = LEN(dataString)
+	
+	If @pdBufferSize < dataLength Then
+		   @pdBufferSize = dataLength
+			
+			SetError(1, "No enough buffer!")
+			#DEBUG PRINT "Error! " & sAD_LastErrorString & " Function:" & FUNCNAME$
+			'MSGBOX sAD_LastErrorString, %MB_ICONERROR, "Error"
+			FUNCTION = 0
+			EXIT FUNCTION  
+	end if
+		
+	@spBuffer = dataString
+	@pdBufferSize = dataLength
+	function = 1
 
 End Function   '==>AD_GetObjectsInOU
 
@@ -2031,7 +2058,7 @@ End Function   '==>AD_GetObjectsInOU
 function convertADOVariantToString(byval vValue as variant, byval sAD_Attribute as wstring ) as wstring
 'function convertADOVariantToString(byval vValue as variant, BYREF sAD_Attribute as wstringz ) as wstring
 
-	local variantType as long, result as wstring, valuesArraySeparator as wstring
+	local variantType as long, result as wstring, valuesArraySeparator as wstringZ*2
 	variantType = variantvt(vValue)
 	valuesArraySeparator = ";"
 
@@ -2182,7 +2209,7 @@ function convertADOVariantToString(byval vValue as variant, byval sAD_Attribute 
 	
 	'msgbox "variantvt(vValue):	" & str$(variantType) & $crlf & "result:	" & result
 	
-	function = result
+	function = result + $$NUL  
 	
 end function   '==>convertADOVariantToString
 

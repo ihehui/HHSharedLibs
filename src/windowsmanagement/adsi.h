@@ -79,7 +79,7 @@ public:
     bool AD_ModifyAttribute(const QString &object, const QString &attribute, const QString &value, long option = 0);
     bool AD_CreateOU(const QString &parentOU, const QString &ouName);
     QString AD_GetAllOUs(const QString &root, const QString &separator, const QString &subOUSeparator);
-    QString AD_GetObjectsInOU(const QString &ou, const QString &filter, const QString &dataToRetrieve, const QString &itemSeparator, const QString &attributeSeparator);
+    bool AD_GetObjectsInOU(QString *adObjects, const QString &ou, const QString &filter, const QString &dataToRetrieve, const QString &itemSeparator, const QString &attributeSeparator);
     bool AD_CreateUser(const QString &ou, const QString &userName, const QString &userCN);
     bool AD_SetPassword(const QString &userName, const QString &password, bool expire = false);
 
@@ -168,7 +168,7 @@ private:
    typedef LPCWSTR (WINAPI * AD_GetAllOUsFunction)(LPCWSTR, LPCWSTR, LPCWSTR);
    AD_GetAllOUsFunction m_AD_GetAllOUs;
 
-   typedef LPCWSTR (WINAPI * AD_GetObjectsInOUFunction)(LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR);
+   typedef LPCWSTR (WINAPI * AD_GetObjectsInOUFunction)(LPWSTR, DWORD*, LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR);
    AD_GetObjectsInOUFunction m_AD_GetObjectsInOU;
 
    typedef long (WINAPI * AD_CreateUserFunction)(LPCWSTR, LPCWSTR, LPCWSTR);

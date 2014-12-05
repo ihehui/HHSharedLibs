@@ -27,145 +27,47 @@
 
    #COMPILE EXE
 
-    '#COMPILE DLL
+   '#COMPILE DLL
 
 
 ''''''''''''''''''----------''''''''''''''''''''''''''
-#DIM ALL
-%USEMACROS = 1
+'#DIM ALL
+'%USEMACROS = 1
 #INCLUDE ONCE "modules\adsi.inc"
 ''''''''''''''''''----------''''''''''''''''''''''''''
 
 
 
 
-
-FUNCTION SetUserCannotChangePassword2(BYREF pwszDomain AS WSTRING, BYREF pwszUser AS WSTRING, BYREF pwszUserCred AS WSTRING, BYREF pwszPassword AS WSTRING, fCannotChangePassword AS DWORD) AS DWORD
-
- 
-	 If "" = pwszDomain OR "" = pwszUser Then
-		FUNCTION = 0
-		EXIT FUNCTION
-	 END IF
-	 
-	 
-    
-    DIM hr AS LONG
-	 hr = %S_OK
-	 
-    DIM ads AS IADs
-	 DIM pvObj AS DWORD
-	 LOCAL vObj AS VARIANT
-
-    DIM strADsPath AS WSTRINGZ*1024
-    strADsPath = "WinNT://"
-    strADsPath += pwszDomain
-    strADsPath += "/"
-    strADsPath += pwszUser
-	 strADsPath += ",user"
-	 
-	 DIM sAD_UserId AS WSTRINGZ*1024
-	 sAD_UserId = pwszUser
-	 
-	 DIM sAD_Password AS WSTRINGZ*1024
-	 sAD_Password = pwszPassword
-
-
-    ads = AD_ObjGet(strADsPath, $IID_IADs)
-	  'hr = ADsOpenObject(BYREF "LDAP://" & pwszDomain & "/" & pwszUser, BYREF sAD_UserId, BYREF sAD_Password, %ADS_SECURE_AUTHENTICATION, $IID_IADs, BYREF pads)
-
-		  
-	IF ISNOTHING(ads) THEN EXIT FUNCTION
-		  
-    'if SUCCEEDED(hr) THEN
-   
-        'DIM svar AS Variant
-		  DIM svar AS DWORD
-        svar = VARIANT#(ads.Get("userFlags"))
-
-      
-            if fCannotChangePassword THEN
-                svar = svar OR %ADS_UF_PASSWD_CANT_CHANGE
-            else
-                svar = svar AND (svar XOR %ADS_UF_PASSWD_CANT_CHANGE)
-            END IF
-
-            'Perform the change.
-            ads.Put("userFlags", svar)
-
-            'Commit the change.
-            ads.SetInfo()
-				
-				hr = OBJRESULT
-		  
-    'ELSE
-	'	    #DEBUG PRINT "Error! " & OBJRESULT$(hr) & " Code:" & STR$(hr) & " Function:" & FUNCNAME$
-	'	    MSGBOX "FUNCTION: " & FUNCNAME$	& $CRLF & STR$(hr) & $CRLF & OBJRESULT$(hr), %MB_ICONERROR, "Error" 	    
-    'END IF
-
-    FUNCTION = hr
-
-
-End FUNCTION
+FUNCTION testADSI2 () AS LONG
 
 
 
-FUNCTION testADSI () AS LONG
 
-'    MSGBOX ComputerName()
- '   MSGBOX UserNameOfCurrentThread()
-  '  EXIT FUNCTION
-
-
-     IF ad_open("hehui", "000...", "200.200.198.198", 0 ) = 0 THEN
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+     IF ad_open("hehui", "0000....~", "200.200.200.118", 0 ) = 0 THEN
      'IF ad_open("dgadmin", "dmsto&*(", "200.200.200.106", 0 ) = 0 THEN
         MSGBOX AD_GetLastErrorString(), %MB_ICONERROR, "Error"
 		  exit function
      END IF
 
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-
-
-
-local cc as DWORD
-
-local  ok AS long
-
-
-msgbox "1"
-ok = AD_GetUserPasswordChange("d", cc)
-msgbox "ok:"+str$(ok) & $CRLF & "cc:"+str$(cc)
-
-msgbox "2"
-
-ok = AD_GetUserCannotChangePassword("d", cc)
-msgbox "ok:"+str$(ok) & $CRLF & "cc:"+str$(cc)
-
-ok = AD_SetUserCannotChangePassword("d", 0)
-msgbox "ok:"+str$(ok)
-
-
-ok = AD_GetUserCannotChangePassword("d", cc)
-msgbox "ok:"+str$(ok) & $CRLF & "cc:"+str$(cc)
-
-
-ok = AD_GetUserPasswordChange("d", cc)
-msgbox "ok:"+str$(ok) & $CRLF & "cc:"+str$(cc)
+       dim filter as wstringz*1024, dataToRetrieve as wstringz*1024, buffer as WStringZ*256000, bufferSize as DWORD
+        filter = "(&(objectcategory=person)(objectclass=user)(sAMAccountName=*))"
+        dataToRetrieve = "sAMAccountName,displayName,userWorkstations,telephoneNumber,description,objectGUID,objectSid"
+		  
+		  bufferSize = 256000
+		  
+	
+		  AD_GetObjectsInOU(BYREF buffer, BYREF bufferSize, "DC=sitoy,DC=group", filter , dataToRetrieve, ";", "|")
+		  
+        MSGBOX "Result:" + $CRLF + buffer
 
 exit function
 
 
 
-local  change AS long
-change = 100
-AD_GetUserPasswordChange("c", byref change)
-msgbox "change:" + STR$(change)
-
-AD_SetUserPasswordChange("c", 0)
-
-AD_GetUserPasswordChange("c", byref change)
-msgbox "change:" + STR$(change)
-exit function
 
    ' MSGBOX AD_GetObjectAttribute("test", "objectGUID")
 
@@ -221,10 +123,10 @@ exit function
 
 
 
-       dim filter as wstringz*1024, dataToRetrieve as wstringz*1024
-        filter = "(&(objectcategory=person)(objectclass=user)(sAMAccountName=hui*))"
-        dataToRetrieve = "sAMAccountName,displayName,userWorkstations,telephoneNumber,description,objectGUID,objectSid"
-        MSGBOX "Result:" + $CRLF + AD_GetObjectsInOU("DC=sitoy,DC=group", filter , dataToRetrieve, ";", "|")
+      ' dim filter as wstringz*1024, dataToRetrieve as wstringz*1024
+      '  filter = "(&(objectcategory=person)(objectclass=user)(sAMAccountName=hui*))"
+      '  dataToRetrieve = "sAMAccountName,displayName,userWorkstations,telephoneNumber,description,objectGUID,objectSid"
+      '  MSGBOX "Result:" + $CRLF + AD_GetObjectsInOU("DC=sitoy,DC=group", filter , dataToRetrieve, ";", "|")
 
 
 
@@ -237,7 +139,9 @@ END FUNCTION
 #IF %PB_EXE
 
 FUNCTION PBMAIN () AS LONG
-    CALL testADSI()
+
+     testADSI2()
+	 
 END FUNCTION
 
 #ELSE

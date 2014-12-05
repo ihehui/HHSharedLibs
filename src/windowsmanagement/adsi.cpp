@@ -499,7 +499,7 @@ QString ADSI::AD_GetAllOUs(const QString &root, const QString &separator, const 
 
 }
 
-QString ADSI::AD_GetObjectsInOU(const QString &ou, const QString &filter, const QString &dataToRetrieve, const QString &itemSeparator, const QString &attributeSeparator){
+bool ADSI::AD_GetObjectsInOU(QString *adObjects, const QString &ou, const QString &filter, const QString &dataToRetrieve, const QString &itemSeparator, const QString &attributeSeparator){
     qDebug()<<"--ADSI::AD_GetObjectsInOU(...)------";
 
 
@@ -507,13 +507,18 @@ QString ADSI::AD_GetObjectsInOU(const QString &ou, const QString &filter, const 
     //AD_GetObjectsInOU("OU=TestOU1,DC=test,DC=local", "(&(objectcategory=person)(objectclass=user)(sAMAccountName=" & "test" & "*)(displayName=Tes*))" , "memberOf", ";", "|")
     //AD_GetObjectsInOU("DC=test,DC=local", "(&(objectcategory=person)(objectclass=user)(sAMAccountName=" & "he" & "*))" , "lastLogon", ";", "|")
 
+    DWORD bufferSize = 819200;
+    wchar_t *buffer = new wchar_t[819200];
+    ZeroMemory(buffer, bufferSize);
 
+    bool ok = m_AD_GetObjectsInOU(buffer, &bufferSize, ou.toStdWString().c_str(), filter.toStdWString().c_str(), dataToRetrieve.toStdWString().c_str(), itemSeparator.toStdWString().c_str(), attributeSeparator.toStdWString().c_str());
+    if(ok){
+       *adObjects =  QString::fromWCharArray(buffer);
+    }
 
-    //return QString::fromWCharArray( m_AD_GetObjectsInOU(ou.toStdWString().c_str(), filter.toStdWString().c_str(), dataToRetrieve.toStdWString().c_str(), itemSeparator.toStdWString().c_str(), attributeSeparator.toStdWString().c_str()));
+    delete [] buffer;
+    return ok;
 
-    const wchar_t *temp = m_AD_GetObjectsInOU(ou.toStdWString().c_str(), filter.toStdWString().c_str(), dataToRetrieve.toStdWString().c_str(), itemSeparator.toStdWString().c_str(), attributeSeparator.toStdWString().c_str());
-    if(!temp){return "";}
-    return QString::fromWCharArray(temp);
 }
 
 bool ADSI::AD_CreateUser(const QString &ou, const QString &userName, const QString &userCN){
