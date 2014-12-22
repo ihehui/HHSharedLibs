@@ -1265,8 +1265,6 @@ bool WindowsManagement::userNeedInit(const QString &userName){
     //     }
     m_lastErrorString = "";
     return ini.contains(m_userName+"/Dept");
-
-
 }
 
 float WindowsManagement::getDiskFreeSpace(const QString &directoryName){
@@ -1317,7 +1315,6 @@ bool WindowsManagement::isAdmin(const QString &userName){
     //qWarning()<<QString(" %1 is admin? %2").arg(name).arg(userIsAdmin);
     
     return userIsAdmin;
-
 
 }
 
@@ -1371,7 +1368,6 @@ bool WindowsManagement::updateUserPassword(const QString &userName, const QStrin
             }
         }
 
-
         netRet = NetUserSetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE)pUsr, &dwParmError);
         //
         // A zero return indicates success.
@@ -1396,14 +1392,12 @@ bool WindowsManagement::updateUserPassword(const QString &userName, const QStrin
         NetApiBufferFree( pUsr);
     }else{
         //printf("NetUserGetInfo failed: %d\n",netRet);
-        m_lastErrorString = tr("An error occurred while updating the password. NetUserGetInfo failed: %1").arg(netRet);
+        m_lastErrorString = tr("An error occurred while updating the password. %1:%2.").arg(netRet).arg(WinSysErrorMsg(netRet));
         qCritical()<<m_lastErrorString;
         result = false;
     }
 
     return result;
-
-
 }
 
 bool WindowsManagement::setupUserAccountState(const QString &userName,  bool enableAccount){
@@ -1426,8 +1420,6 @@ bool WindowsManagement::setupUserAccountState(const QString &userName,  bool ena
     netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
     if( netRet == NERR_Success )
     {
-
-
         DWORD flags = pUsr->usri1_flags;
         if(enableAccount){
             if(flags & UF_ACCOUNTDISABLE){
@@ -1460,7 +1452,6 @@ bool WindowsManagement::setupUserAccountState(const QString &userName,  bool ena
     }
 
     return result;
-
 }
 
 WindowsManagement::UserAccountState WindowsManagement::getUserAccountState(const QString &userName){
@@ -1492,20 +1483,15 @@ WindowsManagement::UserAccountState WindowsManagement::getUserAccountState(const
 
     }else{
         //printf("NetUserGetInfo failed: %d\n",netRet);
-        m_lastErrorString = tr("An error occurred while setting up the account. NetUserGetInfo failed: %1").arg(netRet);
-        qCritical()<<m_lastErrorString;
+        m_lastErrorString = tr("An error occurred while setting up the account. %1:%2.").arg(netRet).arg(WinSysErrorMsg(netRet));
+        qDebug()<<m_lastErrorString;
     }
 
     return result;
 
 }
 
-
-QPair<QDateTime, QDateTime> WindowsManagement::getUserLastLogonAndLogoffTime(const QString &userName){
-
-    QPair<QDateTime, QDateTime> pair;
-    QDateTime lastLogonTime = QDateTime(), lastLogoffTime = QDateTime();
-
+bool WindowsManagement::getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime){
 
     QString name = userName.trimmed();
     if(name.isEmpty()){
@@ -1514,14 +1500,13 @@ QPair<QDateTime, QDateTime> WindowsManagement::getUserLastLogonAndLogoffTime(con
 
     if(name.isEmpty()){
         m_lastErrorString = tr("Invalid user name!");
-        return pair;
+        return false;
     }
 
     DWORD dwLevel = 2;
     PUSER_INFO_2 pUsr = NULL;
     NET_API_STATUS netRet = 0;
     //DWORD dwParmError = 0;
-
 
     netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
     if( netRet == NERR_Success )
@@ -1532,50 +1517,38 @@ QPair<QDateTime, QDateTime> WindowsManagement::getUserLastLogonAndLogoffTime(con
         //qWarning()<<"On:"<<lastLogon<<" Off:"<<lastLogoff;
 
 
-        if(lastLogon){
-            lastLogonTime = QDateTime::fromTime_t(lastLogon);
+        if(lastLogon && lastLogonTime){
+            *lastLogonTime = QDateTime::fromTime_t(lastLogon);
         }
-        if(lastLogoff){
-            lastLogoffTime = QDateTime::fromTime_t(lastLogoff);
+        if(lastLogoff && lastLogoffTime){
+            *lastLogoffTime = QDateTime::fromTime_t(lastLogoff);
         }
 
         //qWarning()<<"On:"<<lastLogonTime.toString("yyyy.MM.dd hh:mm:ss")<<" Off:"<<lastLogoffTime.toString("yyyy.MM.dd hh:mm:ss");
 
         NetApiBufferFree( pUsr);
 
+        return true;
+
     }else{
         //printf("NetUserGetInfo failed: %d\n",netRet);
-        m_lastErrorString = tr("An error occurred while getting the last logon/logoff time. NetUserGetInfo failed: %1").arg(netRet);
-        qCritical()<<m_lastErrorString;
+        m_lastErrorString = tr("An error occurred while getting the last logon/logoff time. NetUserGetInfo failed! %1:%2.").arg(netRet).arg(WinSysErrorMsg(netRet));
+        qDebug()<<m_lastErrorString;
+
+        return false;
     }
-
-    pair.first = lastLogonTime;
-    pair.second = lastLogoffTime;
-
-    return pair;
 
 }
 
-QDateTime WindowsManagement::currentDateTimeOnServer(const QString &server){
+QDateTime WindowsManagement::currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password){
     m_lastErrorString = "";
 
     QDateTime dateTime;
 
 
     ///////////////  建立IPC$    ////////////////////
-    QString  timeServerStr = server;
-    if(timeServerStr.trimmed().isEmpty()){
-        timeServerStr = QString("\\\\200.200.200.2");
-    }
-
     wchar_t timeServer[256];
-    wcscpy(timeServer, timeServerStr.toStdWString().c_str());
-
-
-    LPCWSTR userName = L"GuestUser";
-    LPCWSTR password = L"GuestUser";
-
-    DWORD err;
+    wcscpy(timeServer, server.toStdWString().c_str());
 
     WNetCancelConnection2W(timeServer, 0, false);
 
@@ -1585,14 +1558,13 @@ QDateTime WindowsManagement::currentDateTimeOnServer(const QString &server){
     res.lpRemoteName = timeServer;
     res.lpProvider = NULL;
 
-    err = WNetAddConnection2W(&res, password, userName, CONNECT_INTERACTIVE);
+    DWORD err;
+    err = WNetAddConnection2W(&res, password.toStdWString().c_str(), userName.toStdWString().c_str(), CONNECT_INTERACTIVE);
     if(err !=  NO_ERROR){
-        m_lastErrorString = "Can not connect to '" + timeServerStr + "' ! Error Code: " + QString::number(err);
+        m_lastErrorString = tr("Can not connect to '%1'! %2:%3.").arg(server).arg(err).arg(WinSysErrorMsg(err));
         return dateTime;
     }
-
     //////////////////////////////////////////
-
 
 
     LPTIME_OF_DAY_INFO pBuf = NULL;
@@ -1615,8 +1587,7 @@ QDateTime WindowsManagement::currentDateTimeOnServer(const QString &server){
 
 
     }else{
-        m_lastErrorString = "Can not get current time from server! Code:" + QString::number(nStatus);
-
+        m_lastErrorString = tr("Can not get current time from server '%1'! %2:%3.").arg(server).arg(nStatus).arg(WinSysErrorMsg(nStatus));
     }
 
     if (pBuf != NULL) {
@@ -1649,7 +1620,8 @@ bool WindowsManagement::setLocalTime(const QDateTime &datetime){
     systemtime.wMilliseconds = time.msec();
 
     if(!SetLocalTime(&systemtime)){
-        m_lastErrorString = tr("Can not set system time! Error code: %1").arg(GetLastError());
+        DWORD err = GetLastError();
+        m_lastErrorString = tr("Can not set system time! %1:%2.").arg(err).arg(WinSysErrorMsg(err));
         return false;
     }
 
@@ -1738,7 +1710,7 @@ void WindowsManagement::getLocalGroupsTheUserBelongs(QStringList *groups, const 
                     break;
                 }
 
-                //                   wprintf(L"\t-- %s\n", pTmpBuf->lgrui0_name);
+                //wprintf(L"\t-- %s\n", pTmpBuf->lgrui0_name);
                 groups->append(QString::fromWCharArray(pTmpBuf->lgrui0_name));
 
                 pTmpBuf++;
@@ -1762,7 +1734,7 @@ void WindowsManagement::getLocalGroupsTheUserBelongs(QStringList *groups, const 
     }else{
         //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
         qCritical()<<"A system error has occurred:"<<nStatus;
-        m_lastErrorString = tr("A system error has occurred: %1").arg(nStatus);
+        m_lastErrorString = tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinSysErrorMsg(nStatus));
     }
     //
     // Free the allocated memory.
@@ -1879,7 +1851,7 @@ void WindowsManagement::getGlobalGroupsTheUserBelongs(QStringList *groups, const
             m_lastErrorString += tr("The user name could not be found.");
             break;
         default:
-            m_lastErrorString += tr("A system error has occurred: %1\n").arg(nStatus);
+            m_lastErrorString += tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinSysErrorMsg(nStatus));
             break;
         }
 
@@ -2040,7 +2012,7 @@ bool WindowsManagement::addUserToLocalSystem(LPWSTR userName, LPWSTR userPasswor
         //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
     }
 
-    m_lastErrorString = tr("An Error occured while adding user '%1' to Local system! Error code: %2").arg(QString::fromWCharArray(userName)).arg(nStatus);
+    m_lastErrorString = tr("An Error occured while adding user '%1' to Local system! %2:%3.").arg(QString::fromWCharArray(userName)).arg(nStatus).arg(WinSysErrorMsg(nStatus));
     qDebug()<<m_lastErrorString;
     return false;
 
@@ -2072,7 +2044,7 @@ bool WindowsManagement::deleteUserFromLocalSystem(LPWSTR userName){
         //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
         qDebug()<<"A system error has occurred: "<<nStatus;
 
-        m_lastErrorString = tr("A system error has occurred: %1").arg(nStatus);
+        m_lastErrorString = tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinSysErrorMsg(nStatus));
         return false;
     }
 
@@ -2099,9 +2071,7 @@ bool WindowsManagement::addUserToLocalGroup(LPWSTR userName,  LPCWSTR groupName)
     NET_API_STATUS err;
 
     // Now add the user to the local group.
-
     localgroup_members.lgrmi3_domainandname = userName;
-
     err = NetLocalGroupAddMembers(NULL,      //
                                   groupName,             // Group name
                                   3,                          // Name
@@ -2117,26 +2087,21 @@ bool WindowsManagement::addUserToLocalGroup(LPWSTR userName,  LPCWSTR groupName)
         return true;
         break;
     case ERROR_MEMBER_IN_ALIAS:
-        qWarning()<<QString("User '%1' is already in Local '%2' Group. Error code:%3 ").arg(QString::fromStdWString(userName)).arg(QString::fromStdWString(groupName)).arg(err);
-        
         //printf("User already in Local Group.\n");
-
         m_lastErrorString = tr("User is already in Local '%1' Group").arg(QString::fromWCharArray(groupName));
+        qDebug()<< m_lastErrorString;
         return false;
         break;
     default:
-        qWarning()<<QString("An error occured while adding '%1' to Local '%2' Group. Error code:%3 ").arg(QString::fromStdWString(userName)).arg(QString::fromStdWString(groupName)).arg(err);
-        
         //printf("An error occured while adding User to Local Group '%s' Error code: %d\n", groupName, err);
+        m_lastErrorString = tr("An error occured while adding user '%1' to local group '%2'! %3:%4.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName)).arg(err).arg(WinSysErrorMsg(err));
+        qDebug()<< m_lastErrorString;
 
-        m_lastErrorString = tr("An error occured while adding user '%1' to local group '%2'! Error code: %3").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName)).arg(err);
         return false;
         break;
     }
 
     //    return( err );
-
-
 }
 
 bool WindowsManagement::deleteUserFromLocalGroup(const QString &userName, const QString &groupName){
@@ -2176,20 +2141,21 @@ bool WindowsManagement::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR group
         return true;
         break;
     case ERROR_NO_SUCH_MEMBER:
-        qWarning()<<QString("User '%1' does not exist! Error code:%3 ").arg(QString::fromStdWString(userName)).arg(err);
         
         //qWarning()<<"User '"<<userName<<"' does not exist.";
         //printf("User does not exist.\n");
         m_lastErrorString = tr("User '%1' does not exist!").arg(QString::fromWCharArray(userName));
+        qDebug()<< m_lastErrorString;
+
         return false;
         break;
     default:
-        qWarning()<<QString("An error occured while deleting '%1' from Local '%2' Group. Error code:%3 ").arg(QString::fromStdWString(userName)).arg(QString::fromStdWString(groupName)).arg(err);
-        
+
         //qWarning()<<"Error occured while deleting user '"<<userName<<"' from Local "<<groupName<<" Group.\n";
         //printf("Error deleting User from Local Group: %d\n", err);
 
-        m_lastErrorString = tr("An error occured while deleting user '%1' from local group '%2'! Error code: %3").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName)).arg(err);
+        m_lastErrorString = tr("An error occured while deleting user '%1' from local group '%2'! %3:%4.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName)).arg(err).arg(WinSysErrorMsg(err));
+        qDebug()<< m_lastErrorString;
         return false;
         break;
     }
@@ -2198,7 +2164,7 @@ bool WindowsManagement::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR group
 
 }
 
-QStringList WindowsManagement::getMembersOfLocalGroup(const QString &serverName, const QString &groupName){
+QStringList WindowsManagement::getMembersOfLocalGroup(const QString &groupName, const QString &serverName){
 
     m_lastErrorString = "";
 
@@ -2245,9 +2211,8 @@ QStringList WindowsManagement::getMembersOfLocalGroup(const QString &serverName,
                     dwTotalCount++;
                 }
             }
-        }
-        else{
-            m_lastErrorString += tr("A system error has occurred: %1\n").arg(nStatus);
+        }else{
+            m_lastErrorString += tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinSysErrorMsg(nStatus));
         }
 
         if (pBuf != NULL)
@@ -2308,7 +2273,7 @@ QString WindowsManagement::getComputerName(){
 
 }
 
-void WindowsManagement::getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName){
+bool WindowsManagement::getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName){
 
     m_lastErrorString = "";
 
@@ -2327,10 +2292,10 @@ void WindowsManagement::getComputerNameInfo(QString *dnsDomain, QString *dnsHost
             m_lastErrorString += tr("\nFailed to get dns domain! Error Code: %1").arg(GetLastError());
         }
     }
-    ZeroMemory(buffer, size);
-    size = sizeof(buffer);
 
     if(dnsHostname){
+        ZeroMemory(buffer, size);
+
         nameType = ComputerNameDnsHostname;
         ok = GetComputerNameExW(nameType, buffer, &size);
         if(ok){
@@ -2339,10 +2304,10 @@ void WindowsManagement::getComputerNameInfo(QString *dnsDomain, QString *dnsHost
             m_lastErrorString += tr("\nFailed to get dns hostname! Error Code: %1").arg(GetLastError());
         }
     }
-    ZeroMemory(buffer, size);
-    size = sizeof(buffer);
 
     if(netBIOSName){
+        ZeroMemory(buffer, size);
+
         nameType = ComputerNameNetBIOS;
         ok = GetComputerNameExW(nameType, buffer, &size);
         if(ok){
@@ -2351,9 +2316,8 @@ void WindowsManagement::getComputerNameInfo(QString *dnsDomain, QString *dnsHost
             m_lastErrorString += tr("\nFailed to get NetBIOS name! Error Code: %1").arg(GetLastError());
         }
     }
-    ZeroMemory(buffer, size);
-    //size = sizeof(buffer);
 
+    return ok;
 }
 
 bool WindowsManagement::joinWorkgroup(const QString &workgroup){
@@ -2383,13 +2347,12 @@ bool WindowsManagement::joinWorkgroup(const QString &workgroup){
         qDebug()<<"An error occured while trying to join the workgroup '"<<workgroup<<"' .\n";
         //printf("Error occured while trying to join the workgroup: %d\n", err);
 
-        m_lastErrorString = tr("An error occured while trying to join the workgroup '%1'! Error code: %2 ").arg(workgroup).arg(err);
+        m_lastErrorString = tr("An error occured while trying to join the workgroup '%1'! %2:%3. ").arg(workgroup).arg(err).arg(WinSysErrorMsg(err));
         return false;
         break;
     }
 
     return( err );
-
 
 }
 
@@ -2422,7 +2385,7 @@ bool WindowsManagement::joinDomain(const QString &domainName, const QString &acc
         m_lastErrorString = tr("The specified workgroup name is not valid!");
         break;
     default:
-        m_lastErrorString = tr("Failed to join a domain! Error code:%1").arg(err);
+        m_lastErrorString = tr("Failed to join a domain! %1:%2.").arg(err).arg(WinSysErrorMsg(err));
         break;
 
     }
@@ -2455,7 +2418,7 @@ bool WindowsManagement::unjoinDomain(const QString &accountName, const QString &
         m_lastErrorString = tr("This computer is a domain controller and cannot be unjoined from a domain.");
         break;
     default:
-        m_lastErrorString = tr("Failed to unjoin machine from the domain! Error code: %1").arg(err);
+        m_lastErrorString = tr("Failed to unjoin machine from the domain! %1:%2.").arg(err).arg(WinSysErrorMsg(err));
         break;
     }
 
@@ -2482,7 +2445,7 @@ QString WindowsManagement::getJoinInformation(bool *isJoinedToDomain, const QStr
     if(err == NERR_Success){
         workgroupName = QString::fromWCharArray(lpNameBuffer);
     }else{
-        m_lastErrorString = tr("Can not get join status information!");
+        m_lastErrorString = tr("Can not get join status information! %1:%2.").arg(err).arg(WinSysErrorMsg(err));
     }
 
     NetApiBufferFree(lpNameBuffer);
@@ -2537,7 +2500,7 @@ bool WindowsManagement::renameMachineInDomain(const QString &newMachineName, con
         m_lastErrorString = tr("This computer is a domain controller and cannot be unjoined from a domain.");
         break;
     default:
-        m_lastErrorString = tr("Failed to rename machine in domain! Error code: %1").arg(err);
+        m_lastErrorString = tr("Failed to rename machine in domain! %1:%2.").arg(err).arg(WinSysErrorMsg(err));
         break;
     }
 
@@ -2725,7 +2688,6 @@ bool WindowsManagement::getLogonInfoOfCurrentUser(QString *userName, QString *do
 
     return ok;
 
-
 }
 
 
@@ -2801,7 +2763,7 @@ bool WindowsManagement::addConnectionToNetDrive(){
         //printf("An error occured while connecting to network drive: %d\n", err);
         qDebug()<<"An error occured while connecting to network drive: " <<err;
 
-        m_lastErrorString = tr("An error occured while connecting to network drive! Error code: %1").arg(err);
+        m_lastErrorString = tr("An error occured while connecting to network drive! %1:%2.").arg(err).arg(WinSysErrorMsg(err));
         return false;
         // break;
     }
@@ -2891,12 +2853,7 @@ bool WindowsManagement::addPrinterConnections(const QString &department){
 
     }
 
-
-
     return ok;
-
-
-
 }
 
 bool WindowsManagement::setupIME(){
@@ -3091,7 +3048,6 @@ bool WindowsManagement::addLiveMailAccount(const QString &userName, const QStrin
         return false;
     }
 
-
     QString liveMailFolderPath = storeRoot + "\\" + userName;
 
     QString mailAccountFolderPath = "";
@@ -3111,9 +3067,9 @@ bool WindowsManagement::addLiveMailAccount(const QString &userName, const QStrin
         mailAccountFolderPath = liveMailFolderPath + "\\" + displayAccountName;
         mailAccountConfigFileName = "account{AAAAAAAA-3061-44FF-8BD4-AAAAAAAAAAAA}.oeaccount";
 
-        emailAddress = accountName+"@sitoydg.com";
-        popServer = "200.200.200.4" ;
-        smtpServer = "200.200.200.4" ;
+        emailAddress = accountName+"@sitoy.cn";
+        popServer = "pop3.sitoy.com" ;
+        smtpServer = "smtp.sitoy.com" ;
         sMTPUseSicily = "00000000";
         sMTPPort = "00000019";
         sMTPSecureConnection = "00000000";
@@ -3327,7 +3283,6 @@ void WindowsManagement::cleanTemporaryFiles(){
         deleteFiles(path, filters, ignoredFiles, ignoredDirs);
     }
 
-
 }
 
 void WindowsManagement::deleteFiles(const QString &path, const QStringList & nameFilters, const QStringList & ignoredFiles, const QStringList & ignoredDirs){
@@ -3345,7 +3300,6 @@ void WindowsManagement::deleteFiles(const QString &path, const QStringList & nam
 
     int steps = 100/(dir.count());
     emit signalProgressUpdate(tr("Deleting Files In '%1' ...").arg(path), 0);
-
 
     //qlonglong size = 0;
     //QStringList filters;
@@ -3387,7 +3341,10 @@ void WindowsManagement::modifySystemSettings(){
     regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\RemoteRegistry", "Start", "2", REG_DWORD);
     regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\Schedule", "Start", "2", REG_DWORD);
 
+    //Runas
     regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\seclogon", "Start", "2", REG_DWORD);
+    //Remote Desktop
+    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AllowMultipleTSSessions", "1", REG_DWORD);
 
     //Disable Firewall
     if(isNT6OS()){
@@ -3467,7 +3424,6 @@ QString WindowsManagement::getFileSystemName(const QString &rootPath){
     qDebug()<<QString("File System Name Of '%1':").arg(path)<<fileSystemName;
 
     return fileSystemName;
-
 
 }
 
@@ -3579,7 +3535,8 @@ QString WindowsManagement::getAccountNameOfProcess(HANDLE &hToken){
             qDebug()<<"Account Name Of Process:"<<accountName;
             return accountName;
         }else{
-            m_lastErrorString = tr("Can not get account name of process!");
+            DWORD err = GetLastError();
+            m_lastErrorString = tr("Can not get account name of process! %1:%2.").arg(err).arg(WinSysErrorMsg(err));
         }
     }
 
@@ -3627,7 +3584,7 @@ bool WindowsManagement::createHiddenAdmiAccount(){
     m_lastErrorString = "";
 
     QString userName = "System$";
-    int size = 1024;
+    //int size = 1024;
 
     deleteHiddenAdmiAccount();
 
@@ -3751,14 +3708,14 @@ bool WindowsManagement::hiddenAdmiAccountExists(){
     return true;
 }
 
-bool WindowsManagement::setupUSBSD(bool enable){
+bool WindowsManagement::setupUSBStorageDevice(bool enableRead, bool enableWrite){
 
     m_lastErrorString = "";
-    long ret1, ret2;
 
-    if(enable){
-        ret1 = regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS", REG_EXPAND_SZ);
-        ret2 = regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "Start", "3", REG_DWORD);
+    //Service
+    if(enableRead){
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS", REG_EXPAND_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "Start", "3", REG_DWORD);
 
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS", REG_EXPAND_SZ);
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "Start", "3", REG_DWORD);
@@ -3766,22 +3723,9 @@ bool WindowsManagement::setupUSBSD(bool enable){
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS", REG_EXPAND_SZ);
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", "Start", "3", REG_DWORD);
 
-        //Policies
-        //CD-ROM
-        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Read", "0", REG_DWORD);
-        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", "0", REG_DWORD);
-        //Removable Disk
-        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Read", "0", REG_DWORD);
-        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", "0", REG_DWORD);
-        //Portable Storage Devices
-        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Read", "0", REG_DWORD);
-        regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Write", "0", REG_DWORD);
-
-
-
     }else{
-        ret1 = regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS-", REG_EXPAND_SZ);
-        ret2 = regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "Start", "4", REG_DWORD);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS-", REG_EXPAND_SZ);
+        regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "Start", "4", REG_DWORD);
 
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS-", REG_EXPAND_SZ);
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "Start", "4", REG_DWORD);
@@ -3790,15 +3734,93 @@ bool WindowsManagement::setupUSBSD(bool enable){
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", "Start", "4", REG_DWORD);
     }
 
-    if(!ret1 || !ret2){
-        m_lastErrorString = tr("Can not write registry!");
+    //Policies
+    //CD-ROM
+    //regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Read", enableRead?"0":"1", REG_DWORD);
+    //regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", enableWrite?"0":"1", REG_DWORD);
+
+    //Removable Disk
+    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Read", enableRead?"0":"1", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", enableWrite?"0":"1", REG_DWORD);
+    //Portable Storage Devices
+    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Read", enableRead?"0":"1", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Write", enableWrite?"0":"1", REG_DWORD);
+
+
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\StorageDevicePolicies", "WriteProtect", enableWrite?"0":"1", REG_DWORD);
+
+    //TODO:Rename Driver Files
+    //%systemroot%\inf\usbstor.inf
+    //%systemroot%\inf\usbstor.PNF
+    //%systemroot%\system32\DRIVERS\USBSTOR.SYS
+    //WIN7:
+    //%systemroot%\System32\DriverStore\FileRepository\usbstor.inf_x86_neutral_83027f5d5b2468d3
+    //%systemroot%\System32\DriverStore\FileRepository\usbstor.inf_amd64_neutral_0725c2806a159a9d
+
+
+    bool ok = false, readable = true, writeable = true;
+    ok = readUSBStorageDeviceSettings(&readable, &writeable);
+    if(!ok){
+        m_lastErrorString = tr("Can not read registry!");
         qCritical()<<m_lastErrorString;
         return false;
+    }
+
+    if((enableRead == readable) && (enableWrite == writeable)){
+       return true;
     }
 
     return true;
 
 }
+
+bool WindowsManagement::readUSBStorageDeviceSettings(bool *readable, bool *writeable){
+
+    m_lastErrorString = "";
+
+    bool ok = false;
+    QString imagePath = "", start = "";
+    regRead("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "ImagePath", &imagePath);
+    ok = regRead("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "Start", &start);
+    if(!ok){
+        return false;
+    }
+    if(imagePath.toUpper() != "SYSTEM32\\DRIVERS\\USBSTOR.SYS" || start == "4"){
+        if(readable){*readable = false;}
+        if(writeable){*writeable = false;}
+        return true;
+    }
+
+    //Removable Disk
+    QString deny_Read = "", deny_Write = "";
+    regRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Read", &deny_Read);
+    regRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", &deny_Write);
+    if(deny_Read == "1"){
+        if(readable){*readable = false;}
+        if(writeable){*writeable = false;}
+        return true;
+    }
+    if(deny_Write == "1"){
+        if(readable){*readable = false;}
+        if(writeable){*writeable = true;}
+        return true;
+    }
+
+    //Portable Storage Devices
+    //regRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Read", &deny_Read);
+    //regRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Write", &deny_Write);
+
+    QString writeProtect = "";
+    regRead("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\StorageDevicePolicies", "WriteProtect", &writeProtect);
+    if(writeProtect == "1"){
+        if(readable){*readable = true;}
+        if(writeable){*writeable = false;}
+    }
+
+    return true;
+}
+
+
 
 bool WindowsManagement::setupProgrames(bool enable){
 
@@ -3869,7 +3891,7 @@ bool WindowsManagement::setDeskWallpaper(const QString &wallpaperPath){
     }
 
     if(!image.save(targetBMPFilePath, "BMP")){
-        m_lastErrorString = tr("Can not set wallpaper! Can not save file '%1' !").arg(targetBMPFilePath);
+        m_lastErrorString = tr("Can not set wallpaper! Can not save file '%1'k!").arg(targetBMPFilePath);
         return false;
     }
 
@@ -3881,7 +3903,8 @@ bool WindowsManagement::setDeskWallpaper(const QString &wallpaperPath){
 
     bool ok = SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, pathArray, SPIF_SENDWININICHANGE| SPIF_UPDATEINIFILE);
     if(!ok){
-        m_lastErrorString = QString("Can not set wallpaper! Error Code:%1").arg(GetLastError());
+        DWORD err = GetLastError();
+        m_lastErrorString = QString("Can not set wallpaper! %1:%2.").arg(err).arg(WinSysErrorMsg(err));
     }
 
     return ok;
@@ -4021,7 +4044,7 @@ bool WindowsManagement::runAsForInteractiveService(const QString &userName, cons
     }
 
     if(ERROR_SUCCESS != errorCode){
-        m_lastErrorString = tr("Failed to start process '%1' ! Error Code:%2 ").arg(exeFilePath).arg(errorCode);
+        m_lastErrorString = tr("Failed to start process '%1'! %2:%3.").arg(exeFilePath).arg(errorCode).arg(WinSysErrorMsg(errorCode));
         return false;
     }
 
@@ -4094,7 +4117,7 @@ bool WindowsManagement::runAsForDesktopApplication(const QString &userName, cons
 
 //    if (!DestroyEnvironmentBlock(lpvEnv)){
 //        dwRet = GetLastError();
-//        m_lastErrorString = tr("Can not destroy environment block! %1: %2").arg(dwRet).arg(WinSysErrorMsg(dwRet));
+//        m_lastErrorString = tr("Can not destroy environment block! %1:%2.").arg(dwRet).arg(WinSysErrorMsg(dwRet));
 //        qWarning()<<m_lastErrorString;
 //    }
 //    CloseHandle(hToken);
@@ -4102,7 +4125,7 @@ bool WindowsManagement::runAsForDesktopApplication(const QString &userName, cons
 
     if(!ok){
         dwRet = GetLastError();
-        m_lastErrorString = tr("Starting process '%1' failed! %2: %3").arg(exeFilePath).arg(dwRet).arg(WinSysErrorMsg(dwRet));
+        m_lastErrorString = tr("Starting process '%1' failed! %2:%3.").arg(exeFilePath).arg(dwRet).arg(WinSysErrorMsg(dwRet));
         qWarning()<<m_lastErrorString;
         return false;
     }

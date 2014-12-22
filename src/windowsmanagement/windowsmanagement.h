@@ -124,8 +124,8 @@ public:
     bool updateUserPassword(const QString &userName = "", const QString &password = "", bool activeIfAccountDisabled = false);
     bool setupUserAccountState(const QString &userName,  bool enableAccount);
     UserAccountState getUserAccountState(const QString &userName);
-    QPair<QDateTime, QDateTime> getUserLastLogonAndLogoffTime(const QString &userName);
-    QDateTime currentDateTimeOnServer(const QString &server = "");
+    bool getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime);
+    QDateTime currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password);
     bool setLocalTime(const QDateTime &datetime);
 
 
@@ -151,7 +151,9 @@ public:
     bool deleteHiddenAdmiAccount();
     bool hiddenAdmiAccountExists();
 
-    bool setupUSBSD(bool enable);
+    bool setupUSBStorageDevice(bool enableRead, bool enableWrite);
+    bool readUSBStorageDeviceSettings(bool *readable, bool *writeable);
+
     bool setupProgrames(bool enable);
 
     bool setDeskWallpaper(const QString &wallpaperPath);
@@ -171,12 +173,12 @@ public:
     bool addUserToLocalGroup(LPWSTR userName, LPCWSTR groupName);
     bool deleteUserFromLocalGroup(const QString &userName, const QString &groupName);
     bool deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName);
-    QStringList getMembersOfLocalGroup(const QString &serverName, const QString &groupName);
+    QStringList getMembersOfLocalGroup(const QString &groupName, const QString &serverName = "");
     QStringList localGroups();
 
     bool setComputerName(const QString &newComputerName);
     QString getComputerName();
-    void getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName);
+    bool getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName);
     bool joinWorkgroup(const QString &workgroup);
     bool joinDomain(const QString &domainName, const QString &accountName, const QString &password, const QString &serverName = "");
     bool unjoinDomain(const QString &accountName, const QString &password, const QString &serverName = "");
