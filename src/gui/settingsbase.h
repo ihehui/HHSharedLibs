@@ -47,26 +47,26 @@ namespace HEHUI {
 
 class  GUI_LIB_API SettingsBase : public SettingsCore
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-        SettingsBase( const QString &appName, const QString &appVersion, const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject* parent= 0 );
-	~SettingsBase();
+    SettingsBase( const QString &appName, const QString &appVersion, const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject* parent= 0 );
+    ~SettingsBase();
 
 
-        void setStyle(const QString &style);
-        QString getStyle() const;
+    void setStyle(const QString &style);
+    QString getStyle() const;
 
-        void setPalette(bool useStylePalette);
-        bool getPalette();
+    void setPalette(bool useStylePalette);
+    bool getPalette();
 
-        void setHideOnClose(bool hideOnClose);
-        bool getHideOnClose();
+    void setHideOnClose(bool hideOnClose);
+    bool getHideOnClose();
 
-        virtual void restoreState( QMainWindow* mw);
-        virtual void saveState( QMainWindow* mw);
+    virtual void restoreState( QMainWindow* mw);
+    virtual void saveState( QMainWindow* mw);
 
-	void setRestoreWindowStateOnStartup(bool restore);
-	bool getRestoreWindowStateOnStartup();
+    void setRestoreWindowStateOnStartup(bool restore);
+    bool getRestoreWindowStateOnStartup();
 
 private:
 

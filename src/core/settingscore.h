@@ -38,6 +38,9 @@
 #include "core_lib.h"
 
 
+namespace HEHUI {
+
+
 class CORE_LIB_API SettingsCore : public QSettings
 {
 	Q_OBJECT
@@ -51,6 +54,9 @@ public:
 	void setLanguage(const QString &language);
 	QString getLanguage() const;
 
+    void setValueWithEncryption(const QString &key, const QVariant &value, const QByteArray &encryptionKey);
+    QVariant getValueWithDecryption(const QString &key, const QByteArray &encryptionKey, const QVariant &defaultValue = QVariant(), bool *ok = 0);
+
 
 private:
     QString mProgramName;
@@ -58,5 +64,7 @@ private:
 
 
 };
+
+} //namespace HEHUI
 
 #endif // SETTINGSCORE_H

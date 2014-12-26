@@ -34,6 +34,7 @@
 #define COREPLUGINBASE_H
 
 #include <QObject>
+#include <QSettings>
 
 #include "coreinterface.h"
 #include "../core_lib.h"
@@ -49,15 +50,15 @@ public:
     explicit CorePluginBase(QObject *parent = 0);
 
 
-//    virtual QString name() const;
-//    virtual QString version() const;
+    //virtual QString name() const;
+    //virtual QString version() const;
     virtual QString vendor() const;
     virtual QString author() const;
     virtual QString url() const;
     virtual QString description() const;
     virtual QString license() const;
 
-//    virtual bool isSingle() const;
+    //virtual bool isSingle() const;
 
     //Initialization
     virtual bool initialize(QObject *parentObject) = 0;
@@ -65,9 +66,7 @@ public:
 
 signals:
 
-public slots:
-
-
+private:
 
 
 };

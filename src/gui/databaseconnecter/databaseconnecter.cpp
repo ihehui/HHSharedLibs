@@ -144,8 +144,7 @@ QSqlDatabase DatabaseConnecter::getDatabase(const QString &connectionName,
             DatabaseConnecterDialog dbConnecterDlg(connectionName, host, port, "", "", databaseName, databaseType, parentWidget);
             QStringList parameters = dbConnecterDlg.getParameters();
             if (parameters.size() <= 0) {
-                //                QMessageBox::critical(parentWidget, tr("Fatal Error"), tr("Can not connect to database server!"));
-                qCritical() << QString("XX Fatal Error!") << QString("Can not connect to database server!");
+                qCritical() << QString("ERROR!") << QString("Can not connect to database server!");
                 return QSqlDatabase();
             }
 

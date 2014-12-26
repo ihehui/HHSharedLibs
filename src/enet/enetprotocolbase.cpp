@@ -175,6 +175,47 @@ void ENETProtocolBasePrivate::startWaitingForIOInAnotherThread(unsigned int msec
     QtConcurrent::run(this, &ENETProtocolBasePrivate::waitForIO, msecWaitForIOTimeout);
 }
 
+
+/////////////////////////////////
+// http://lists.cubik.org/pipermail/enet-discuss/2014-November/002347.html
+//Lee Salzman lsalzman at gmail.com
+//Wed Nov 5 00:52:05 PST 2014
+//Inside enet_host_service(), it may be accessing peers, so you would want to
+//ensure that enet_peer_send() is not being used at that time and so would
+//need one nasty global lock for that.
+//When not inside a call to enet_host_service(), it is safe to call
+//enet_peer_send() and friends on different peers at once,so long as it is
+//not called on the same peer at one time.
+//So stupid simplest way would just be to have the one lock guarding
+//everything, host and all peers, and call it quits. More involved solution
+//might be to have a reader-writer lock, with the enet_host_service() locking
+//down things as a writer, and individual peer calls locking the RW lock as
+//readers. Then each peer would be guarded by an individual mutex underneath
+//that.
+
+//On Tue, Nov 4, 2014 at 11:18 PM, Jason Lester <jasonrlester at yahoo.com>
+//wrote:
+//> I'm working on a service which dispatches new packets into a threadpool
+//> including the active peer from event.peer. The system can then "respond" to
+//> each packet within the threadpool based on event.peer if needed. System
+//> uses a mutex to insure that only one thread can send at once (per peer) -
+//> so recv'ing is synchronized as each recv is be done in main thread, and
+//> send'ing is synchronized on per peer basis via per peer mutexs. System is
+//> based around a Boost.Asio io_service and currently handles floods of
+//> messages from 100 clients in various simulations without issue, processing
+//> between 1000 - 10000 messages per second (thats total messages, not
+//> messages per peer, with most messages having payloads of 16 - 128 bytes).
+//>
+//>
+//> So far, everything is going good. However, I had to go against the grain
+//> on this one with many people advising to find a "better" solution and many
+//> (yet somehow always varying) suggestions that enet isn't threadsafe (even
+//> though the main FAQ says that the host object is the only structure to
+//> worry about). So my main question is if I'm missing something that my pop
+//> up and bite me at some random point, like incorrect round trip times, lost
+//> packets, lost peers, etc. If so, where would be the best place to lock
+//> peers while recv'ing and send'ing within the enet lib itself?
+
 void ENETProtocolBasePrivate::waitForIO(int msecTimeout){
     qDebug()<<"--ENETProtocolBasePrivate::waitForIO(...)";
 

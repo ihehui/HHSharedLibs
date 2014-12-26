@@ -59,27 +59,52 @@ public:
     QWidget* getParentWidget();
     //	User* getUser();
 
+
+    void setDatabaseOptions(const QString &connectionName,
+                             const QString &driver, const QString &host, int port,
+                             const QString &user, const QString &passwd,
+                             const QString &databaseName, HEHUI::DatabaseType databaseType);
+
+
+    QString connectionName() const;
+    QString driverName() const;
+    QString databaseName() const;
+    QString userName() const;
+    QString password() const;
+    QString hostName() const;
+    quint16 port() const;
+    HEHUI::DatabaseType databaseType() const;
+    bool isSettingsModified();
+
+
+private slots:
+    virtual void modifySettings();
+
 private:
+    void initUI(QObject *parent);
+
     virtual bool verifyUser();
     virtual bool getUserInfo();
     virtual bool canLogin();
 
     void setUser(User *u);
 
-
-
-
-
 private:
-
     QWidget *parentWidget;
-
     User *user;
-
     bool isSuccesseful;
-
     QString m_windowTitle;
 
+    QString m_connectionName;
+    QString m_driver;
+    QString m_host;
+    quint16 m_port;
+    QString m_user;
+    QString m_passwd;
+    QString m_databaseName;
+    HEHUI::DatabaseType m_databaseType;
+
+    bool m_settingsModified;
 
 };
 

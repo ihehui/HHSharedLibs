@@ -40,11 +40,15 @@ signals:
     void signalUserButtonClicked();
     void signalKeyButtonClicked();
 
+    void signalModifySettings();
+
 private slots:
     void on_toolButtonUser_clicked();
     void on_toolButtonKey_clicked();
-    void on_loginButton_clicked();
-    void on_cancelButton_clicked();
+
+    void on_pushButtonSettings_clicked();
+    void on_pushButtonLogin_clicked();
+    void on_pushButtonCancel_clicked();
 
 
 

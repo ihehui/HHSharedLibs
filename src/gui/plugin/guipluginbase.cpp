@@ -32,7 +32,8 @@
 namespace HEHUI {
 
 
-GUIPluginBase::GUIPluginBase() {
+GUIPluginBase::GUIPluginBase()
+{
 
     parentWidget = 0;
     m_menu = 0;

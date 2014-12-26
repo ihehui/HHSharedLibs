@@ -59,7 +59,6 @@ public:
 
     //        virtual bool isSingle() const;
 
-    //        virtual bool initialize( QWidget *parent);
 
     bool initialize(QWidget * parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString& pName, const QString& pVersion);
     virtual bool unload();
@@ -92,7 +91,6 @@ private:
 
 private:
     QWidget *parentWidget;
-    //	QSystemTrayIcon *systemTrayIcon;
 
     QMenu *m_menu;
     QAction *actionMain;

@@ -34,8 +34,6 @@
 
 
 
-
-
 #include <QtSql>
 #include <QtGui>
 #include <QString>
@@ -45,6 +43,23 @@
 #include "loginbase.h"
 #include "logindlg.h"
 #include "../databaseconnecter/databaseconnecter.h"
+
+
+
+//SQLite
+#ifndef LOCAL_CONFIG_DB_CONNECTION_NAME
+#define LOCAL_CONFIG_DB_CONNECTION_NAME	"LOCAL_CONFIG_DB"
+#endif
+
+#ifndef LOCAL_CONFIG_DB_NAME
+#define LOCAL_CONFIG_DB_NAME	".config.db"
+#endif
+
+#ifndef LOCAL_CONFIG_DB_DRIVER
+#define LOCAL_CONFIG_DB_DRIVER	"QSQLITE"
+#endif
+
+
 
 
 
@@ -59,14 +74,24 @@ LoginBase::LoginBase(User *user, QObject *parent)
     qDebug("----LoginBase::LoginBase(User *user, QObject *parent)");
     Q_ASSERT_X(user != NULL, "LoginBase::LoginBase(User *user, QObject *parent)", " 'user' is NULL!");
 
-    isSuccesseful = false;
 
-    if(parent && parent->isWidgetType()){
-        this->parentWidget = qobject_cast<QWidget *>(parent);
-    }else{
-        this->parentWidget = 0;
-    }
+//    if(parent && parent->isWidgetType()){
+//        this->parentWidget = qobject_cast<QWidget *>(parent);
+//    }else{
+//        this->parentWidget = 0;
+//    }
+//    isSuccesseful = false;
 
+//    m_connectionName = LOCAL_CONFIG_DB_CONNECTION_NAME;
+//    m_driver = LOCAL_CONFIG_DB_DRIVER;
+//    m_host = "";
+//    m_port = 0;
+//    m_user = "";
+//    m_passwd = "";
+//    m_databaseName = LOCAL_CONFIG_DB_NAME;
+//    m_databaseType = HEHUI::SQLITE;
+
+    initUI(parent);
 }
 
 LoginBase::LoginBase(User *user, const QString &windowTitle, QObject *parent)
@@ -75,20 +100,24 @@ LoginBase::LoginBase(User *user, const QString &windowTitle, QObject *parent)
     qDebug("----LoginBase::LoginBase(User *user, QObject *parent)");
     Q_ASSERT_X(user != NULL, "LoginBase::LoginBase(User *user, QObject *parent)", " 'user' is NULL!");
 
-    isSuccesseful = false;
+//    isSuccesseful = false;
 
-    if(parent && parent->isWidgetType()){
-        this->parentWidget = qobject_cast<QWidget *>(parent);
-    }else{
-        this->parentWidget = 0;
-    }
+//    if(parent && parent->isWidgetType()){
+//        this->parentWidget = qobject_cast<QWidget *>(parent);
+//    }else{
+//        this->parentWidget = 0;
+//    }
 
+//    m_connectionName = LOCAL_CONFIG_DB_CONNECTION_NAME;
+//    m_driver = LOCAL_CONFIG_DB_DRIVER;
+//    m_host = "";
+//    m_port = 0;
+//    m_user = "";
+//    m_passwd = "";
+//    m_databaseName = LOCAL_CONFIG_DB_NAME;
+//    m_databaseType = HEHUI::SQLITE;
 
-    //        loginDlg = new LoginDlg(user, parentWidget);
-    //        connect(loginDlg, SIGNAL(signalUserButtonClicked()), this, SLOT(slotProcessUserButtonClickedSignal()));
-    //        connect(loginDlg, SIGNAL(signalKeyButtonClicked()), this, SLOT(slotProcessUserButtonClickedSignal()));
-
-
+    initUI(parent);
 
 }
 
@@ -118,6 +147,60 @@ QWidget* LoginBase::getParentWidget()
     return this->parentWidget;
 }
 
+void LoginBase::setDatabaseOptions(const QString &connectionName,
+                         const QString &driver, const QString &host, int port,
+                         const QString &user, const QString &passwd,
+                         const QString &databaseName, HEHUI::DatabaseType databaseType){
+
+
+
+    m_connectionName = connectionName;
+    m_driver = driver;
+    m_host = host;
+    m_port = port;
+    m_user = user;
+    m_passwd = passwd;
+    m_databaseName = databaseName;
+    m_databaseType = databaseType;
+
+}
+
+
+QString LoginBase::connectionName() const{
+    return m_connectionName;
+}
+
+QString LoginBase::driverName() const{
+    return m_driver;
+}
+
+QString LoginBase::databaseName() const{
+    return m_databaseName;
+}
+
+QString LoginBase::userName() const{
+    return m_user;
+}
+
+QString LoginBase::password() const{
+    return m_passwd;
+}
+
+QString LoginBase::hostName() const{
+    return m_host;
+}
+
+quint16 LoginBase::port() const{
+    return m_port;
+}
+
+HEHUI::DatabaseType LoginBase::databaseType() const{
+    return m_databaseType;
+}
+
+bool LoginBase::isSettingsModified(){
+    return m_settingsModified;
+}
 
 inline void LoginBase::setUser(User *u){
     user = u;
@@ -127,25 +210,56 @@ inline void LoginBase::setUser(User *u){
 //	return this->user;
 //}
 
+void LoginBase::modifySettings(){
 
-bool LoginBase::getUserInfo(){
-
-    LoginDlg dlg(user, m_windowTitle, parentWidget);
-    //        if(!loginDlg){
-    //            loginDlg = new LoginDlg(user, parentWidget);
-    //            connect(loginDlg, SIGNAL(signalUserButtonClicked()), this, SLOT(slotProcessUserButtonClickedSignal()));
-    //            connect(loginDlg, SIGNAL(signalKeyButtonClicked()), this, SLOT(slotProcessUserButtonClickedSignal()));
-    //        }
-    if (dlg.exec() != QDialog::Accepted) {
-        return false;
+    DatabaseConnecterDialog dbConnecterDlg(
+                m_connectionName,
+                m_host,
+                m_port,
+                "",
+                "",
+                m_databaseName,
+                m_databaseType,
+                parentWidget
+                );
+    QStringList parameters = dbConnecterDlg.getParameters();
+    if (parameters.size() <= 0) {
+        return;
     }
-    return true;
+
+    m_connectionName = parameters.at(0);
+    m_driver = parameters.at(1);
+    m_host = parameters.at(2);
+    m_port = parameters.at(3).toUShort();
+    m_user = parameters.at(4);
+    m_passwd = parameters.at(5);
+    m_databaseName = parameters.at(6);
+    m_databaseType = (HEHUI::DatabaseType) parameters.at(7).toUInt();
+
+    m_settingsModified = true;
 
 }
 
-bool LoginBase::canLogin(){
+void LoginBase::initUI(QObject *parent){
 
-    return true;
+    if(parent && parent->isWidgetType()){
+        this->parentWidget = qobject_cast<QWidget *>(parent);
+    }else{
+        this->parentWidget = 0;
+    }
+
+    isSuccesseful = false;
+
+    m_connectionName = LOCAL_CONFIG_DB_CONNECTION_NAME;
+    m_driver = LOCAL_CONFIG_DB_DRIVER;
+    m_host = "";
+    m_port = 0;
+    m_user = "";
+    m_passwd = "";
+    m_databaseName = LOCAL_CONFIG_DB_NAME;
+    m_databaseType = HEHUI::SQLITE;
+
+    m_settingsModified = false;
 
 }
 
@@ -154,15 +268,16 @@ bool LoginBase::verifyUser() {
 
 
     DatabaseConnecter dc(parentWidget);
-    if(!dc.isDatabaseOpened(LOCAL_CONFIG_DB_CONNECTION_NAME,
-                            LOCAL_CONFIG_DB_DRIVER,
-                            "",
-                            0,
-                            "",
-                            "",
-                            LOCAL_CONFIG_DB_NAME,
-                            HEHUI::SQLITE
-                            )){
+    if(!dc.isDatabaseOpened(
+                m_connectionName,
+                m_driver,
+                m_host,
+                m_port,
+                m_user,
+                m_passwd,
+                m_databaseName,
+                m_databaseType
+                )){
 
         qCritical() << QString("Error! Database Connection Failed! Authentication Failed!");
         return false;
@@ -170,10 +285,10 @@ bool LoginBase::verifyUser() {
 
 
     QSqlDatabase db;
-    db = QSqlDatabase::database(LOCAL_CONFIG_DB_CONNECTION_NAME);
+    db = QSqlDatabase::database(m_connectionName);
     QSqlQueryModel model(this);
 
-    int latestVersion = 121031;
+    int latestVersion = 141225;
 
     //初始化数据库
     //Init the database
@@ -201,13 +316,14 @@ bool LoginBase::verifyUser() {
     if(!db.tables().contains("systemadministrators", Qt::CaseInsensitive)){
         QString createTableStatement = QString("CREATE TABLE `systemadministrators` ( `UserID` varchar(24) NOT NULL PRIMARY KEY,  `UserName` varchar(24) NOT NULL,  `BusinessAddress` varchar(16) NOT NULL,  `PassWD` varchar(56) NOT NULL ,  `LastLoginTime` timestamp NOT NULL ,  `Remark` varchar(255) )");
         QString insertStatement = QString("INSERT INTO `systemadministrators` VALUES ('hehui','','DG','KlcsSsfmfp6B3ya+LliE2bHO2uc=','','')");
-        QString insertStatement2 = QString("INSERT INTO `systemadministrators` VALUES ('admindg','','DG','4r0+BGnQSAKdmIXHyGI8vVoKjsk=','','')"); //admin.dg.2014
-        QString insertStatement3 = QString("INSERT INTO `systemadministrators` VALUES ('adminyd','','YD','vWdLKOBN+2qAcbjw7QrQr3nRLBQ=','','')"); //admin.yd.2014
+        QString insertStatement2 = QString("INSERT INTO `systemadministrators` VALUES ('admindg','','DG','c8HdVaYFOAXZ2oYjM4L6gqTIiFk=','','')"); //admin.dg.2015
+        QString insertStatement3 = QString("INSERT INTO `systemadministrators` VALUES ('adminyd','','YD','MXuRPpxRE1xTPP/X4zO1bNkgy/0=','','')"); //admin.yd.2015
         QString insertStatement4 = QString("INSERT INTO `systemadministrators` VALUES ('king','','DG','apJt8QFtRPAZaUawJkZZTVFEiOo=','','')"); //king.2014
         QString insertStatement5 = QString("INSERT INTO `systemadministrators` VALUES ('lhc','','DG','es9NRQZZf2kbdGvMp/GrkV0+OV0=','','')"); //cheng.2014
         QString insertStatement6 = QString("INSERT INTO `systemadministrators` VALUES ('lj','','DG','v+7twKPCWLNfk9pWrsDVB/CEQ1c=','','')"); //jian.2014
         QString insertStatement7 = QString("INSERT INTO `systemadministrators` VALUES ('ljf','','DG','RvhSIcEL1/AeICOvyeoCNMvXh3g=','','')"); //fu.2014
         QString insertStatement8 = QString("INSERT INTO `systemadministrators` VALUES ('zk','','DG','usJrQRUF6lLB0kUaoWJco3bFht8=','','')"); //kui.2014
+        QString insertStatement9 = QString("INSERT INTO `systemadministrators` VALUES ('adminhk','','HK','ImosDlUaBd8YyNUrX7pfHTuuI3A=','','')"); //admin.hk.2015
 
         model.setQuery(QSqlQuery(createTableStatement, db));
         model.setQuery(QSqlQuery(insertStatement, db));
@@ -218,6 +334,7 @@ bool LoginBase::verifyUser() {
         model.setQuery(QSqlQuery(insertStatement6, db));
         model.setQuery(QSqlQuery(insertStatement7, db));
         model.setQuery(QSqlQuery(insertStatement8, db));
+        model.setQuery(QSqlQuery(insertStatement9, db));
 
     }
 
@@ -253,7 +370,7 @@ bool LoginBase::verifyUser() {
                                   "<font color=red>Sorry,Password incorrect!<br>  "
                                   "Please check out your password.</font>"));
         return false;
-    } else if((businessAddress != "DG") && (businessAddress != "YD")){
+    } else if((businessAddress != "DG") && (businessAddress != "YD") && (businessAddress != "HK")){
         QMessageBox::critical(parentWidget, tr("Authentication Failed"), tr("Cannot access the specified server: <font color=red>Permission Denied!</font>"));
     }else{
 
@@ -264,14 +381,36 @@ bool LoginBase::verifyUser() {
 
         //int id = QVariant(model.record(0).value("ID")).toInt();
         //model.setQuery(QSqlQuery(QString("update systemadministrators set LastLoginTime =(now()) where id=%1").arg(id), db));
-        QString currentDateTime = QDateTime::currentDateTime().toString(Qt::ISODate);
+        //QString currentDateTime = QDateTime::currentDateTime().toString(Qt::ISODate);
+        QString currentDateTime = "NULL" ;
+
         model.setQuery(QSqlQuery(QString("update systemadministrators set LastLoginTime =%1 where UserID='%2' ").arg(currentDateTime).arg(userID), db));
 
         return true;
-
     }
 
     return false;
+}
+
+bool LoginBase::getUserInfo(){
+
+    LoginDlg dlg(user, m_windowTitle, parentWidget);
+    //        if(!loginDlg){
+    //            loginDlg = new LoginDlg(user, parentWidget);
+    //            connect(loginDlg, SIGNAL(signalUserButtonClicked()), this, SLOT(slotProcessUserButtonClickedSignal()));
+    //            connect(loginDlg, SIGNAL(signalKeyButtonClicked()), this, SLOT(slotProcessUserButtonClickedSignal()));
+    //        }
+    connect(&dlg, SIGNAL(signalModifySettings()), this, SLOT(modifySettings()));
+
+    if (dlg.exec() != QDialog::Accepted) {
+        return false;
+    }
+    return true;
+
+}
+
+bool LoginBase::canLogin(){
+    return true;
 }
 
 /*

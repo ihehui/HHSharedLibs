@@ -52,30 +52,31 @@ CorePluginBase::CorePluginBase(QObject *parent)
 //    return QString(tr("1.0.0"));
 // }
 
- QString CorePluginBase::vendor() const
- {
+QString CorePluginBase::vendor() const
+{
     return QString(tr("He Hui"));
- }
+}
 
- QString CorePluginBase::author() const
- {
-     return QString(tr("He Hui"));
- }
+QString CorePluginBase::author() const
+{
+    return QString(tr("He Hui"));
+}
 
- QString CorePluginBase::url() const
- {
+QString CorePluginBase::url() const
+{
     return QString("www.gnu.org");
- }
+}
 
- QString CorePluginBase::description() const
- {
+QString CorePluginBase::description() const
+{
     return QString(tr("Core Plug-in"));
- }
+}
 
- QString CorePluginBase::license() const
- {
+QString CorePluginBase::license() const
+{
     return QString(tr("LGPL"));
- }
+}
+
 
 // bool CorePluginBase::isSingle() const
 //{

@@ -49,13 +49,13 @@ void LoginDlg::keyPressEvent(QKeyEvent *e) {
         } else if (ui->passwordLineEdit->hasFocus()) {
             ui->lineEditAuthenticode->setFocus();
         }else{
-            ui->loginButton->click();
+            ui->pushButtonLogin->click();
         }
         break;
     case Qt::Key_R:
         //是否进入RestoreMode
         //Whether enter RestoreMode
-        if(ui->loginButton->hasFocus()){
+        if(ui->pushButtonLogin->hasFocus()){
             bool ok = false;
             QString text = QInputDialog::getText(this, tr("Authentication Required"),
                                                  tr("Access Code:"), QLineEdit::NoEcho,
@@ -103,7 +103,11 @@ void LoginDlg::on_toolButtonKey_clicked(){
     emit signalKeyButtonClicked();
 }
 
-void LoginDlg::on_loginButton_clicked() {
+void LoginDlg::on_pushButtonSettings_clicked(){
+    emit signalModifySettings();
+}
+
+void LoginDlg::on_pushButtonLogin_clicked() {
 
     QString uid = userID();
 
@@ -141,25 +145,18 @@ void LoginDlg::on_loginButton_clicked() {
 
         user->setPassword(password);
 
-        //qWarning()<<"~~ password:"<<ui->passwordLineEdit->text();
-        //qWarning()<<"~~ password.toBase64():"<<password.toBase64();
+//        qWarning()<<"~~ password:"<<ui->passwordLineEdit->text();
+//        qWarning()<<"~~ password.toBase64():"<<password.toBase64();
 
         ui->passwordLineEdit->clear();
         accept();
     }
 }
 
-void LoginDlg::on_cancelButton_clicked() {
+void LoginDlg::on_pushButtonCancel_clicked() {
     ui->passwordLineEdit->clear();
     reject();
 }
-
-
-
-
-
-
-
 
 
 

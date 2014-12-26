@@ -127,7 +127,6 @@ QSqlError DatabaseUtility::openDatabase(const QString &connectionNameString, con
 
     }
 
-
     if(databaseType == HEHUI::SQLITE || databaseType == HEHUI::M$ACCESS){
         err = openLocalFileDatabase(connectionName, databaseName, driver);
     }else{

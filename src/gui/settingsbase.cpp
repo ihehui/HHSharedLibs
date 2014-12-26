@@ -104,15 +104,15 @@ void SettingsBase::restoreState( QMainWindow* mw)
     }
 
     if ( value( "MainWindow/Maximized", false ).toBool() ){
-         mw->showMaximized();
+        mw->showMaximized();
     }
-       
+
 
     if ( value( "MainWindow/Hidden", false ).toBool() )
     {
-         mw->hide();
+        mw->hide();
     }
-       
+
 }
 
 void SettingsBase::saveState( QMainWindow* mw)

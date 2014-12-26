@@ -34,6 +34,9 @@
 #define ABSTRACTPLUGININTERFACE_H_
 
 //#include <QObject>
+#include <QString>
+
+
 #include "../core_lib.h"
 
 
@@ -54,8 +57,7 @@ public:
     virtual QString license() const = 0;
     
     virtual bool isSingle() = 0;
-    
-    
+
     //初始化插件
     //Initialization
     //virtual bool initialize(QObject *parentObject) = 0;
@@ -71,7 +73,7 @@ public:
 }
 
 
-#define AbstractPluginInterface_IID "org.hehui.Interface.AbstractPluginInterface/2014.11"
+#define AbstractPluginInterface_IID "org.hehui.Interface.AbstractPluginInterface/2014.12"
 Q_DECLARE_INTERFACE(HEHUI::AbstractPluginInterface, AbstractPluginInterface_IID)
 
 

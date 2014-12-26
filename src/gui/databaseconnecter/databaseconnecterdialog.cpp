@@ -58,10 +58,12 @@ DatabaseConnecterDialog::DatabaseConnecterDialog(const QString &connectionName, 
 
     setup();
 
-    for(int i=0; i<supportedDatabases.size(); i++){
-        QPair<QString, HEHUI::DatabaseType> pair = supportedDatabases.at(i);
-        if(pair.second == databaseType){ui->databaseTypeComboBox->setCurrentIndex(i);}
-    }
+//    for(int i=0; i<supportedDatabases.size(); i++){
+//        QPair<QString, HEHUI::DatabaseType> pair = supportedDatabases.at(i);
+//        if(pair.second == databaseType){ui->databaseTypeComboBox->setCurrentIndex(i);}
+//        break;
+//    }
+    ui->databaseTypeComboBox->setCurrentIndex(ui->databaseTypeComboBox->findData(databaseType));
 
     ui->hostnameEdit->setText(host);
     if(port > 0){ui->portSpinBox->setValue(port);}
@@ -69,35 +71,30 @@ DatabaseConnecterDialog::DatabaseConnecterDialog(const QString &connectionName, 
     ui->passwordEdit->setText(passwd);
     ui->databaseNameEdit->setText(databaseName);
 
-
-
 }
 
 DatabaseConnecterDialog::DatabaseConnecterDialog(QWidget *parent, HEHUI::DatabaseType databaseType, const QString &databaseFilePath)
     :QDialog(parent),
-      ui(new Ui::DatabaseConnecterDialogUI)
+    ui(new Ui::DatabaseConnecterDialogUI)
 {
     setup();
 
-    for(int i=0; i<supportedDatabases.size(); i++){
-        QPair<QString, HEHUI::DatabaseType> pair = supportedDatabases.at(i);
-        if(pair.second == databaseType){ui->databaseTypeComboBox->setCurrentIndex(i);}
-    }
+//    for(int i=0; i<supportedDatabases.size(); i++){
+//        QPair<QString, HEHUI::DatabaseType> pair = supportedDatabases.at(i);
+//        if(pair.second == databaseType){ui->databaseTypeComboBox->setCurrentIndex(i);}
+//    }
+    ui->databaseTypeComboBox->setCurrentIndex(ui->databaseTypeComboBox->findData(databaseType));
 
     if(!databaseFilePath.trimmed().isEmpty()){
         ui->databaseFilePathComboBox->insertItem(0, databaseFilePath);
         ui->databaseFilePathComboBox->setCurrentIndex(0);
     }
 
-
-
 }
-
 
 void DatabaseConnecterDialog::setup(){
 
     ui->setupUi(this);
-
 
     //获取有可用的数据库驱动, 填充数据库驱动ComboBox
     //Get available database drivers， setup the database drivers ComboBox
@@ -157,10 +154,7 @@ void DatabaseConnecterDialog::setup(){
         ui->databaseTypeComboBox->addItem(pair.first, pair.second);
     }
 
-
     setWindowFlags(Qt::Dialog);
-
-
 }
 
 
@@ -300,8 +294,6 @@ int DatabaseConnecterDialog::port() const {
     return ui->portSpinBox->value();
 }
 
-
-
 QString DatabaseConnecterDialog::connectionName() const{
 
     if(selectedDatabaseType == HEHUI::SQLITE || selectedDatabaseType == HEHUI::M$ACCESS){
@@ -313,9 +305,7 @@ QString DatabaseConnecterDialog::connectionName() const{
     }
 
     return QString("");
-
 }
-
 
 QStringList DatabaseConnecterDialog::getParameters(){
 
@@ -338,8 +328,6 @@ QStringList DatabaseConnecterDialog::getParameters(){
 
 }
 
-
-
 void DatabaseConnecterDialog::on_browseButton_clicked() {
     QString databaseFilePath = QFileDialog::getOpenFileName(this,
                                                             tr("Database File Path"),
@@ -359,7 +347,6 @@ void DatabaseConnecterDialog::on_browseButton_clicked() {
     }
 
 }
-
 
 void DatabaseConnecterDialog::on_databaseTypeComboBox_currentIndexChanged(int index){
 
@@ -458,7 +445,6 @@ void DatabaseConnecterDialog::on_databaseTypeComboBox_currentIndexChanged(int in
 
 }
 
-
 void DatabaseConnecterDialog::on_driverCombo_currentIndexChanged(const QString & text){
 
     //根据所选的驱动类型设置ui->stackedWidget的当前激活页的控件
@@ -538,8 +524,6 @@ void DatabaseConnecterDialog::on_okButton_clicked() {
     //            ;
 
     accept();
-
-
 
 }
 

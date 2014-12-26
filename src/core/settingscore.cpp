@@ -36,6 +36,13 @@
 #include <QLocale>
 
 #include "settingscore.h"
+#include "cryptography/cryptography.h"
+
+
+
+namespace HEHUI {
+
+
 
 SettingsCore::SettingsCore( const QString& pName, const QString& pVersion, const QString fileBaseName, const QString fileDirPath, QObject* parent )
             //: QSettings( QDir::convertSeparators( QString( "%1/.%2/%3.ini" ).arg( QDir::homePath(), pName, pName ) ), QSettings::IniFormat, parent )
@@ -64,11 +71,6 @@ QString SettingsCore::programVersion() const
     return mProgramVersion;
 }
 
-
-
-
-
-
 void SettingsCore::setLanguage(const QString &language)
 {
     setValue("MainWindow/Language", language);
@@ -80,8 +82,37 @@ QString SettingsCore::getLanguage() const
     return value("MainWindow/Language", QLocale::system().name()).toString();
 }
 
+void SettingsCore::setValueWithEncryption(const QString &settingsKey, const QVariant &value, const QByteArray &encryptionKey){
+    QByteArray destination;
+    Cryptography cryptography;
+    cryptography.teaCrypto(&destination, value.toByteArray(), encryptionKey, true);
+    setValue(settingsKey, QVariant(destination));
+}
+
+QVariant SettingsCore::getValueWithDecryption(const QString &settingsKey, const QByteArray &encryptionKey, const QVariant &defaultValue, bool *ok){
+    if(!contains(settingsKey)){
+        if(ok){
+            *ok = false;
+        }
+        return defaultValue;
+    }
+
+    QByteArray array = value(settingsKey).toByteArray();
+    QByteArray destination;
+    Cryptography cryptography;
+    int ret = cryptography.teaCrypto(&destination, array, encryptionKey, false);
+    if(ok){
+        *ok = ret;
+    }
+    return QVariant(destination);
+}
 
 
+
+
+
+
+} //namespace HEHUI
 
 
 
