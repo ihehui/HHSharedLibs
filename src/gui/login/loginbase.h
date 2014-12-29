@@ -75,6 +75,7 @@ public:
     quint16 port() const;
     HEHUI::DatabaseType databaseType() const;
     bool isSettingsModified();
+    bool saveSettings();
 
 
 private slots:
@@ -105,6 +106,7 @@ private:
     HEHUI::DatabaseType m_databaseType;
 
     bool m_settingsModified;
+    bool m_saveSettings;
 
 };
 

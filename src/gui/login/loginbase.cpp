@@ -202,6 +202,10 @@ bool LoginBase::isSettingsModified(){
     return m_settingsModified;
 }
 
+bool LoginBase::saveSettings(){
+    return m_saveSettings;
+}
+
 inline void LoginBase::setUser(User *u){
     user = u;
 }
@@ -222,6 +226,7 @@ void LoginBase::modifySettings(){
                 m_databaseType,
                 parentWidget
                 );
+    dbConnecterDlg.showSaveSettingsOption(true);
     QStringList parameters = dbConnecterDlg.getParameters();
     if (parameters.size() <= 0) {
         return;
@@ -237,6 +242,7 @@ void LoginBase::modifySettings(){
     m_databaseType = (HEHUI::DatabaseType) parameters.at(7).toUInt();
 
     m_settingsModified = true;
+    m_saveSettings = dbConnecterDlg.saveSettings();
 
 }
 
@@ -260,12 +266,12 @@ void LoginBase::initUI(QObject *parent){
     m_databaseType = HEHUI::SQLITE;
 
     m_settingsModified = false;
+    m_saveSettings = false;
 
 }
 
 bool LoginBase::verifyUser() {
     qDebug("----LoginBase::verifyUser()");
-
 
     DatabaseConnecter dc(parentWidget);
     if(!dc.isDatabaseOpened(
@@ -282,7 +288,6 @@ bool LoginBase::verifyUser() {
         qCritical() << QString("Error! Database Connection Failed! Authentication Failed!");
         return false;
     }
-
 
     QSqlDatabase db;
     db = QSqlDatabase::database(m_connectionName);

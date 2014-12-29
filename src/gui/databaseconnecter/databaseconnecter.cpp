@@ -49,6 +49,9 @@ DatabaseConnecter::DatabaseConnecter(QObject *parent) :
         qDebug() << "~~ DatabaseConnecter: parent is not Widget Type";
     }
 
+
+    m_dbOptionsModified = false;
+
 }
 
 DatabaseConnecter::~DatabaseConnecter() {
@@ -62,6 +65,8 @@ bool DatabaseConnecter::isDatabaseOpened(const QString &connectionName,
 
 {
 
+    m_dbOptionsModified = false;
+
     qDebug() << "----DatabaseConnecter::isDatabaseOpened(...)";
     Q_ASSERT_X(!connectionName.isEmpty(), "DatabaseConnecter::isDatabaseOpened(...)", "'connectionName' is empty!");
     Q_ASSERT_X(!driver.isEmpty(), "DatabaseConnecter::isDatabaseOpened(...)", "'driver' is empty!");
@@ -71,8 +76,7 @@ bool DatabaseConnecter::isDatabaseOpened(const QString &connectionName,
     db = QSqlDatabase::database(connectionName);
 
     if (!db.isValid()) {
-        db = getDatabase(connectionName, driver, host, port, user, passwd,
-                         databaseName, databaseType);
+        db = getDatabase(connectionName, driver, host, port, user, passwd, databaseName, databaseType);
 
         //        db = QSqlDatabase::database(connectionName);
 
@@ -88,6 +92,78 @@ bool DatabaseConnecter::isDatabaseOpened(const QString &connectionName,
 }
 
 QSqlDatabase DatabaseConnecter::getDatabase(const QString &connectionName,
+                                            const QString &driver, const QString &host, int port,
+                                            const QString &user, const QString &passwd,
+                                            const QString &databaseName, HEHUI::DatabaseType databaseType)
+
+{
+    qDebug()<<"----DatabaseConnecter::getDatabase(...)";
+
+    qApp->processEvents();
+    //QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    QSqlDatabase db;
+    db = QSqlDatabase::database(connectionName);
+
+    if (!db.isValid()) {
+
+        QSqlError err;
+        DatabaseUtility databaseUtility;
+
+        //TODO
+        //可能会引起界面冻结
+        //Maybe freeze the GUI
+
+        QString db_connectionName = connectionName;
+        QString db_driver = driver;
+        QString db_host = host;
+        quint16 db_port = port;
+        QString db_user = user;
+        QString db_passwd = passwd;
+        QString db_databaseName = databaseName;
+        HEHUI::DatabaseType db_databaseType = databaseType;
+
+        do {
+            err = databaseUtility.openDatabase(db_connectionName, db_driver, db_host, db_port,
+                                               db_user, db_passwd, db_databaseName, db_databaseType);
+
+            if (err.type() != QSqlError::NoError) {
+                QApplication::restoreOverrideCursor();
+                QMessageBox::critical(parentWidget, tr("Fatal Error"), tr("An error occurred when opening the database!<br> %1").arg(err.text()));
+                qCritical() << QString("ERROR! An error occurred when opening the database: %1").arg(err.text());
+
+                DatabaseConnecterDialog dbConnecterDlg(connectionName, host, port, "", "", databaseName, databaseType, parentWidget);
+                if(dbConnecterDlg.exec() == QDialog::Rejected){
+                    return QSqlDatabase();
+                }
+                dbConnecterDlg.getParameters(&db_connectionName,
+                                             &db_driver,
+                                             &db_host,
+                                             &db_port,
+                                             &db_user,
+                                             &db_passwd,
+                                             &db_databaseName,
+                                             &db_databaseType
+                                             );
+
+
+
+                //m_dbOptionsModified = true;
+            }
+        } while (err.type() != QSqlError::NoError);
+
+        db = QSqlDatabase::database(connectionName);
+        //emit signalNewDatabaseConnected(connectionName);
+
+    }
+
+    QApplication::restoreOverrideCursor();
+
+    return db;
+
+}
+
+QSqlDatabase DatabaseConnecter::getDatabase2(const QString &connectionName,
                                             const QString &driver, const QString &host, int port,
                                             const QString &user, const QString &passwd,
                                             const QString &databaseName, HEHUI::DatabaseType databaseType)
@@ -144,7 +220,7 @@ QSqlDatabase DatabaseConnecter::getDatabase(const QString &connectionName,
             DatabaseConnecterDialog dbConnecterDlg(connectionName, host, port, "", "", databaseName, databaseType, parentWidget);
             QStringList parameters = dbConnecterDlg.getParameters();
             if (parameters.size() <= 0) {
-                qCritical() << QString("ERROR!") << QString("Can not connect to database server!");
+                qCritical() << QString("ERROR! Can not connect to database server!");
                 return QSqlDatabase();
             }
 
@@ -153,10 +229,13 @@ QSqlDatabase DatabaseConnecter::getDatabase(const QString &connectionName,
                         parameters.at(5), parameters.at(6),
                         (HEHUI::DatabaseType) parameters.at(7).toUInt());
 
+            m_dbOptionsModified = true;
+            qDebug()<<"------------------1--------------------";
         }
+        qDebug()<<"------------------2--------------------";
 
         db = QSqlDatabase::database(connectionName);
-        emit signalNewDatabaseConnected(connectionName);
+        //emit signalNewDatabaseConnected(connectionName);
 
     }
 
@@ -194,3 +273,6 @@ bool DatabaseConnecter::connectToNewDatabase(QString *connectionName) {
     return db.isValid();
 }
 
+bool DatabaseConnecter::isDBOptionsModified(){
+    return m_dbOptionsModified;
+}

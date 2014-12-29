@@ -46,9 +46,7 @@ DatabaseConnecterDialog::DatabaseConnecterDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DatabaseConnecterDialogUI)
 {
-
     setup();
-
 }
 
 DatabaseConnecterDialog::DatabaseConnecterDialog(const QString &connectionName, const QString &host, int port, const QString &user, const QString &passwd, const QString &databaseName, HEHUI::DatabaseType databaseType, QWidget *parent) :
@@ -95,6 +93,7 @@ DatabaseConnecterDialog::DatabaseConnecterDialog(QWidget *parent, HEHUI::Databas
 void DatabaseConnecterDialog::setup(){
 
     ui->setupUi(this);
+    ui->checkBoxSaveSettings->hide();
 
     //获取有可用的数据库驱动, 填充数据库驱动ComboBox
     //Get available database drivers， setup the database drivers ComboBox
@@ -105,7 +104,6 @@ void DatabaseConnecterDialog::setup(){
         return;
     }
     ui->driverCombo->addItems(drivers);
-
 
     //初始化所支持的数据库列表
     //Init supported databases list
@@ -146,7 +144,6 @@ void DatabaseConnecterDialog::setup(){
         supportedDatabases.append(qMakePair(QString("Other"), HEHUI::OTHER));
     }
 
-
     //填充数据库类型ComboBox
     //Setup database type combobox
     for(int i=0; i<supportedDatabases.size(); i++){
@@ -156,7 +153,6 @@ void DatabaseConnecterDialog::setup(){
 
     setWindowFlags(Qt::Dialog);
 }
-
 
 DatabaseConnecterDialog::~DatabaseConnecterDialog() {
 
@@ -322,10 +318,47 @@ QStringList DatabaseConnecterDialog::getParameters(){
          <<password()
         <<databaseName()
        <<QString::number((uint)selectedDatabaseType)
+      //<<(ui->checkBoxSaveSettings->isChecked())?"1":"0"
          ;
 
     return parameters;
+}
 
+void DatabaseConnecterDialog::getParameters(QString *dbConnectionName, QString *dbDriverName, QString *dbHostAddress, quint16 *dbHostPort, QString *dbUser, QString *dbPassword, QString *dbName, HEHUI::DatabaseType *dbType){
+    if(dbConnectionName){
+        *dbConnectionName = connectionName();
+    }
+    if(dbDriverName){
+        *dbDriverName = driverName();
+    }
+    if(dbHostAddress){
+        *dbHostAddress = hostName();
+    }
+    if(dbHostPort){
+        *dbHostPort = port();
+    }
+    if(dbUser){
+        *dbUser = userName();
+    }
+    if(dbPassword){
+        *dbPassword = password();
+    }
+    if(dbName){
+        *dbName = databaseName();
+    }
+    if(dbType){
+        *dbType = selectedDatabaseType;
+    }
+
+}
+
+
+bool DatabaseConnecterDialog::saveSettings(){
+    return ui->checkBoxSaveSettings->isChecked();
+}
+
+void DatabaseConnecterDialog::showSaveSettingsOption(bool show){
+    ui->checkBoxSaveSettings->setVisible(show);
 }
 
 void DatabaseConnecterDialog::on_browseButton_clicked() {
@@ -468,7 +501,6 @@ void DatabaseConnecterDialog::on_driverCombo_currentIndexChanged(const QString &
     ui->hostnameEdit->setEnabled(true);
     ui->portSpinBox->setEnabled(true);
     ui->databaseNameLabel->setText(tr("&Database:"));
-
 
 }
 

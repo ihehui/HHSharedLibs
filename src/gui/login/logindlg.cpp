@@ -44,13 +44,14 @@ void LoginDlg::keyPressEvent(QKeyEvent *e) {
         break;
     case Qt::Key_Return:
     case Qt::Key_Enter:
-        if (ui->userIDComboBox->hasFocus()) {
-            ui->passwordLineEdit->setFocus();
-        } else if (ui->passwordLineEdit->hasFocus()) {
-            ui->lineEditAuthenticode->setFocus();
-        }else{
-            ui->pushButtonLogin->click();
-        }
+//        if (ui->userIDComboBox->hasFocus()) {
+//            ui->passwordLineEdit->setFocus();
+//        } else if (ui->passwordLineEdit->hasFocus()) {
+//            ui->lineEditAuthenticode->setFocus();
+//        }else{
+//            ui->pushButtonLogin->click();
+//        }
+        focusNextChild();
         break;
     case Qt::Key_R:
         //是否进入RestoreMode
@@ -112,31 +113,27 @@ void LoginDlg::on_pushButtonLogin_clicked() {
     QString uid = userID();
 
     if (uid.isEmpty()) {
-
-        QMessageBox::critical(this, tr("What's your name?"), tr(
-                                  "<b>How can I help you?<br> I don't know how to do that, I don't know!</b>"));
-
+        QMessageBox::critical(this, tr("Authentication Failed"), tr("Authentication failed! Invalid user ID!"));
         ui->userIDComboBox->setFocus();
         return;
 
     } else if (passWord().isEmpty()) {
-
-        QMessageBox::critical(this, tr("What's your password?"), tr(
-                                  "<b>How can I help you?<br> I don't know how to do that, I don't know!</b>"));
+        QMessageBox::critical(this, tr("Authentication Failed"), tr("Authentication failed! Password required!"));
         ui->passwordLineEdit->setFocus();
         return;
 
-    } else if(ui->lineEditAuthenticode->text() != QDateTime::currentDateTime().toString("HHmm")){
-        qDebug()<<"Authenti code:"<<QDateTime::currentDateTime().toString("HHmm");
-        QMessageBox::critical(this, tr("Authentication Failed"), tr(
-                                  "<b>Incorrect Authenticode!</b>"));
-        ui->lineEditAuthenticode->clear();
-        ui->lineEditAuthenticode->setFocus();
-        return;
+    }
+//    else if(ui->lineEditAuthenticode->text() != QDateTime::currentDateTime().toString("HHmm")){
+//        qDebug()<<"Authentic code:"<<QDateTime::currentDateTime().toString("HHmm");
+//        QMessageBox::critical(this, tr("Authentication Failed"), tr(
+//                                  "<b>Incorrect Authenticode!</b>"));
+//        ui->lineEditAuthenticode->clear();
+//        ui->lineEditAuthenticode->setFocus();
+//        return;
 
-    }else{
+//    }
+    else{
         user->setUserID(uid);
-        //user->setPassword(ui.passwordLineEdit->text());
 
         //从密码输入框取回明文密码,将其进行SHA-1加密
         //Fetch the password from the 'ui.passwordLineEdit' and  encrypt it with SHA-1h

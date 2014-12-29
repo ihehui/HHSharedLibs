@@ -56,6 +56,11 @@ public:
     ~DatabaseConnecterDialog();
 
     QStringList getParameters();
+    void getParameters(QString *dbConnectionName, QString *dbDriverName, QString *dbHostAddress, quint16 *dbHostPort, QString *dbUser, QString *dbPassword, QString *dbName, HEHUI::DatabaseType *dbType);
+
+
+    bool saveSettings();
+    void showSaveSettingsOption(bool show);
 
 private:
     //初始化
@@ -75,6 +80,7 @@ private:
     QString connectionName() const;
     QString remoteDatabaseName() const;
     QString localDatabaseFilePath() const;
+
 
 private slots:
     void on_databaseTypeComboBox_currentIndexChanged(int index);

@@ -155,19 +155,19 @@ QSqlError DatabaseUtility::openRemoteDatabase(const QString &connectionName, con
     if(databaseType == HEHUI::M$SQLSERVER && OS_IS_WINDOWS ){
         db = QSqlDatabase::addDatabase("QODBC", connectionName);
         db.setDatabaseName(
-                QString("DRIVER={SQL Server};SERVER=%1;DATABASE=%2;UID=%3;PWD=%4")
-                .arg(host.trimmed())
-                .arg(databaseName.trimmed())
-                .arg(user.trimmed())
-                .arg(passwd.trimmed())
-                );
+                    QString("DRIVER={SQL Server};SERVER=%1;DATABASE=%2;UID=%3;PWD=%4")
+                    .arg(host.trimmed())
+                    .arg(databaseName.trimmed())
+                    .arg(user.trimmed())
+                    .arg(passwd.trimmed())
+                    );
         db.open();
 
     }else{
-	db = QSqlDatabase::addDatabase(driver, connectionName);
-	db.setDatabaseName(databaseName);
-	db.setHostName(host);
-	db.setPort(port);
+        db = QSqlDatabase::addDatabase(driver, connectionName);
+        db.setDatabaseName(databaseName);
+        db.setHostName(host);
+        db.setPort(port);
         db.setUserName(user);
         db.setPassword(passwd);
         db.open();
@@ -214,8 +214,8 @@ QSqlError DatabaseUtility::openLocalFileDatabase(const QString &connectionName, 
 
             err.setType(QSqlError::ConnectionError);
             err.setDatabaseText(QObject::tr("Database file  %1  can not be read or written !")
-				.arg(databaseFileNamePath)
-				);
+                                .arg(databaseFileNamePath)
+                                );
 
             //qCritical()<< QString("XX An error occurred when opening the database: %1").arg(err.text());
             return err;
@@ -231,8 +231,8 @@ QSqlError DatabaseUtility::openLocalFileDatabase(const QString &connectionName, 
 
         db = QSqlDatabase::addDatabase("QODBC", connectionName);
         db.setDatabaseName(
-                QString("DRIVER={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ=%1")
-                .arg(databaseFileNamePath));
+                    QString("DRIVER={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ=%1")
+                    .arg(databaseFileNamePath));
 
     } else {
 
