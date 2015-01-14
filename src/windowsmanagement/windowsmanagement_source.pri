@@ -5,7 +5,8 @@ HEADERS += \
     adsi.h
 FORMS += 
 SOURCES += windowsmanagement.cpp \
-    adsi.cpp
+    adsi.cpp \
+    $$PWD/cpuinfo.c
 RESOURCES += 
 
 win32 { 

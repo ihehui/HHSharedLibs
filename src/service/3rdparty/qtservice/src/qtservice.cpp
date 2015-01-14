@@ -49,7 +49,6 @@
 #if defined(QTSERVICE_DEBUG)
 #include <QDebug>
 #include <QFile>
-#include <QFileInfo>
 #include <QTime>
 #include <QMutex>
 #if defined(Q_OS_WIN32)
@@ -66,7 +65,7 @@ static void qtServiceCloseDebugLog()
     if (!f)
         return;
     QString ps(QTime::currentTime().toString("HH:mm:ss.zzz ") + QLatin1String("--- DEBUG LOG CLOSED ---\n\n"));
-    f->write(ps.toLatin1());
+    f->write(ps.toAscii());
     f->flush();
     f->close();
     delete f;
@@ -97,7 +96,7 @@ void qtServiceLogDebug(QtMsgType type, const char* msg)
             return;
         }
         QString ps(QLatin1String("\n") + s + QLatin1String("--- DEBUG LOG OPENED ---\n"));
-        f->write(ps.toLatin1());
+        f->write(ps.toAscii());
     }
 
     switch (type) {
@@ -121,7 +120,7 @@ void qtServiceLogDebug(QtMsgType type, const char* msg)
     s += msg;
     s += QLatin1String("\n");
 
-    f->write(s.toLatin1());
+    f->write(s.toAscii());
     f->flush();
 
     if (type == QtFatalMsg) {
@@ -129,68 +128,6 @@ void qtServiceLogDebug(QtMsgType type, const char* msg)
         exit(1);
     }
 }
-
-void logDebug(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
-    static QMutex mutex;
-    QMutexLocker locker(&mutex);
-    QString s(QTime::currentTime().toString("HH:mm:ss.zzz "));
-    //QString s(QDateTime::currentDateTime().toString("yyyy.MM.dd HH:mm:ss.zzz "));
-    s += QString("[%1] ").arg(
-#if defined(Q_OS_WIN32)
-                               GetCurrentProcessId());
-#else
-                               getpid());
-#endif
-
-    if (!f) {
-        static QString logFilename = QFileInfo(QCoreApplication::applicationFilePath()).baseName() + QDateTime::currentDateTime().toString("-yyyy-MM") + ".log";
-#if defined(Q_OS_WIN32)
-        f = new QFile("./" + logFilename);
-#else
-        f = new QFile("/tmp/" + logFilename);
-#endif
-        if (!f->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
-            delete f;
-            f = 0;
-            return;
-        }
-        //QString ps(QLatin1String("\n") + s + QLatin1String("--- DEBUG LOG OPENED ---\n"));
-        QString ps(QDateTime::currentDateTime().toString("yyyy.MM.dd ") + QLatin1String("\n") + s + QLatin1String("--- DEBUG LOG OPENED ---\n"));
-        f->write(ps.toUtf8());
-    }
-
-
-    //QByteArray localMsg = msg.toUtf8();
-    switch (type) {
-    case QtDebugMsg:
-        //fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        s += QString("Debug: %1 (%2:%3, %4)\n").arg(msg).arg(context.file).arg(context.line).arg(context.function);
-        break;
-    case QtWarningMsg:
-        //fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        s += QString("Warning: %1 (%2:%3, %4)\n").arg(msg).arg(context.file).arg(context.line).arg(context.function);
-        break;
-    case QtCriticalMsg:
-        //fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        s += QString("Critical: %1 (%2:%3, %4)\n").arg(msg).arg(context.file).arg(context.line).arg(context.function);
-        break;
-    case QtFatalMsg:
-        //fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        s += QString("Fatal: %1 (%2:%3, %4)\n").arg(msg).arg(context.file).arg(context.line).arg(context.function);
-        //abort();
-    }
-
-    f->write(s.toUtf8());
-    f->flush();
-
-    if (type == QtFatalMsg) {
-        qtServiceCloseDebugLog();
-        exit(1);
-    }
-
-}
-
 
 #endif
 
@@ -688,8 +625,7 @@ int QtServiceBasePrivate::run(bool asService, const QStringList &argList)
 QtServiceBase::QtServiceBase(int argc, char **argv, const QString &name)
 {
 #if defined(QTSERVICE_DEBUG)
-//    qInstallMessageHandler(qtServiceLogDebug);
-    qInstallMessageHandler(logDebug);
+    qInstallMsgHandler(qtServiceLogDebug);
     qAddPostRoutine(qtServiceCloseDebugLog);
 #endif
 
