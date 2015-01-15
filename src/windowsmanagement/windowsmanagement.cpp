@@ -4145,6 +4145,22 @@ bool WindowsManagement::runAsForDesktopApplication(const QString &userName, cons
 ////////////////////////////////////////////////////
 
 
+
+QString WindowsManagement::getCPUSerialNumber(){
+    char psn[64];
+    cpu_getPSN(psn);
+    return QString::fromLatin1(psn);
+}
+
+QString WindowsManagement::getHardDriveSerialNumber(unsigned int driveIndex){
+    char sn[64];
+    GetPhysicDriveSerialNumber(0, sn, driveIndex);
+    return QString::fromLatin1(sn).trimmed();
+}
+
+
+
+
 //void WindowsManagement::setNewComputerNameToBeUsed(const QString &computerName){
 //    this->m_newComputerNameToBeUsed = computerName;
 //}

@@ -218,6 +218,9 @@ public:
                                     const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
     //////////////////////////////////////////////////////
 
+    QString getCPUSerialNumber();
+    QString getHardDriveSerialNumber(unsigned int driveIndex = 0);
+
 
 #endif
 
