@@ -384,8 +384,7 @@ QStringList WindowsManagement::localUsers() {
             pBuf = NULL;
         }
 
-    }
-    while (nStatus == ERROR_MORE_DATA);
+    }while (nStatus == ERROR_MORE_DATA);
 
     if (pBuf != NULL) {
         NetApiBufferFree(pBuf);
@@ -393,7 +392,6 @@ QStringList WindowsManagement::localUsers() {
     }
 
     return users;
-
 
 }
 
@@ -417,7 +415,8 @@ QString WindowsManagement::getUserNameOfCurrentThread() {
     wchar_t username[MaxUserAccountNameLength + 1];
 
     if(!GetUserNameW(username, &size)){
-        m_lastErrorString = tr("Can not retrieve the name of the user associated with the current thread! Code:%1 ").arg(QString::number(GetLastError()));
+        m_lastErrorString = tr("Can not retrieve the name of the user associated with the current thread! Code:%1 ")
+                .arg(QString::number(GetLastError()));
         return QString("");
     }
 
@@ -425,12 +424,55 @@ QString WindowsManagement::getUserNameOfCurrentThread() {
 
 }
 
-QString WindowsManagement::WinSysErrorMsg(LONG winErrorCode){
-    wchar_t buffer[8192];
-    ZeroMemory(buffer, 8192);
+QString WindowsManagement::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId){
+//    wchar_t buffer[8192];
+//    ZeroMemory(buffer, 8192);
 
-    FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, 0, winErrorCode, 0, buffer, 8192, 0);
-    return QString::fromWCharArray(buffer).simplified();
+//    FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, 0, winErrorCode, 0, buffer, 8192, 0);
+//    return QString::fromWCharArray(buffer).simplified();
+
+
+
+    HMODULE hLib= 0;
+    DWORD dwFlags;
+    OSVERSIONINFOW os;
+    wchar_t buffer[8192];
+    DWORD cbBuffer;
+
+    ZeroMemory(buffer, 8192);
+    cbBuffer = 0;
+
+
+    if(winErrorCode >= 2100 && winErrorCode <= 2999){
+        //Undocumented errors %NETWORK_ERROR_FIRST to %NETWORK_ERROR_LAST
+        os.dwOSVersionInfoSize = sizeof(os);
+        GetVersionExW(&os);
+        if(os.dwPlatformId == VER_PLATFORM_WIN32_NT){
+           hLib = LoadLibraryExW(L"NETMSG.DLL", 0, LOAD_LIBRARY_AS_DATAFILE);
+        }
+    }else if(winErrorCode >= 12000 && winErrorCode <= 12171){
+        //Undocumented errors %INTERNET_ERROR_FIRST to %NTERNET_ERROR_LAST
+           hLib = LoadLibraryExW(L"WININET.DLL", 0, LOAD_LIBRARY_AS_DATAFILE);
+    }
+
+    dwFlags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK;
+    if(hLib){
+        dwFlags = dwFlags | FORMAT_MESSAGE_FROM_HMODULE;
+    }
+
+    cbBuffer = FormatMessageW(dwFlags, hLib, winErrorCode, dwLanguageId, buffer, 8192, 0);
+    if(hLib){
+        FreeLibrary(hLib);
+    }
+
+    if(cbBuffer){
+        return QString::fromWCharArray(buffer).simplified();
+    }else{
+        QString string = QString::number(winErrorCode, 16).toUpper();
+        return QString(tr("Error:0x%1").arg(string.rightJustified(8, '0')));
+    }
+
+
 }
 
 //When running on 64-bit Windows if you want to read a value specific to the 64-bit environment you have to suffix the HK... with 64 i.e. HKLM64.
