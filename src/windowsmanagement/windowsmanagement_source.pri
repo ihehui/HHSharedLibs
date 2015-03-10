@@ -2,15 +2,21 @@
 HEADERS += \
     windowsmanagement.h \
     wmlib.h \
-    adsi.h
-FORMS += 
+    adsi.h \
+    hardwaremonitor/hardwaremonitor.h
+
 SOURCES += windowsmanagement.cpp \
-    adsi.cpp
+    adsi.cpp \
+    hardwaremonitor/hardwaremonitor.cpp
+
+FORMS +=
 RESOURCES += 
 
 win32 { 
     INCLUDEPATH += resources/lib/AutoIt3 \
-                    resources/lib/WindowsAPI
+                    resources/lib/WindowsAPI \
+                    resources/lib/hardwaremonitor
+
     LIBS += -luser32 \
         -lNetAPI32 \
         -lAdvapi32 \
@@ -21,7 +27,8 @@ win32 {
         #-Lresources/lib/AutoIt3 \
         #-lAutoItX3 \
         -Lresources/lib/WindowsAPI \
-        -lWindowsAPI
+        -lWindowsAPI \
+        -Lresources/lib/hardwaremonitor
 
     win32-g++{
         INCLUDEPATH += resources/lib/WinAPI_GCC

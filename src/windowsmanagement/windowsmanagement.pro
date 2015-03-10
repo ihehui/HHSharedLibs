@@ -21,7 +21,7 @@ include( ../buildlib_config.pri )
 # include source
 include(windowsmanagement_source.pri)
 
-DEFINES += WM_LIBRARY_EXPORT _WIN32_WINNT=0x0500
+DEFINES += WM_LIBRARY_EXPORT _WIN32_WINNT=0x0500 _UNICODE
 
 # #
 #UI_DIR = ./ui
