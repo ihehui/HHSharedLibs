@@ -46,11 +46,11 @@
 #include "utilities.h"
 
 #ifdef Q_OS_WIN32
-    #include <windows.h>
-    #include <time.h>
+#include <windows.h>
+#include <time.h>
 #else
-    #include <unistd.h>
-    #include <sys/time.h>
+#include <unistd.h>
+#include <sys/time.h>
 #endif
 
 
@@ -77,7 +77,7 @@ const QString Utilities::currentUserNameOfOS() {
     QString username;
     QStringList envVariables;
     envVariables << "USERNAME.*" << "USER.*" << "USERDOMAIN.*" << "HOSTNAME.*"
-            << "DOMAINNAME.*";
+                 << "DOMAINNAME.*";
 
     QStringList environment = QProcess::systemEnvironment();
     foreach (QString string, envVariables)
@@ -139,9 +139,9 @@ bool Utilities::changeLangeuage(const QString &translationFilesDir, const QStrin
         return false;
     }
 
-//    if(!availableTranslationLanguages(translationFilesDir).contains(qmLocale)){
-//        return false;
-//    }
+    //    if(!availableTranslationLanguages(translationFilesDir).contains(qmLocale)){
+    //        return false;
+    //    }
 
     foreach(QTranslator *translator, translators){
         qApp->removeTranslator(translator);
@@ -258,7 +258,7 @@ static inline void filterAttributes(const QStringRef &name,
     if (atts->isEmpty())
         return;
 
-     // No style attributes for <body>
+    // No style attributes for <body>
     if (name == QStringLiteral("body")) {
         atts->clear();
         return;

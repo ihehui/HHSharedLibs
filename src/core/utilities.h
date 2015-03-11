@@ -50,10 +50,10 @@ namespace HEHUI {
 class CORE_LIB_API Utilities {
 
 public:
-	Utilities();
-	virtual ~Utilities();
+    Utilities();
+    virtual ~Utilities();
 
-	static const QString currentUserNameOfOS();
+    static const QString currentUserNameOfOS();
 
     static QStringList availableTranslationLanguages(const QString &translationFilesDir);
 

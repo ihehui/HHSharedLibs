@@ -3,11 +3,19 @@ HEADERS += \
     windowsmanagement.h \
     wmlib.h \
     adsi.h \
-    hardwaremonitor/hardwaremonitor.h
+    hardwaremonitor/hardwaremonitor.h \
+    activex/qaxtypefunctions.h \
+    activex/qaxtypes.h \
+    activex/wmiquery.h \
+    winutilities.h
 
 SOURCES += windowsmanagement.cpp \
     adsi.cpp \
-    hardwaremonitor/hardwaremonitor.cpp
+    hardwaremonitor/hardwaremonitor.cpp \
+    activex/qaxtypefunctions.cpp \
+    activex/qaxtypes.cpp \
+    activex/wmiquery.cpp \
+    winutilities.cpp
 
 FORMS +=
 RESOURCES += 

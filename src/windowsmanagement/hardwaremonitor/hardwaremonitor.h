@@ -7,7 +7,9 @@
 #include "Windows.h"
 
 
+
 namespace HEHUI {
+class WMIQuery;
 
 
 class WM_LIB_API HardwareMonitor : public QObject
@@ -17,23 +19,30 @@ public:
     explicit HardwareMonitor(QObject *parent = 0);
     ~HardwareMonitor();
 
-
     QString getCPUTemperature();
     int getCPUTemperature2(int processorIndex = 0);
-
     bool getCPUInfo(int *numberOfLogicalProcessors, int *numberOfProcessorCores = 0, int *numberOfPhysicalProcessorPackages = 0);
+
+    //All harddisk temperatures are separted by ','
+    QString getHardDiskTemperatur();
+
+    float getMotherBoardTemperature();
 
 
 public slots:
 
 private:
+    bool initWinRing0();
+    void initWMIQuery();
+
     DWORD CountSetBits(ULONG_PTR bitMask);
 
 private:
-    bool m_initialized;
-
+    bool m_winRing0Initialized;
     HMODULE hModule;
+    int numberOfLogicalProcessors;
 
+    WMIQuery *m_wmiQuery;
 
 };
 

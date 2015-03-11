@@ -13,9 +13,10 @@
 //#define OLS_DLL_UNKNOWN_ERROR					9
 
 
-
 //Run-Time Dynamic Linking
 #include "OlsApiInit.h"
+
+#include "activex/wmiquery.h"
 
 
 namespace HEHUI {
@@ -24,20 +25,46 @@ namespace HEHUI {
 HardwareMonitor::HardwareMonitor(QObject *parent) : QObject(parent)
 {
 
-    m_initialized = false;
+    m_winRing0Initialized = false;
+
+    getCPUInfo(&numberOfLogicalProcessors);
+
+    m_wmiQuery = 0;
+
+}
+
+HardwareMonitor::~HardwareMonitor()
+{
+
+    if(m_winRing0Initialized){
+        //DeinitializeOls();
+        DeinitOpenLibSys(&hModule);
+    }
+
+    if(m_wmiQuery){
+        delete m_wmiQuery;
+    }
+
+}
+
+bool HardwareMonitor::initWinRing0(){
+
+    if(m_winRing0Initialized){
+        return true;
+    }
 
     //InitializeOls();
 
     if(!InitOpenLibSys(&hModule)){
         qCritical()<<"ERROR! Initialization failed.";
-        return;
+        return false;
     }
 
     DWORD status = GetDllStatus();
     switch (status) {
     case OLS_DLL_NO_ERROR:
         qDebug()<<"No error";
-        m_initialized = true;
+        m_winRing0Initialized = true;
         break;
     case OLS_DLL_UNSUPPORTED_PLATFORM:
         qCritical()<<"Unsupported Platform";
@@ -61,16 +88,20 @@ HardwareMonitor::HardwareMonitor(QObject *parent) : QObject(parent)
         break;
     }
 
+    return true;
+
 }
 
-HardwareMonitor::~HardwareMonitor()
-{
-    //DeinitializeOls();
-    DeinitOpenLibSys(&hModule);
+void HardwareMonitor::initWMIQuery(){
+    if(!m_wmiQuery){
+        m_wmiQuery = new WMIQuery(this);
+    }
 }
 
 QString HardwareMonitor::getCPUTemperature(){
-    if(!m_initialized){
+
+    initWinRing0();
+    if(!m_winRing0Initialized){
         return "";
     }
 
@@ -78,8 +109,6 @@ QString HardwareMonitor::getCPUTemperature(){
         return "";
     }
 
-    int numberOfLogicalProcessors = 0;
-    getCPUInfo(&numberOfLogicalProcessors);
 
     DWORD eax=0,edx=0;
     ULONG result;
@@ -106,7 +135,6 @@ QString HardwareMonitor::getCPUTemperature(){
     for(int i=0;i<numberOfLogicalProcessors;i++){
         mask = 1<<i;
         result=SetThreadAffinityMask(GetCurrentThread(), mask);
-        qDebug()<<"----------result:"<<result;
 
         Rdmsr(0x19c,&eax,&edx);//read Temperature
         SetThreadAffinityMask(GetCurrentThread(),result);
@@ -118,7 +146,9 @@ QString HardwareMonitor::getCPUTemperature(){
 }
 
 int HardwareMonitor::getCPUTemperature2(int processorIndex){
-    if(!m_initialized){
+
+    initWinRing0();
+    if(!m_winRing0Initialized){
         return 0;
     }
 
@@ -151,7 +181,6 @@ int HardwareMonitor::getCPUTemperature2(int processorIndex){
 
     return 100-((eax&0x007f0000)>>16);
 }
-
 
 
 // Helper function to count set bits in the processor mask.
@@ -278,7 +307,7 @@ bool HardwareMonitor::getCPUInfo(int *numberOfLogicalProcessors, int *numberOfPr
         ptr++;
     }
 
-    qDebug()<<"\nGetLogicalProcessorInformation results:\n";
+    qDebug()<<"\nGetLogicalProcessorInformation results:";
     qDebug()<<"Number of NUMA nodes: " << numaNodeCount;
     qDebug()<<"Number of physical processor packages: " << processorPackageCount;
     qDebug()<<"Number of processor cores: " << processorCoreCount;
@@ -305,6 +334,56 @@ bool HardwareMonitor::getCPUInfo(int *numberOfLogicalProcessors, int *numberOfPr
     return true;
 }
 
+QString HardwareMonitor::getHardDiskTemperatur(){
+    initWMIQuery();
+
+    QString queryString = QString("SELECT VendorSpecific FROM MSStorageDriver_ATAPISmartData ");
+    //qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "VendorSpecific", "ROOT/WMI");
+    if(list.isEmpty()){return "";}
+
+    QStringList results;
+    foreach (QVariantList variantList, list) {
+        if(variantList.size() != 1){return "";}
+        QByteArray ba = variantList.at(0).toByteArray();
+
+        unsigned char temp;
+        for(int i=0;i<ba.size();i++){
+            temp = ba[i];
+            if(temp == 0xc2){
+                temp = ba[i+5];
+               results.append(QString::number(temp));
+               break;
+            }
+
+        }
+
+    }
+
+    return results.join(",");
+
+}
+
+float HardwareMonitor::getMotherBoardTemperature(){
+    initWMIQuery();
+
+    QString queryString = QString("SELECT CurrentTemperature FROM MSAcpi_ThermalZoneTemperature ");
+    qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "CurrentTemperature", "ROOT/WMI");
+    if(list.isEmpty()){return 0;}
+
+    foreach (QVariantList variantList, list) {
+        if(variantList.size() != 1){return 0;}
+
+        float nTemperature = variantList.at(0).toFloat();
+        nTemperature = (nTemperature - 2732)/10;
+
+        return nTemperature;
+    }
+
+    return 0;
+
+}
 
 
 
