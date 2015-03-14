@@ -26,7 +26,7 @@ public:
     bool listen ( const QHostAddress & address = QHostAddress::Any, quint16 port = 0 );
     bool isListening () const;
     void closeServer ();
-    QString	serverErrorString () const;
+    QString	errorString () const;
     void serverAddressInfo(QHostAddress *address, quint16 *port );
     QAbstractSocket::SocketError serverError () const;
     bool waitForNewConnection ( int msec = 0, bool * timedOut = 0 );
@@ -83,7 +83,7 @@ private:
 
 private:
     QTcpServer *m_tcpServer;
-    int m_lastSocketID;
+    quint32 m_lastSocketID;
 
     QHash<int/*Socket ID*/, QTcpSocket*> m_socketsHash;
     QHash<int/*Socket ID*/, quint32 /*Block Size*/> m_socketBlockSizeInfoHash;

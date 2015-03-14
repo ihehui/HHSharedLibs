@@ -24,7 +24,7 @@ public:
     bool getCPUInfo(int *numberOfLogicalProcessors, int *numberOfProcessorCores = 0, int *numberOfPhysicalProcessorPackages = 0);
 
     //All harddisk temperatures are separted by ','
-    QString getHardDiskTemperatur();
+    QString getHardDiskTemperature();
 
     float getMotherBoardTemperature();
 

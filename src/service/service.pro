@@ -27,7 +27,7 @@ CONFIG( debug, debug|release ) {
 }
 include(./3rdparty/qtservice/src/qtservice.pri)
 
-DEFINES += SERVICE_LIBRARY_EXPORT
+DEFINES += SERVICE_LIBRARY_EXPORT QT_QTSERVICE_EXPORT
 
 
 

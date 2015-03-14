@@ -37,11 +37,14 @@
 #include "winutilities.h"
 #include <QHash>
 #include <QDebug>
+#include <QDateTime>
+#include <QFile>
+#include <QDir>
 
 #include <windows.h>
+#include <gdiplus.h>
 
-
-
+#pragma comment(lib,"gdiplus")
 
 
 namespace HEHUI {
@@ -108,6 +111,7 @@ QString WinUtilities::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId){
 
 
 }
+
 
 //When running on 64-bit Windows if you want to read a value specific to the 64-bit environment you have to suffix the HK... with 64 i.e. HKLM64.
 bool WinUtilities::parseRegKeyString(const QString &keyString, HKEY *rootKey, QString *subKeyString){
@@ -736,11 +740,164 @@ bool WinUtilities::isWow64()
     return bIsWow64;
 }
 
+int WinUtilities::GetEncoderClsid(const WCHAR* format, CLSID* pClsid){
+    UINT  num = 0;          // number of image encoders
+    UINT  size = 0;         // size of the image encoder array in bytes
 
+    Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
 
+    Gdiplus::GetImageEncodersSize(&num, &size);
+    if(size == 0)
+       return -1;  // Failure
 
+    pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size));
+    if(pImageCodecInfo == NULL)
+       return -1;  // Failure
 
+    Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
 
+    for(UINT j = 0; j < num; ++j)
+    {
+       if( wcscmp(pImageCodecInfo[j].MimeType, format) == 0 )
+       {
+          *pClsid = pImageCodecInfo[j].Clsid;
+          free(pImageCodecInfo);
+          return j;  // Success
+       }
+    }
+
+    free(pImageCodecInfo);
+    return -1;  // Failure
+}
+
+QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap){
+
+    QByteArray byteArray;
+
+    // Initialize GDI+.
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+    ULONG_PTR gdiplusToken;
+    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
+    CLSID   encoderClsid;
+    Gdiplus::Status  status;
+    QString tempFilePath = QDir::tempPath() + QString("/hh%1.tmp").arg(QDateTime::currentDateTime().toTime_t());
+    // Get the CLSID of the jpeg encoder.
+    GetEncoderClsid(L"image/jpeg", &encoderClsid);
+    Gdiplus::Bitmap *bitmap = Gdiplus::Bitmap::FromHBITMAP(hbitmap, NULL);
+    status = bitmap->Save(L"c:/screenshot.jpg", &encoderClsid, NULL);
+
+    //Image*   image = new Image(L"c:/1.bmp");
+    //stat = image->Save(L"c:/1.jpg", &encoderClsid, NULL);
+    //delete image;
+
+    delete bitmap;
+
+    Gdiplus::GdiplusShutdown(gdiplusToken);
+
+    if(status != Gdiplus::Ok){
+        qCritical()<<"Failed to convert HBITMAP to JPEG.";
+        return byteArray;
+    }
+
+    QFile file(tempFilePath);
+    if (!file.open(QIODevice::ReadOnly)){
+        return byteArray;
+    }
+    byteArray = file.readAll();
+    file.remove();
+
+    return byteArray;
+
+}
+
+//From activeqt/shared/qaxutils.cpp
+//QPixmap WinUtilities::WinHBITMAPToPixmap(HBITMAP bitmap, bool noAlpha)
+//{
+//    // Verify size
+//    BITMAP bitmap_info;
+//    memset(&bitmap_info, 0, sizeof(BITMAP));
+
+//    const int res = GetObject(bitmap, sizeof(BITMAP), &bitmap_info);
+//    if (!res) {
+//        qErrnoWarning("QPixmap::fromWinHBITMAP(), failed to get bitmap info");
+//        return QPixmap();
+//    }
+//    const int w = bitmap_info.bmWidth;
+//    const int h = bitmap_info.bmHeight;
+
+//    BITMAPINFO bmi;
+//    memset(&bmi, 0, sizeof(bmi));
+//    bmi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
+//    bmi.bmiHeader.biWidth       = w;
+//    bmi.bmiHeader.biHeight      = -h;
+//    bmi.bmiHeader.biPlanes      = 1;
+//    bmi.bmiHeader.biBitCount    = 32;
+//    bmi.bmiHeader.biCompression = BI_RGB;
+//    bmi.bmiHeader.biSizeImage   = w * h * 4;
+
+//    // Get bitmap bits
+//    QScopedArrayPointer<uchar> data(new uchar[bmi.bmiHeader.biSizeImage]);
+//    HDC display_dc = GetDC(0);
+//    if (!GetDIBits(display_dc, bitmap, 0, h, data.data(), &bmi, DIB_RGB_COLORS)) {
+//        ReleaseDC(0, display_dc);
+//        qWarning("%s, failed to get bitmap bits", __FUNCTION__);
+//        return QPixmap();
+//    }
+
+//    QImage::Format imageFormat = QImage::Format_ARGB32_Premultiplied;
+//    uint mask = 0;
+//    if (noAlpha) {
+//        imageFormat = QImage::Format_RGB32;
+//        mask = 0xff000000;
+//    }
+
+//    // Create image and copy data into image.
+//    QImage image(w, h, imageFormat);
+//    if (image.isNull()) { // failed to alloc?
+//        ReleaseDC(0, display_dc);
+//        qWarning("%s, failed create image of %dx%d", __FUNCTION__, w, h);
+//        return QPixmap();
+//    }
+//    const int bytes_per_line = w * sizeof(QRgb);
+//    for (int y = 0; y < h; ++y) {
+//        QRgb *dest = (QRgb *) image.scanLine(y);
+//        const QRgb *src = (const QRgb *) (data.data() + y * bytes_per_line);
+//        for (int x = 0; x < w; ++x) {
+//            const uint pixel = src[x];
+//            if ((pixel & 0xff000000) == 0 && (pixel & 0x00ffffff) != 0)
+//                dest[x] = pixel | 0xff000000;
+//            else
+//                dest[x] = pixel | mask;
+//        }
+//    }
+//    ReleaseDC(0, display_dc);
+//    return QPixmap::fromImage(image);
+//}
+
+HBITMAP WinUtilities::GetScreenshotBmp(){
+    HDC     hDC;
+    HDC     MemDC;
+    BYTE*   Data;
+    HBITMAP   hBmp;
+    BITMAPINFO   bi;
+
+    memset(&bi,   0,   sizeof(bi));
+    bi.bmiHeader.biSize   =   sizeof(BITMAPINFO);
+    bi.bmiHeader.biWidth   =  GetSystemMetrics(SM_CXSCREEN);
+    bi.bmiHeader.biHeight   = GetSystemMetrics(SM_CYSCREEN);
+    bi.bmiHeader.biPlanes   =   1;
+    bi.bmiHeader.biBitCount   =   24;
+
+    hDC   =   GetDC(NULL);
+    MemDC   =   CreateCompatibleDC(hDC);
+    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void**)&Data,   NULL,   0);
+    SelectObject(MemDC,   hBmp);
+    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight,hDC,   0,   0,   SRCCOPY);
+    ReleaseDC(NULL,   hDC);
+    DeleteDC(MemDC);
+    return   hBmp;
+}
 
 
 

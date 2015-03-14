@@ -63,7 +63,6 @@ bool HardwareMonitor::initWinRing0(){
     DWORD status = GetDllStatus();
     switch (status) {
     case OLS_DLL_NO_ERROR:
-        qDebug()<<"No error";
         m_winRing0Initialized = true;
         break;
     case OLS_DLL_UNSUPPORTED_PLATFORM:
@@ -334,7 +333,7 @@ bool HardwareMonitor::getCPUInfo(int *numberOfLogicalProcessors, int *numberOfPr
     return true;
 }
 
-QString HardwareMonitor::getHardDiskTemperatur(){
+QString HardwareMonitor::getHardDiskTemperature(){
     initWMIQuery();
 
     QString queryString = QString("SELECT VendorSpecific FROM MSStorageDriver_ATAPISmartData ");

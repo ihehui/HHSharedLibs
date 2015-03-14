@@ -1,6 +1,7 @@
 
 #include <QtConcurrentRun>
 #include <QDataStream>
+#include <QDateTime>
 
 #include "tcpbase.h"
 
@@ -16,7 +17,10 @@ TCPBase::TCPBase(QObject *parent) :
     m_tcpServer = new QTcpServer(this);
     connect(m_tcpServer, SIGNAL(newConnection ()), this, SLOT(newIncomingConnection()));
 
-    m_lastSocketID = 0;
+    //m_lastSocketID = (std::numeric_limits<int>::min)();
+    qsrand(QDateTime::currentDateTime().toTime_t());
+    m_lastSocketID = 1 + (int)((1 << 30) * (double(qrand()) / RAND_MAX));
+
 
     m_proxy = QNetworkProxy::NoProxy;
 
@@ -44,9 +48,7 @@ TCPBase::~TCPBase(){
 }
 
 bool TCPBase::listen ( const QHostAddress & address, quint16 port ){
-
     return m_tcpServer->listen(address, port);
-
 }
 
 bool TCPBase::isListening () const{
@@ -59,7 +61,7 @@ void TCPBase::closeServer (){
     }
 }
 
-QString	TCPBase::serverErrorString () const{
+QString	TCPBase::errorString () const{
     return m_tcpServer->errorString();
 }
 
@@ -117,7 +119,7 @@ int TCPBase::connectToHost ( const QHostAddress & address, quint16 port, int wai
     connect(socket, SIGNAL(connected()), this, SLOT(peerConnected()));
     connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(processSocketError(QAbstractSocket::SocketError)));
 
-    int socketID = -1;
+    quint32 socketID = 0;
     {
         QMutexLocker locker(&mutex);
         socketID = (++m_lastSocketID);
@@ -470,8 +472,6 @@ void TCPBase::readSocketdData(int socketID, QTcpSocket *socket){
         in >> buffer;
 
         //qDebug()<<QString("Data Received From %1:%2. Size:%3").arg(socket->peerAddress().toString()).arg(socket->peerPort()).arg(buffer.size());
-
-
 
         processData(socketID, &buffer);
 

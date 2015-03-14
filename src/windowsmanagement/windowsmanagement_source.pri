@@ -23,7 +23,7 @@ RESOURCES +=
 win32 { 
     INCLUDEPATH += resources/lib/AutoIt3 \
                     resources/lib/WindowsAPI \
-                    resources/lib/hardwaremonitor
+                    resources/lib/WinRing0
 
     LIBS += -luser32 \
         -lNetAPI32 \
@@ -36,7 +36,7 @@ win32 {
         #-lAutoItX3 \
         -Lresources/lib/WindowsAPI \
         -lWindowsAPI \
-        -Lresources/lib/hardwaremonitor
+        -Lresources/lib/WinRing0
 
     win32-g++{
         INCLUDEPATH += resources/lib/WinAPI_GCC

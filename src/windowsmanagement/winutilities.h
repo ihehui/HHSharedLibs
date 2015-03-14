@@ -36,6 +36,7 @@
 
 
 #include <QObject>
+//#include <QPixmap>
 
 #include <Windows.h>
 #include "wmlib.h"
@@ -52,6 +53,7 @@ public:
     virtual ~WinUtilities();
 
     static QString WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId = 0);
+
 
     //Registry
     static bool parseRegKeyString(const QString &keyString, HKEY *rootKey, QString *subKeyString);
@@ -74,6 +76,15 @@ public:
 
     static bool is64BitApplication();
     static bool isWow64();
+
+    //GDI+
+    //Get image format Clsid
+    static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid);
+    static QByteArray ConvertHBITMAPToJpeg(HBITMAP hbitmap);
+    //static QPixmap WinHBITMAPToPixmap(HBITMAP bitmap, bool noAlpha = true);
+    static HBITMAP GetScreenshotBmp();
+
+
 
 private:
 
