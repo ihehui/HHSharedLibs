@@ -26,6 +26,8 @@ public:
     ~ENETProtocolBase();
 
     bool isListening() const;
+
+    bool getAddressInfoFromSocket(quint32 peerID, QString *address, quint16 *port, bool getPeerInfo);
     bool getPeerAddressInfo(quint32 peerID, QString *address, quint16 *port);
     bool getLocalListeningAddressInfo(QString *address, quint16 *port);
 //    quint16 getENETListeningPort();
@@ -34,7 +36,7 @@ public:
 
 signals:
     void connected(quint32 peerID, const QString &address, quint16 port);
-    void disconnected(quint32 peerID, const QString &address, quint16 port);
+    void disconnected(quint32 peerID, const QString &address = "", quint16 port = 0);
 
 public slots:
     //Start the server to listen,  implement the virtual function startWaitingForIO()
@@ -68,7 +70,7 @@ protected:
 
 
 private slots:
-    virtual void processReceivedData(quint32 peerID, QByteArray &data) = 0;
+    virtual void processReceivedData(quint32 peerID, QByteArray data) = 0;
 
 
 private:

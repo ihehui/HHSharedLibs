@@ -209,6 +209,7 @@ void Packet::registerMetaTypeStreamOperators(){
 void Packet::resetPacket(){
     this->packetType = UnKnownPacket;
     //this->m_packetSerialNumber = 0;
+    this->packetData.clear();
     this->packetData.resize(0);
     
     this->peerHostAddress = QHostAddress::Null;
@@ -374,11 +375,11 @@ void Packet::setLastTransmissionTime(const QDateTime &time) {
 
 }
 
-int Packet::getSocketID() const{
+SOCKETID Packet::getSocketID() const{
     return socketID;
 }
 
-void Packet::setSocketID(int id){
+void Packet::setSocketID(SOCKETID id){
     this->socketID = id;
 }
 

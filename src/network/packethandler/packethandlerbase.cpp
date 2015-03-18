@@ -211,7 +211,7 @@ int PacketHandlerBase::outgoingPacketsCount(){
 
 
 
-Packet * PacketHandlerBase::getPacket(int socketID){
+Packet * PacketHandlerBase::getPacket(SOCKETID socketID){
     QMutexLocker locker(unusedPacketsMutex);
     
     Packet *packet = 0;

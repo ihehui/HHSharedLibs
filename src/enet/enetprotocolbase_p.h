@@ -33,7 +33,7 @@ public:
 signals:
     void connected(quint32 peerID, const QString &address, quint16 port);
     void disconnected(quint32 peerID, const QString &address, quint16 port);
-    void dataReceived(quint32 peerID, QByteArray &data);
+    void dataReceived(quint32 peerID, QByteArray data);
 
 public slots:
     //Start the server to listen,  implement the virtual function startWaitingForIO()

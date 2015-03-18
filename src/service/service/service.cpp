@@ -32,6 +32,8 @@
 
 
 #include "service.h"
+#include "logdebug.h"
+
 
 
 
@@ -41,6 +43,18 @@ Service::Service(int argc, char **argv, const QString &serviceName, const QStrin
 
     setServiceDescription(description);
     setServiceFlags(QtServiceBase::CanBeSuspended);
+
+
+#if defined(QTSERVICE_DEBUG)
+    installMessageLogger();
+#else
+    for(int i = 0; i < argc; i++){
+        if("-log" == QString(argv[i]).toLower()){
+            installMessageLogger();
+        }
+    }
+#endif
+
 
 }
 

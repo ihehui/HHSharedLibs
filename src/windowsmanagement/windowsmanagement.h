@@ -85,7 +85,7 @@ public:
 
     QStringList localUsers() ;
     QStringList localCreatedUsers() ;
-    QString getUserNameOfCurrentThread();
+//    QString getUserNameOfCurrentThread();
 
 
 
@@ -156,15 +156,15 @@ public:
     QStringList localGroups();
 
     bool setComputerName(const QString &newComputerName);
-    QString getComputerName();
-    bool getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName);
+//    QString getComputerName();
+//    bool getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName);
     bool joinWorkgroup(const QString &workgroup);
     bool joinDomain(const QString &domainName, const QString &accountName, const QString &password, const QString &serverName = "");
     bool unjoinDomain(const QString &accountName, const QString &password, const QString &serverName = "");
-    QString getJoinInformation(bool *isJoinedToDomain = 0, const QString &serverName = "");
+//    QString getJoinInformation(bool *isJoinedToDomain = 0, const QString &serverName = "");
     bool renameMachineInDomain(const QString &newMachineName, const QString &accountName, const QString &password, const QString &serverName = "");
-    void getAllUsersLoggedOn(QStringList *users, const QString &serverName = "");
-    bool getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer);
+//    void getAllUsersLoggedOn(QStringList *users, const QString &serverName = "");
+//    bool getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer);
 
     bool isStartupWithWin(const QString &applicationFilePath, const QString &parameters, const QString &valueNameString);
     bool setStartupWithWin(const QString &applicationFilePath, const QString &parameters, const QString &valueNameString, bool startupWithWin);
@@ -226,6 +226,7 @@ private:
 
     Location location;
 
+    QString m_currentUserName;
 
 
 };

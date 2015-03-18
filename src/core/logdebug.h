@@ -15,81 +15,113 @@
 #include <stdlib.h>
 #endif
 
-static QFile* file = 0;
+static QFile* f = 0;
+
 
 static void closeDebugLog()
 {
-    if (!file)
+    if (!f)
         return;
-    QString ps(QTime::currentTime().toString("HH:mm:ss.zzz ") + QLatin1String("--- DEBUG LOG CLOSED ---\n\n"));
-    //QString ps(QDateTime::currentDateTime().toString("yyyy.MM.dd HH:mm:ss.zzz ") + QLatin1String("--- DEBUG LOG CLOSED ---\n\n"));
-    file->write(ps.toLatin1());
-    file->flush();
-    file->close();
-    delete file;
-    file = 0;
+    f->write(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
+    f->write(" --- DEBUG LOG CLOSED ---\n\n");
+    f->flush();
+    f->close();
+    delete f;
+    f = 0;
 }
 
-void logDebug(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+
+#if QT_VERSION >= 0x050000
+static void logDebug(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#else
+static void logDebug(QtMsgType type, const char* msg)
+#endif
 {
     static QMutex mutex;
     QMutexLocker locker(&mutex);
-    QString s(QTime::currentTime().toString("HH:mm:ss.zzz "));
-    //QString s(QDateTime::currentDateTime().toString("yyyy.MM.dd HH:mm:ss.zzz "));
-    s += QString("[%1] ").arg(
 #if defined(Q_OS_WIN32)
-                               GetCurrentProcessId());
+    const qulonglong processId = GetCurrentProcessId();
 #else
-                               getpid());
+    const qulonglong processId = getpid();
 #endif
+    QByteArray s(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
+    s += " [";
+    s += QByteArray::number(processId);
+    s += "] ";
 
-    if (!file) {
+    if (!f) {
         static QString logFilename = QFileInfo(QCoreApplication::applicationFilePath()).baseName() + QDateTime::currentDateTime().toString("-yyyy-MM") + ".log";
 #if defined(Q_OS_WIN32)
-        file = new QFile("./" + logFilename);
+        f = new QFile("./" + logFilename);
 #else
-        file = new QFile("/tmp/" + logFilename);
+        f = new QFile("/tmp/" + logFilename);
 #endif
-        if (!file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
-            delete file;
-            file = 0;
+        if (!f->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
+            delete f;
+            f = 0;
             return;
         }
-        //QString ps(QLatin1String("\n") + s + QLatin1String("--- DEBUG LOG OPENED ---\n"));
-        QString ps(QDateTime::currentDateTime().toString("yyyy.MM.dd ") + QLatin1String("\n") + s + QLatin1String("--- DEBUG LOG OPENED ---\n"));
-        file->write(ps.toUtf8());
+        QByteArray ps('\n' + s + "--- DEBUG LOG OPENED ---\n");
+        f->write(ps);
     }
 
-
-    //QByteArray localMsg = msg.toUtf8();
     switch (type) {
-    case QtDebugMsg:
-        //fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        s += QString("Debug: %1 (%2:%3, %4)\n").arg(msg).arg(context.file).arg(context.line).arg(context.function);
-        break;
     case QtWarningMsg:
-        //fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        s += QString("Warning: %1 (%2:%3, %4)\n").arg(msg).arg(context.file).arg(context.line).arg(context.function);
+        s += "WARNING: ";
         break;
     case QtCriticalMsg:
-        //fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        s += QString("Critical: %1 (%2:%3, %4)\n").arg(msg).arg(context.file).arg(context.line).arg(context.function);
+        s += "CRITICAL: ";
         break;
     case QtFatalMsg:
-        //fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        s += QString("Fatal: %1 (%2:%3, %4)\n").arg(msg).arg(context.file).arg(context.line).arg(context.function);
-        //abort();
+        s+= "FATAL: ";
+        break;
+    case QtDebugMsg:
+        s += "DEBUG: ";
+        break;
+    default:
+        // Nothing
+        break;
     }
 
-    file->write(s.toUtf8());
-    file->flush();
+    QString str = QString("%1 (%2:%3, %4)").arg(msg).arg(context.file).arg(context.line).arg(context.function);
+    s += str.toUtf8();
+
+//#if QT_VERSION >= 0x050400
+//    s += qFormatLogMessage(type, context, msg).toLocal8Bit();
+//#elif QT_VERSION >= 0x050000
+//    s += msg.toLocal8Bit();
+//    Q_UNUSED(context)
+//#else
+//    s += msg;
+//#endif
+    s += '\n';
+
+    f->write(s);
+    f->flush();
 
     if (type == QtFatalMsg) {
         closeDebugLog();
-        abort();
+        exit(1);
     }
+}
+
+
+
+void installMessageLogger(){
+
+    //reset the message handler
+    qInstallMessageHandler(0);
+
+#  if QT_VERSION >= 0x050000
+    qInstallMessageHandler(logDebug);
+#  else
+    qInstallMsgHandler(logDebug);
+#  endif
+
+    qAddPostRoutine(closeDebugLog);
 
 }
+
 
 //#endif
 

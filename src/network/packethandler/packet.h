@@ -126,8 +126,8 @@ public:
     QDateTime getLastTransmissionTime() const;
     void setLastTransmissionTime(const QDateTime &time);
 
-    int getSocketID() const;
-    void setSocketID(int id);
+    SOCKETID getSocketID() const;
+    void setSocketID(SOCKETID id);
 
 
     void packetTransmissionFailed();
@@ -154,7 +154,7 @@ private:
 
     QDateTime lastTransmissionTime;
 
-    int socketID;
+    SOCKETID socketID;
 
 
 

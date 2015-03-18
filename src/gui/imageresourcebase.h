@@ -52,6 +52,21 @@ public:
     static QIcon createIcon(const QString &iconFileName, const QString &defaultIconName = QString(), QIcon::Mode mode = QIcon::Normal);
     static QIcon emptyIcon();
 
+
+#ifdef Q_OS_WIN32
+
+    static QImage WinHBITMAPToImage(HBITMAP bitmap, bool noAlpha = true);
+    static HBITMAP GetScreenshotBmp();
+    static QImage screenshot();
+
+#endif
+
+
+
+
+
+
+
 };
 
 } //namespace HEHUI

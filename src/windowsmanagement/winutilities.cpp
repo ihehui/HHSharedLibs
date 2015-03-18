@@ -43,8 +43,21 @@
 
 #include <windows.h>
 #include <gdiplus.h>
-
 #pragma comment(lib,"gdiplus")
+
+
+#include <Lm.h>
+#include <Tlhelp32.h>
+#include <Lmjoin.h>
+#include <Userenv.h>
+
+const int MaxUserAccountNameLength = 20;
+const int MaxUserPasswordLength = LM20_PWLEN;
+const int MaxUserCommentLength = 256;
+const int MaxGroupNameLength = 256;
+
+
+
 
 
 namespace HEHUI {
@@ -62,11 +75,11 @@ WinUtilities::~WinUtilities() {
 
 
 QString WinUtilities::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId){
-//    wchar_t buffer[8192];
-//    ZeroMemory(buffer, 8192);
+    //    wchar_t buffer[8192];
+    //    ZeroMemory(buffer, 8192);
 
-//    FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, 0, winErrorCode, 0, buffer, 8192, 0);
-//    return QString::fromWCharArray(buffer).simplified();
+    //    FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, 0, winErrorCode, 0, buffer, 8192, 0);
+    //    return QString::fromWCharArray(buffer).simplified();
 
 
 
@@ -85,11 +98,11 @@ QString WinUtilities::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId){
         os.dwOSVersionInfoSize = sizeof(os);
         GetVersionExW(&os);
         if(os.dwPlatformId == VER_PLATFORM_WIN32_NT){
-           hLib = LoadLibraryExW(L"NETMSG.DLL", 0, LOAD_LIBRARY_AS_DATAFILE);
+            hLib = LoadLibraryExW(L"NETMSG.DLL", 0, LOAD_LIBRARY_AS_DATAFILE);
         }
     }else if(winErrorCode >= 12000 && winErrorCode <= 12171){
         //Undocumented errors %INTERNET_ERROR_FIRST to %NTERNET_ERROR_LAST
-           hLib = LoadLibraryExW(L"WININET.DLL", 0, LOAD_LIBRARY_AS_DATAFILE);
+        hLib = LoadLibraryExW(L"WININET.DLL", 0, LOAD_LIBRARY_AS_DATAFILE);
     }
 
     dwFlags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK;
@@ -111,6 +124,130 @@ QString WinUtilities::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId){
 
 
 }
+
+QString WinUtilities::getComputerName(DWORD *errorCode){
+    qDebug()<<"--WinUtilities::getComputerName()";
+
+    QString computerName = "";
+    DWORD size = MAX_COMPUTERNAME_LENGTH + 1;
+    LPWSTR name = new wchar_t[size];
+
+    if(GetComputerNameW(name, &size)){
+        computerName = QString::fromWCharArray(name);
+    }else{
+        qDebug()<<QString("Can not get computer name! Error: %1").arg(GetLastError());
+    }
+
+    if(errorCode){
+        *errorCode = GetLastError();
+    }
+
+    delete [] name;
+
+    return computerName.toLower();
+
+}
+
+bool WinUtilities::getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName, DWORD *errorCode){
+
+    bool ok = false;
+    COMPUTER_NAME_FORMAT nameType;
+    wchar_t buffer[512];
+    ZeroMemory(buffer, 512);
+    DWORD size = sizeof(buffer);
+
+    if(dnsDomain){
+        nameType = ComputerNameDnsDomain;
+        ok = GetComputerNameExW(nameType, buffer, &size);
+        if(ok){
+            *dnsDomain = QString::fromWCharArray(buffer);
+        }else{
+            qDebug()<<QString("\nFailed to get dns domain! Error Code: %1").arg(GetLastError());
+        }
+    }
+
+    if(dnsHostname){
+        ZeroMemory(buffer, size);
+
+        nameType = ComputerNameDnsHostname;
+        ok = GetComputerNameExW(nameType, buffer, &size);
+        if(ok){
+            *dnsHostname = QString::fromWCharArray(buffer);
+        }else{
+            qDebug()<<QString("\nFailed to get dns hostname! Error Code: %1").arg(GetLastError());
+        }
+    }
+
+    if(netBIOSName){
+        ZeroMemory(buffer, size);
+
+        nameType = ComputerNameNetBIOS;
+        ok = GetComputerNameExW(nameType, buffer, &size);
+        if(ok){
+            *netBIOSName = QString::fromWCharArray(buffer);
+        }else{
+            qDebug()<<QString("\nFailed to get NetBIOS name! Error Code: %1").arg(GetLastError());
+        }
+    }
+
+    if(errorCode){
+        *errorCode = GetLastError();
+    }
+
+    return ok;
+}
+
+QString WinUtilities::getJoinInformation(bool *isJoinedToDomain, const QString &serverName, DWORD *errorCode){
+    qDebug()<<"--WindowsManagement::getJoinInformation()";
+
+    QString workgroupName = "";
+    NET_API_STATUS err;
+    LPWSTR lpNameBuffer = new wchar_t[256];
+    NETSETUP_JOIN_STATUS bufferType;
+    LPCWSTR lpServer = NULL; // The server is the default local computer.
+    if(!serverName.trimmed().isEmpty()){
+        lpServer = serverName.toStdWString().c_str();
+    }
+
+    err = NetGetJoinInformation(lpServer, &lpNameBuffer, &bufferType);
+    if(err == NERR_Success){
+        workgroupName = QString::fromWCharArray(lpNameBuffer);
+    }else{
+        qDebug()<<QString("Can not get join status information! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+    }
+
+    if(errorCode){
+        *errorCode = err;
+    }
+
+    NetApiBufferFree(lpNameBuffer);
+
+    //    switch(bufferType){
+    //    case NetSetupUnknownStatus :
+    //        workgroupName = "";
+    //        lastErrorString += tr("The join status is unknown!");
+    //        break;
+    //    case NetSetupUnjoined :
+    //        workgroupName = "";
+    //        lastErrorString += tr("The computer is not joined!");
+    //        break;
+    //    case NetSetupWorkgroupName :
+    //        qWarning()<<"The computer is joined to a workgroup!";
+    //        break;
+    //    case NetSetupDomainName :
+    //        workgroupName = "";
+    //        lastErrorString += tr("The computer is joined to a domain!");
+    //        break;
+    //    }
+
+    if(isJoinedToDomain){
+        *isJoinedToDomain = (bufferType == NetSetupDomainName)?true:false;
+    }
+
+    return workgroupName;
+
+}
+
 
 
 //When running on 64-bit Windows if you want to read a value specific to the 64-bit environment you have to suffix the HK... with 64 i.e. HKLM64.
@@ -740,6 +877,220 @@ bool WinUtilities::isWow64()
     return bIsWow64;
 }
 
+QString WinUtilities::getUserNameOfCurrentThread(DWORD *errorCode) {
+
+    DWORD size = MaxUserAccountNameLength + 1;
+    wchar_t username[MaxUserAccountNameLength + 1];
+
+    if(!GetUserNameW(username, &size)){
+        qDebug()<<QString("Can not retrieve the name of the user associated with the current thread! Code:%1 ")
+                .arg(QString::number(GetLastError()));
+
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+
+        return QString("");
+    }
+
+    return QString::fromWCharArray(username);
+
+}
+
+bool WinUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer, NET_API_STATUS *apiStatus){
+
+
+    bool ok = false;
+    DWORD dwLevel = 1;
+    LPWKSTA_USER_INFO_1 pBuf = NULL;
+    NET_API_STATUS nStatus;
+
+    //
+    // Call the NetWkstaUserGetInfo function;
+    //  specify level 1.
+    //
+    nStatus = NetWkstaUserGetInfo(NULL, dwLevel,(LPBYTE *)&pBuf);
+    //
+    // If the call succeeds, print the information
+    //  about the logged-on user.
+    //
+    if (nStatus == NERR_Success)
+    {
+        if (pBuf != NULL)
+        {
+            //wprintf(L"\n\tUser:          %s\n", pBuf->wkui1_username);
+            //wprintf(L"\tDomain:        %s\n", pBuf->wkui1_logon_domain);
+            //wprintf(L"\tOther Domains: %s\n", pBuf->wkui1_oth_domains);
+            //wprintf(L"\tLogon Server:  %s\n", pBuf->wkui1_logon_server);
+
+            if(userName){
+                *userName = QString::fromWCharArray(pBuf->wkui1_username);
+            }
+            if(domain){
+                *domain = QString::fromWCharArray(pBuf->wkui1_logon_domain);
+            }
+            if(logonServer){
+                *logonServer = QString::fromWCharArray(pBuf->wkui1_logon_server);
+            }
+
+            ok = true;
+        }
+
+    } else {
+        // Otherwise, print the system error.
+        //
+        //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
+        qCritical()<<QString("A system error has occurred: %1").arg(nStatus);
+    }
+
+    if(apiStatus){
+        *apiStatus = nStatus;
+    }
+
+    //
+    // Free the allocated memory.
+    //
+    if (pBuf != NULL)
+        NetApiBufferFree(pBuf);
+
+    return ok;
+
+}
+
+void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &serverName, DWORD *apiStatus){
+
+    Q_ASSERT(users);
+
+    if(!users){
+        return;
+    }
+
+    LPWKSTA_USER_INFO_1 pBuf = NULL;
+    LPWKSTA_USER_INFO_1 pTmpBuf;
+    DWORD dwLevel = 1;
+    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
+    DWORD dwEntriesRead = 0;
+    DWORD dwTotalEntries = 0;
+    DWORD dwResumeHandle = 0;
+    DWORD i;
+    DWORD dwTotalCount = 0;
+    NET_API_STATUS nStatus;
+    //    LPCWSTR pszServerName = NULL; // The server is the default local computer.
+    //    if(!serverName.trimmed().isEmpty()){
+    //        pszServerName = serverName.toStdWString().c_str();
+    //    }
+
+    wchar_t serverNameArray[MaxGroupNameLength * sizeof(wchar_t) + 1];
+    wcscpy(serverNameArray, serverName.toStdWString().c_str());
+
+    QString computerName = getComputerName();
+
+    //
+    // Call the NetWkstaUserEnum function, specifying level 0.
+    //
+    do // begin do
+    {
+        nStatus = NetWkstaUserEnum(serverNameArray,
+                                   dwLevel,
+                                   (LPBYTE*)&pBuf,
+                                   dwPrefMaxLen,
+                                   &dwEntriesRead,
+                                   &dwTotalEntries,
+                                   &dwResumeHandle);
+        //
+        // If the call succeeds,
+        //
+        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA))
+        {
+            if ((pTmpBuf = pBuf) != NULL)
+            {
+                //
+                // Loop through the entries.
+                //
+                for (i = 0; (i < dwEntriesRead); i++)
+                {
+                    Q_ASSERT(pTmpBuf != NULL);
+
+                    if (pTmpBuf == NULL)
+                    {
+                        //
+                        // Only members of the Administrators local group
+                        //  can successfully execute NetWkstaUserEnum
+                        //  locally and on a remote server.
+                        //
+                        //fprintf(stderr, "An access violation has occurred\n");
+                        qDebug()<<QString("An access violation has occurred\n");
+                        break;
+                    }
+                    //
+                    // Print the user logged on to the workstation.
+                    //
+                    //wprintf(L"\t-- %s\n", pTmpBuf->wkui0_username);
+                    QString wkui1_username = QString::fromWCharArray(pTmpBuf->wkui1_username).toLower();
+                    if(wkui1_username == computerName + "$"){continue;}
+
+                    QString wkui1_logon_domain = QString::fromWCharArray(pTmpBuf->wkui1_logon_domain).toLower();
+                    if(wkui1_logon_domain == computerName){
+                        users->append(wkui1_username);
+                    }else{
+                        users->append(wkui1_logon_domain + "\\" + wkui1_username);
+                    }
+
+                    //users->append(QString::fromWCharArray(pTmpBuf->wkui1_username).toLower());
+
+                    pTmpBuf++;
+                    dwTotalCount++;
+                }
+            }
+        }
+        else{
+            //
+            // Otherwise, indicate a system error.
+            //
+            //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
+            qDebug()<<QString("A system error has occurred: %1\n").arg(nStatus);
+        }
+
+        //
+        // Free the allocated memory.
+        //
+        if (pBuf != NULL)
+        {
+            NetApiBufferFree(pBuf);
+            pBuf = NULL;
+        }
+    }
+    //
+    // Continue to call NetWkstaUserEnum while
+    //  there are more entries.
+    //
+    while (nStatus == ERROR_MORE_DATA); // end do
+
+    if(apiStatus){
+        *apiStatus = nStatus;
+    }
+
+    //
+    // Check again for allocated memory.
+    //
+    if (pBuf != NULL)
+        NetApiBufferFree(pBuf);
+
+    //
+    // Print the final count of workstation users.
+    //
+    //fprintf(stderr, "\nTotal of %d entries enumerated\n", dwTotalCount);
+
+
+}
+
+
+
+
+
+
+
+
 int WinUtilities::GetEncoderClsid(const WCHAR* format, CLSID* pClsid){
     UINT  num = 0;          // number of image encoders
     UINT  size = 0;         // size of the image encoder array in bytes
@@ -748,22 +1099,22 @@ int WinUtilities::GetEncoderClsid(const WCHAR* format, CLSID* pClsid){
 
     Gdiplus::GetImageEncodersSize(&num, &size);
     if(size == 0)
-       return -1;  // Failure
+        return -1;  // Failure
 
     pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size));
     if(pImageCodecInfo == NULL)
-       return -1;  // Failure
+        return -1;  // Failure
 
     Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
 
     for(UINT j = 0; j < num; ++j)
     {
-       if( wcscmp(pImageCodecInfo[j].MimeType, format) == 0 )
-       {
-          *pClsid = pImageCodecInfo[j].Clsid;
-          free(pImageCodecInfo);
-          return j;  // Success
-       }
+        if( wcscmp(pImageCodecInfo[j].MimeType, format) == 0 )
+        {
+            *pClsid = pImageCodecInfo[j].Clsid;
+            free(pImageCodecInfo);
+            return j;  // Success
+        }
     }
 
     free(pImageCodecInfo);
@@ -781,11 +1132,13 @@ QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap){
 
     CLSID   encoderClsid;
     Gdiplus::Status  status;
-    QString tempFilePath = QDir::tempPath() + QString("/hh%1.tmp").arg(QDateTime::currentDateTime().toTime_t());
+    //QString tempFilePath = QDir::tempPath() + QString("/hh%1.tmp").arg(QDateTime::currentDateTime().toTime_t());
+    QString tempFilePath = QDir::rootPath() + QString("/hh%1.jpg").arg(QDateTime::currentDateTime().toTime_t());
+
     // Get the CLSID of the jpeg encoder.
     GetEncoderClsid(L"image/jpeg", &encoderClsid);
     Gdiplus::Bitmap *bitmap = Gdiplus::Bitmap::FromHBITMAP(hbitmap, NULL);
-    status = bitmap->Save(L"c:/screenshot.jpg", &encoderClsid, NULL);
+    status = bitmap->Save(tempFilePath.toStdWString().c_str(), &encoderClsid, NULL);
 
     //Image*   image = new Image(L"c:/1.bmp");
     //stat = image->Save(L"c:/1.jpg", &encoderClsid, NULL);
@@ -805,7 +1158,7 @@ QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap){
         return byteArray;
     }
     byteArray = file.readAll();
-    file.remove();
+//    file.remove();
 
     return byteArray;
 
@@ -875,7 +1228,9 @@ QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap){
 //    return QPixmap::fromImage(image);
 //}
 
+
 HBITMAP WinUtilities::GetScreenshotBmp(){
+
     HDC     hDC;
     HDC     MemDC;
     BYTE*   Data;
@@ -897,8 +1252,337 @@ HBITMAP WinUtilities::GetScreenshotBmp(){
     ReleaseDC(NULL,   hDC);
     DeleteDC(MemDC);
     return   hBmp;
+
 }
 
+HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
+{
+
+    HBITMAP   hBmp;
+
+    //HANDLE              hToken;
+    HDESK               hdesk;
+    HWINSTA             hwinsta;
+    //PROCESS_INFORMATION pi;
+    //PSID                psid;
+    //STARTUPINFO         si;
+
+    //
+    // obtain a handle to the interactive windowstation
+    //
+    hwinsta = OpenWindowStationW(
+                L"winsta0",
+                FALSE,
+                READ_CONTROL | WRITE_DAC
+                );
+    if (hwinsta == NULL){
+        qCritical()<<"ERROR! OpenWindowStationW failed.";
+        return hBmp;
+    }
+
+    HWINSTA hwinstaold = GetProcessWindowStation();
+
+    //
+    // set the windowstation to winsta0 so that you obtain the
+    // correct default desktop
+    //
+    if (!SetProcessWindowStation(hwinsta)){
+        qCritical()<<"ERROR! SetProcessWindowStation failed.";
+        return hBmp;
+    }
+
+    HDESK hdeskCurrent = GetThreadDesktop(GetCurrentThreadId());
+    //
+    // obtain a handle to the "default" desktop
+    //
+    hdesk = OpenDesktopW(
+                L"default",
+                0,
+                FALSE,
+                READ_CONTROL | WRITE_DAC |
+                DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS
+                );
+    if (hdesk == NULL){
+        qCritical()<<"ERROR! OpenDesktopW failed.";
+        return hBmp;
+    }
+
+
+    if(!SetThreadDesktop(hdesk)){
+        qCritical()<<"ERROR! SetThreadDesktop failed.";
+        return hBmp;
+    }
+
+
+
+
+    //si.lpDesktop = L"winsta0\\default";
+
+
+    //
+    // Screenshot
+    //
+    HDC     hDC;
+    HDC     MemDC;
+    BYTE*   Data;
+    //HBITMAP   hBmp;
+    BITMAPINFO   bi;
+
+    memset(&bi,   0,   sizeof(bi));
+    bi.bmiHeader.biSize   =   sizeof(BITMAPINFO);
+    bi.bmiHeader.biWidth   =  GetSystemMetrics(SM_CXSCREEN);
+    bi.bmiHeader.biHeight   = GetSystemMetrics(SM_CYSCREEN);
+    bi.bmiHeader.biPlanes   =   1;
+    bi.bmiHeader.biBitCount   =   24;
+
+    hDC   =   GetDC(NULL);
+    MemDC   =   CreateCompatibleDC(hDC);
+    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void**)&Data,   NULL,   0);
+    SelectObject(MemDC,   hBmp);
+    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight,hDC,   0,   0,   SRCCOPY);
+    ReleaseDC(NULL,   hDC);
+    DeleteDC(MemDC);
+
+
+    //set it back
+    SetProcessWindowStation(hwinstaold);
+    SetThreadDesktop(hdeskCurrent);
+
+    //
+    // close the handles
+    //
+    //
+    // close the handles to the interactive windowstation and desktop
+    //
+    CloseWindowStation(hwinsta);
+    CloseDesktop(hdesk);
+
+    return hBmp;
+
+}
+
+HBITMAP    WinUtilities::setDesktop1()
+{
+    wchar_t   pvInfo[256]= { 0 };
+    DWORD dwLen=0;
+    HDESK hActiveDesktop=OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK,false,MAXIMUM_ALLOWED);
+    GetUserObjectInformationW(hActiveDesktop,UOI_NAME,pvInfo,sizeof(pvInfo),&dwLen);
+    CloseDesktop(hActiveDesktop);
+
+    HWINSTA m_hwinsta=OpenWindowStationW(L"WINSTA0",false,MAXIMUM_ALLOWED);
+    SetProcessWindowStation(m_hwinsta);
+    HDESK m_hdesk=OpenDesktopW(pvInfo,0,false,MAXIMUM_ALLOWED);
+    SetThreadDesktop(m_hdesk);
+
+
+    HDC     hDC;
+    HDC     MemDC;
+    BYTE*   Data;
+    HBITMAP   hBmp;
+    BITMAPINFO   bi;
+
+    memset(&bi,   0,   sizeof(bi));
+    bi.bmiHeader.biSize   =   sizeof(BITMAPINFO);
+    bi.bmiHeader.biWidth   =  GetSystemMetrics(SM_CXSCREEN);
+    bi.bmiHeader.biHeight   = GetSystemMetrics(SM_CYSCREEN);
+    bi.bmiHeader.biPlanes   =   1;
+    bi.bmiHeader.biBitCount   =   24;
+
+    hDC   =   GetDC(NULL);
+    MemDC   =   CreateCompatibleDC(hDC);
+    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void**)&Data,   NULL,   0);
+    SelectObject(MemDC,   hBmp);
+    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight,hDC,   0,   0,   SRCCOPY);
+    ReleaseDC(NULL,   hDC);
+    DeleteDC(MemDC);
+    return   hBmp;
+
+}
+
+bool WinUtilities::setDesktop()
+{
+    WCHAR pvInfo[128] = {0};
+    //WCHAR tmp[1024] = {0};
+
+    HDESK hActiveDesktop;
+    DWORD dwLen;
+    hActiveDesktop = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, MAXIMUM_ALLOWED);
+    if(!hActiveDesktop)//打开失败
+    {
+        qCritical()<<"ERROR! OpenInputDesktop failed.";
+        return false;
+    }
+    //获取指定桌面对象的信息，一般情况和屏保状态为default，登陆界面为winlogon
+    GetUserObjectInformation(hActiveDesktop, UOI_NAME, pvInfo, sizeof(pvInfo), &dwLen);
+    if(dwLen==0)//获取失败
+    {
+        qCritical()<<"ERROR! GetUserObjectInformation failed.";
+        return false;
+    }
+    CloseDesktop(hActiveDesktop);
+    //打开winsta0
+    HWINSTA m_hwinsta = OpenWindowStationW(L"winsta0", FALSE,
+                                  WINSTA_ACCESSCLIPBOARD   |
+                                  WINSTA_ACCESSGLOBALATOMS |
+                                  WINSTA_CREATEDESKTOP     |
+                                  WINSTA_ENUMDESKTOPS      |
+                                  WINSTA_ENUMERATE         |
+                                  WINSTA_EXITWINDOWS       |
+                                  WINSTA_READATTRIBUTES    |
+                                  WINSTA_READSCREEN        |
+                                  WINSTA_WRITEATTRIBUTES);
+    if (m_hwinsta == NULL){
+        qCritical()<<"ERROR! OpenWindowStationW failed.";
+        return false;
+    }
+
+    if (!SetProcessWindowStation(m_hwinsta)){
+        qCritical()<<"ERROR! SetProcessWindowStation failed.";
+        return false;
+    }
+
+    //打开desktop
+    HDESK m_hdesk = OpenDesktopW(pvInfo, 0, FALSE,
+                          DESKTOP_CREATEMENU |
+                          DESKTOP_CREATEWINDOW |
+                          DESKTOP_ENUMERATE    |
+                          DESKTOP_HOOKCONTROL |
+                          DESKTOP_JOURNALPLAYBACK |
+                          DESKTOP_JOURNALRECORD |
+                          DESKTOP_READOBJECTS |
+                          DESKTOP_SWITCHDESKTOP |
+                          DESKTOP_WRITEOBJECTS);
+    if (m_hdesk == NULL){
+        qCritical()<<"ERROR! OpenDesktopW failed.";
+        return false;
+    }
+
+    SetThreadDesktop(m_hdesk);
+    return true;
+}
+
+HBITMAP WinUtilities::GetScreenshotBmp1()
+{
+
+    HBITMAP   hBmp;
+
+    WCHAR pvInfo[128] = {0};
+    //WCHAR tmp[1024] = {0};
+
+    HDESK hActiveDesktop;
+    DWORD dwLen;
+    hActiveDesktop = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, MAXIMUM_ALLOWED);
+    if(!hActiveDesktop)//打开失败
+    {
+        qCritical()<<"ERROR! OpenInputDesktop failed.";
+        return hBmp;
+    }
+    //获取指定桌面对象的信息，一般情况和屏保状态为default，登陆界面为winlogon
+    GetUserObjectInformation(hActiveDesktop, UOI_NAME, pvInfo, sizeof(pvInfo), &dwLen);
+    if(dwLen==0)//获取失败
+    {
+        qCritical()<<"ERROR! GetUserObjectInformation failed.";
+        return hBmp;
+    }
+    CloseDesktop(hActiveDesktop);
+
+    //打开winsta0
+    HWINSTA m_hwinsta = OpenWindowStationW(L"winsta0", FALSE,
+                                  WINSTA_ACCESSCLIPBOARD   |
+                                  WINSTA_ACCESSGLOBALATOMS |
+                                  WINSTA_CREATEDESKTOP     |
+                                  WINSTA_ENUMDESKTOPS      |
+                                  WINSTA_ENUMERATE         |
+                                  WINSTA_EXITWINDOWS       |
+                                  WINSTA_READATTRIBUTES    |
+                                  WINSTA_READSCREEN        |
+                                  WINSTA_WRITEATTRIBUTES);
+    if (m_hwinsta == NULL){
+        qCritical()<<"ERROR! OpenWindowStationW failed.";
+        return hBmp;
+    }
+
+    HWINSTA hwinstaCurrent = GetProcessWindowStation();
+
+
+    if (!SetProcessWindowStation(m_hwinsta)){
+        qCritical()<<"ERROR! SetProcessWindowStation failed.";
+        return hBmp;
+    }
+
+    //打开desktop
+    HDESK m_hdesk = OpenDesktopW(pvInfo, 0, FALSE,
+                          DESKTOP_CREATEMENU |
+                          DESKTOP_CREATEWINDOW |
+                          DESKTOP_ENUMERATE    |
+                          DESKTOP_HOOKCONTROL |
+                          DESKTOP_JOURNALPLAYBACK |
+                          DESKTOP_JOURNALRECORD |
+                          DESKTOP_READOBJECTS |
+                          DESKTOP_SWITCHDESKTOP |
+                          DESKTOP_WRITEOBJECTS);
+    if (m_hdesk == NULL){
+        qCritical()<<"ERROR! OpenDesktopW failed.";
+        return hBmp;
+    }
+
+    HDESK hdeskCurrent = GetThreadDesktop(GetCurrentThreadId());
+
+    SetThreadDesktop(m_hdesk);
+ SwitchDesktop(m_hdesk);
+
+ ///////////////////////////////
+
+
+    HDC     hDC;
+    HDC     MemDC;
+    BYTE*   Data;
+    //HBITMAP   hBmp;
+    BITMAPINFO   bi;
+
+    memset(&bi,   0,   sizeof(bi));
+    bi.bmiHeader.biSize   =   sizeof(BITMAPINFO);
+    bi.bmiHeader.biWidth   =  GetSystemMetrics(SM_CXSCREEN);
+    bi.bmiHeader.biHeight   = GetSystemMetrics(SM_CYSCREEN);
+    bi.bmiHeader.biPlanes   =   1;
+    bi.bmiHeader.biBitCount   =   24;
+
+    //hDC   =   GetDC(NULL);
+    hDC   =   GetDC(GetDesktopWindow());
+    MemDC   =   CreateCompatibleDC(hDC);
+    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void**)&Data,   NULL,   0);
+    SelectObject(MemDC,   hBmp);
+    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight,hDC,   0,   0,   SRCCOPY);
+    ReleaseDC(NULL,   hDC);
+    DeleteDC(MemDC);
+    return   hBmp;
+
+
+/////////////////////////////////
+
+
+
+    //set it back
+    SetProcessWindowStation(hwinstaCurrent);
+    SetThreadDesktop(hdeskCurrent);
+
+    SwitchDesktop(hdeskCurrent);
+
+
+
+
+    //
+    // close the handles
+    //
+    //
+    // close the handles to the interactive windowstation and desktop
+    //
+    CloseWindowStation(m_hwinsta);
+    CloseDesktop(m_hdesk);
+
+
+    return hBmp;
+}
 
 
 

@@ -1,5 +1,6 @@
 # Input
 HEADERS += service/service.h \
+    service/logdebug.h
     servicelib.h
 SOURCES += service/service.cpp
 FORMS += 

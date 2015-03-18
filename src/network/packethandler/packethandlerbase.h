@@ -66,7 +66,7 @@ public:
 //    void removeWaitingForReplyPacket(quint16 packetSerialNumber1, quint16 packetSerialNumber2);
 //    bool hasWaitingForReplyPackets();
     
-    static Packet * getPacket(int socketID = 0);
+    static Packet * getPacket(SOCKETID socketID = 0);
     static Packet * getPacket(const QHostAddress &peerAddress, quint16 peerPort, const QHostAddress &localAddress = QHostAddress::Null, quint16 localPort = 0, TransmissionProtocol transmissionProtocol = TP_UDP);
 
 //    static UDPPacket *getUDPPacket(const QHostAddress &peerAddress, quint16 peerPort, const QHostAddress &localAddress, quint16 localPort);

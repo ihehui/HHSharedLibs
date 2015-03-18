@@ -36,6 +36,13 @@
 
 #include "imageresourcebase.h"
 
+#ifdef Q_OS_WIN32
+#include <Windows.h>
+#endif
+
+
+
+
 namespace HEHUI {
 
 ImageResourceBase::ImageResourceBase(QObject *parent)
@@ -79,9 +86,111 @@ QIcon ImageResourceBase::emptyIcon()
     return  empty_icon;
 }
 
+///////////////////////////////////////////////////
+#ifdef Q_OS_WIN32
+
+////From activeqt/shared/qaxutils.cpp
+QImage ImageResourceBase::WinHBITMAPToImage(HBITMAP bitmap, bool noAlpha)
+{
+    // Verify size
+    BITMAP bitmap_info;
+    memset(&bitmap_info, 0, sizeof(BITMAP));
+
+    const int res = GetObject(bitmap, sizeof(BITMAP), &bitmap_info);
+    if (!res) {
+        qErrnoWarning("QPixmap::fromWinHBITMAP(), failed to get bitmap info");
+        return QImage();
+    }
+    const int w = bitmap_info.bmWidth;
+    const int h = bitmap_info.bmHeight;
+
+    BITMAPINFO bmi;
+    memset(&bmi, 0, sizeof(bmi));
+    bmi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth       = w;
+    bmi.bmiHeader.biHeight      = -h;
+    bmi.bmiHeader.biPlanes      = 1;
+    bmi.bmiHeader.biBitCount    = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+    bmi.bmiHeader.biSizeImage   = w * h * 4;
+
+    // Get bitmap bits
+    QScopedArrayPointer<uchar> data(new uchar[bmi.bmiHeader.biSizeImage]);
+    HDC display_dc = GetDC(0);
+    if (!GetDIBits(display_dc, bitmap, 0, h, data.data(), &bmi, DIB_RGB_COLORS)) {
+        ReleaseDC(0, display_dc);
+        qWarning("%s, failed to get bitmap bits", __FUNCTION__);
+        return QImage();
+    }
+
+    QImage::Format imageFormat = QImage::Format_ARGB32_Premultiplied;
+    uint mask = 0;
+    if (noAlpha) {
+        imageFormat = QImage::Format_RGB32;
+        mask = 0xff000000;
+    }
+
+    // Create image and copy data into image.
+    QImage image(w, h, imageFormat);
+    if (image.isNull()) { // failed to alloc?
+        ReleaseDC(0, display_dc);
+        qWarning("%s, failed create image of %dx%d", __FUNCTION__, w, h);
+        return QImage();
+    }
+    const int bytes_per_line = w * sizeof(QRgb);
+    for (int y = 0; y < h; ++y) {
+        QRgb *dest = (QRgb *) image.scanLine(y);
+        const QRgb *src = (const QRgb *) (data.data() + y * bytes_per_line);
+        for (int x = 0; x < w; ++x) {
+            const uint pixel = src[x];
+            if ((pixel & 0xff000000) == 0 && (pixel & 0x00ffffff) != 0)
+                dest[x] = pixel | 0xff000000;
+            else
+                dest[x] = pixel | mask;
+        }
+    }
+    ReleaseDC(0, display_dc);
+    return image;
+}
+
+HBITMAP ImageResourceBase::GetScreenshotBmp(){
+
+    HDC     hDC;
+    HDC     MemDC;
+    BYTE*   Data;
+    HBITMAP   hBmp;
+    BITMAPINFO   bi;
+
+    memset(&bi,   0,   sizeof(bi));
+    bi.bmiHeader.biSize   =   sizeof(BITMAPINFO);
+    bi.bmiHeader.biWidth   =  GetSystemMetrics(SM_CXSCREEN);
+    bi.bmiHeader.biHeight   = GetSystemMetrics(SM_CYSCREEN);
+    bi.bmiHeader.biPlanes   =   1;
+    bi.bmiHeader.biBitCount   =   24;
+
+    hDC   =   GetDC(NULL);
+    MemDC   =   CreateCompatibleDC(hDC);
+    hBmp   =   CreateDIBSection(MemDC, &bi, DIB_RGB_COLORS, (void**)&Data, NULL, 0);
+    SelectObject(MemDC,   hBmp);
+    BitBlt(MemDC, 0, 0, bi.bmiHeader.biWidth, bi.bmiHeader.biHeight, hDC, 0, 0, SRCCOPY);
+    ReleaseDC(NULL,   hDC);
+    DeleteDC(MemDC);
+    DeleteObject(Data);
+
+    return   hBmp;
+}
+
+QImage ImageResourceBase::screenshot(){
+    HBITMAP bitmap = GetScreenshotBmp();
+    QImage image = WinHBITMAPToImage(bitmap);
+    DeleteObject(bitmap);
+
+    return image;
+}
 
 
-
+#endif
+///////////////////////////////////////////////////
 
 
 }

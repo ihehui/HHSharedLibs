@@ -251,7 +251,7 @@ void ENETProtocolBasePrivate::startWaitingForIOInAnotherThread(unsigned int msec
 //> peers while recv'ing and send'ing within the enet lib itself?
 
 void ENETProtocolBasePrivate::waitForIO(int msecTimeout){
-    qDebug()<<"--ENETProtocolBasePrivate::waitForIO(...)";
+    qDebug()<<"--ENETProtocolBasePrivate::waitForIO(...) "<<"currentThreadId:"<<QThread::currentThreadId();
 
     m_msecWaitForIOTimeout = msecTimeout;
 
@@ -262,7 +262,7 @@ void ENETProtocolBasePrivate::waitForIO(int msecTimeout){
     {
         int eventsCount = enet_host_service(localServer, &event, msecTimeout);
         if(eventsCount < 0 ){
-            qDebug()<<"ERROR! Error getting events!";
+            qDebug()<<"ERROR! enet_host_service failed!";
             continue;
         }
         if(eventsCount == 0){
@@ -288,6 +288,8 @@ void ENETProtocolBasePrivate::waitForIO(int msecTimeout){
         }
         case ENET_EVENT_TYPE_RECEIVE:
         {
+            qDebug()<<"-----ENET_EVENT_TYPE_RECEIVE-----"<<"  Time:"<<enet_time_get();
+
             QByteArray byteArray(reinterpret_cast<const char *>(event.packet->data), event.packet->dataLength);
             emit dataReceived(event.peer->connectID, byteArray);
 
@@ -319,7 +321,6 @@ void ENETProtocolBasePrivate::waitForIO(int msecTimeout){
         default:
             qWarning("Unknown ENET event type received.");
             break;
-
         }
 
     }
@@ -577,7 +578,7 @@ ENETProtocolBase::ENETProtocolBase(QObject *parent) :
 
     connect(m_basePrivate, SIGNAL(connected(quint32,QString,quint16)), this, SIGNAL(connected(quint32,QString,quint16)));
     connect(m_basePrivate, SIGNAL(disconnected(quint32,QString,quint16)), this, SIGNAL(disconnected(quint32,QString,quint16)));
-    connect(m_basePrivate, SIGNAL(dataReceived(quint32, QByteArray &)), this, SLOT(processReceivedData(quint32, QByteArray &)));
+    connect(m_basePrivate, SIGNAL(dataReceived(quint32, QByteArray)), this, SLOT(processReceivedData(quint32, QByteArray)));
 
 
     if(enet_initialize())
@@ -594,6 +595,15 @@ ENETProtocolBase::~ENETProtocolBase(){
 bool ENETProtocolBase::isListening() const{
     return m_basePrivate->isListening();
 }
+
+bool ENETProtocolBase::getAddressInfoFromSocket(quint32 peerID, QString *address, quint16 *port, bool getPeerInfo){
+    if(getPeerInfo){
+        return getPeerAddressInfo(peerID, address, port);
+    }else{
+        return getLocalListeningAddressInfo(address, port);
+    }
+}
+
 
 bool ENETProtocolBase::getPeerAddressInfo(quint32 peerID, QString *address, quint16 *port){
     return m_basePrivate->getPeerAddressInfo(peerID, address, port);

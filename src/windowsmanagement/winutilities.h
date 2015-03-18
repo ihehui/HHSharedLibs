@@ -36,7 +36,7 @@
 
 
 #include <QObject>
-//#include <QPixmap>
+//#include <QImage>
 
 #include <Windows.h>
 #include "wmlib.h"
@@ -53,6 +53,9 @@ public:
     virtual ~WinUtilities();
 
     static QString WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId = 0);
+    static QString getComputerName(DWORD *errorCode = 0);
+    static bool getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName, DWORD *errorCode = 0);
+    static QString getJoinInformation(bool *isJoinedToDomain = 0, const QString &serverName = "", DWORD *errorCode = 0);
 
 
     //Registry
@@ -77,12 +80,32 @@ public:
     static bool is64BitApplication();
     static bool isWow64();
 
+    //Users
+    static QString getUserNameOfCurrentThread(DWORD *errorCode = 0);
+    static bool getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer = 0, DWORD *apiStatus = 0);
+    static void getAllUsersLoggedOn(QStringList *users, const QString &serverName = "", DWORD *apiStatus = 0);
+
+
+
+
     //GDI+
     //Get image format Clsid
     static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid);
     static QByteArray ConvertHBITMAPToJpeg(HBITMAP hbitmap);
     //static QPixmap WinHBITMAPToPixmap(HBITMAP bitmap, bool noAlpha = true);
     static HBITMAP GetScreenshotBmp();
+    static HBITMAP GetScreenshotBmp1();
+
+    static HBITMAP GetScreenshotBmpForNT5InteractiveService();
+    static HBITMAP setDesktop1();
+    static bool setDesktop();
+
+
+
+
+
+
+
 
 
 

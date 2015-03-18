@@ -41,18 +41,19 @@ QDataStream &operator<<(QDataStream &out, const HEHUI::Packet &packet){
     QByteArray packetData = packet.getPacketData();
 
     out << packetType;
-//    if(packetType == quint8(HEHUI::HeartbeatPacket)){
-        out << packetData;
-//    }else{
-//        quint16 packetSerialNumber = packet.getPacketSerialNumber();
-//        if(packetSerialNumber == 0){
-//            packetSerialNumber = packet.createSerialNumber();
-//        }
-//        out << packetSerialNumber << packetData;
-//    }
+    //    if(packetType == quint8(HEHUI::HeartbeatPacket)){
+    out << packetData;
+    //    }else{
+    //        quint16 packetSerialNumber = packet.getPacketSerialNumber();
+    //        if(packetSerialNumber == 0){
+    //            packetSerialNumber = packet.createSerialNumber();
+    //        }
+    //        out << packetSerialNumber << packetData;
+    //    }
 
-//qDebug()<<"operator<<-packetType:"<<packetType<<"   packetSerialNumber:"<<packetSerialNumber;
-//qDebug()<<"~~Out---Size:"<<" quint8:"<<sizeof(quint8)<<" quint16"<<sizeof(quint16)<<" packetData.size()"<<packetData.size();
+    //qDebug()<<"operator<<-packetType:"<<packetType<<"   packetSerialNumber:"<<packetSerialNumber;
+    //qDebug()<<"~~Out---Size:"<<" quint8:"<<sizeof(quint8)<<" quint16"<<sizeof(quint16)<<" packetData.size()"<<packetData.size();
+
 
     return out;
 
@@ -62,22 +63,22 @@ QDataStream &operator<<(QDataStream &out, const HEHUI::Packet &packet){
 //Read data from stream
 QDataStream &operator>>(QDataStream &in, HEHUI::Packet &packet){
     quint8 packetType = 0;
-//    quint16 packetSerialNumber = 0;
+    //    quint16 packetSerialNumber = 0;
     QByteArray packetData;
 
     in >> packetType;
-//    if(packetType == quint8(HEHUI::HeartbeatPacket)){
-        in >> packetData;
-//    }else{
-//        in >> packetSerialNumber >> packetData;
-//    }
+    //    if(packetType == quint8(HEHUI::HeartbeatPacket)){
+    in >> packetData;
+    //    }else{
+    //        in >> packetSerialNumber >> packetData;
+    //    }
 
     packet.setPacketType(packetType);
-//    packet.setPacketSerialNumber(packetSerialNumber);
+    //    packet.setPacketSerialNumber(packetSerialNumber);
     packet.setPacketData(packetData);
 
-//    qDebug()<<"operator>>-packetType:"<<packetType<<"   packetSerialNumber:"<<packetSerialNumber;
-//    qDebug()<<"~~In---Size:"<<" quint8:"<<sizeof(quint8)<<" quint16"<<sizeof(quint16)<<" packetData.size()"<<packetData.size();
+    //    qDebug()<<"operator>>-packetType:"<<packetType<<"   packetSerialNumber:"<<packetSerialNumber;
+    //    qDebug()<<"~~In---Size:"<<" quint8:"<<sizeof(quint8)<<" quint16"<<sizeof(quint16)<<" packetData.size()"<<packetData.size();
 
     return in;
 

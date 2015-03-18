@@ -90,15 +90,16 @@
 #define TCP_CONNECTION_TIMEOUT 5000
 #endif
 
+
+typedef unsigned int SOCKETID;
+
 namespace HEHUI {
 
-
-enum TransmissionProtocol {TP_UNKNOWN = 0, TP_TCP, TP_UDP, TP_UDT, TP_RUDP};
+enum TransmissionProtocol {TP_UNKNOWN = 0, TP_TCP, TP_UDP, TP_ENET, TP_UDT, TP_RUDP};
 
 enum UDPTransmissionMode {UDP_TM_MULTICAST = 1, UDP_TM_BROADCAST = 2, UDP_TM_DIRECT = 3};
 
 enum PacketType{UnKnownPacket = 0, /*HeartbeatPacket = 1, ConfirmationOfReceiptPacket = 2,*/ TextPacket = 3, BinPacket = 4, UserDefinedPacket = 5};
-
 
 
 
