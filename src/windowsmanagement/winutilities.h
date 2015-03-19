@@ -84,7 +84,12 @@ public:
     static QString getUserNameOfCurrentThread(DWORD *errorCode = 0);
     static bool getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer = 0, DWORD *apiStatus = 0);
     static void getAllUsersLoggedOn(QStringList *users, const QString &serverName = "", DWORD *apiStatus = 0);
+    static QStringList localUsers(DWORD *apiStatus = 0) ;
+    static QStringList localCreatedUsers() ;
 
+
+
+    static void freeMemory();
 
 
 

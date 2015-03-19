@@ -83,8 +83,8 @@ public:
 
     QString getExeFileVersion(const QString &exeFileName);
 
-    QStringList localUsers() ;
-    QStringList localCreatedUsers() ;
+//    QStringList localUsers() ;
+//    QStringList localCreatedUsers() ;
 //    QString getUserNameOfCurrentThread();
 
 

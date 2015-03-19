@@ -339,77 +339,77 @@ QString WindowsManagement::getExeFileVersion(const QString &exeFileName){
 
 
 
-QStringList WindowsManagement::localUsers() {
-    qDebug()<<"--WindowsManagement::localUsers()";
+//QStringList WindowsManagement::localUsers() {
+//    qDebug()<<"--WindowsManagement::localUsers()";
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    QStringList users;
+//    QStringList users;
 
-    LPUSER_INFO_0 pBuf = NULL;
-    LPUSER_INFO_0 pTempBuf = NULL;
-    DWORD dwLevel = 0;
-    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
-    DWORD dwEntriesRead = 0;
-    DWORD dwTotalEntries = 0;
-    DWORD dwResumeHandle = 0;
-    DWORD i;
-    NET_API_STATUS nStatus;
+//    LPUSER_INFO_0 pBuf = NULL;
+//    LPUSER_INFO_0 pTempBuf = NULL;
+//    DWORD dwLevel = 0;
+//    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
+//    DWORD dwEntriesRead = 0;
+//    DWORD dwTotalEntries = 0;
+//    DWORD dwResumeHandle = 0;
+//    DWORD i;
+//    NET_API_STATUS nStatus;
 
-    do {
-        nStatus = NetUserEnum(NULL, dwLevel, FILTER_NORMAL_ACCOUNT,
-                              (LPBYTE*) & pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries,
-                              &dwResumeHandle);
+//    do {
+//        nStatus = NetUserEnum(NULL, dwLevel, FILTER_NORMAL_ACCOUNT,
+//                              (LPBYTE*) & pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries,
+//                              &dwResumeHandle);
 
-        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)) {
-            if ((pTempBuf = pBuf) != NULL) {
-                for (i = 0; i < dwEntriesRead; i++) {
-                    Q_ASSERT(pTempBuf != NULL);
-                    if (pTempBuf == NULL) {
-                        break;
-                    }
-                    QString username = 	QString::fromWCharArray(pTempBuf->usri0_name);
-                    users.append(username.toLower());
+//        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)) {
+//            if ((pTempBuf = pBuf) != NULL) {
+//                for (i = 0; i < dwEntriesRead; i++) {
+//                    Q_ASSERT(pTempBuf != NULL);
+//                    if (pTempBuf == NULL) {
+//                        break;
+//                    }
+//                    QString username = 	QString::fromWCharArray(pTempBuf->usri0_name);
+//                    users.append(username.toLower());
 
-                    pTempBuf++;
-                    // dwTotalCount++;
+//                    pTempBuf++;
+//                    // dwTotalCount++;
 
-                }
-            }
-        } else {
-            //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
-            qCritical()<<"A system error has occurred:"<<nStatus;
-        }
+//                }
+//            }
+//        } else {
+//            //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
+//            qCritical()<<"A system error has occurred:"<<nStatus;
+//        }
 
-        if (pBuf != NULL) {
-            NetApiBufferFree(pBuf);
-            pBuf = NULL;
-        }
+//        if (pBuf != NULL) {
+//            NetApiBufferFree(pBuf);
+//            pBuf = NULL;
+//        }
 
-    }while (nStatus == ERROR_MORE_DATA);
+//    }while (nStatus == ERROR_MORE_DATA);
 
-    if (pBuf != NULL) {
-        NetApiBufferFree(pBuf);
-        pBuf = NULL;
-    }
+//    if (pBuf != NULL) {
+//        NetApiBufferFree(pBuf);
+//        pBuf = NULL;
+//    }
 
-    return users;
+//    return users;
 
-}
+//}
 
-QStringList WindowsManagement::localCreatedUsers() {
-    //qDebug()<<"--WindowsManagement::localCreatedUsers()";
+//QStringList WindowsManagement::localCreatedUsers() {
+//    //qDebug()<<"--WindowsManagement::localCreatedUsers()";
 
-    QStringList users = localUsers();
-    users.removeAll("system$");
-    users.removeAll("administrator");
-    users.removeAll("guest");
-    users.removeAll("helpassistant");
-    users.removeAll("support_388945a0");
-    users.removeAll("aspnet");
-    users.removeAll("homegroupuser$");
-    return users;
-}
+//    QStringList users = localUsers();
+//    users.removeAll("system$");
+//    users.removeAll("administrator");
+//    users.removeAll("guest");
+//    users.removeAll("helpassistant");
+//    users.removeAll("support_388945a0");
+//    users.removeAll("aspnet");
+//    users.removeAll("homegroupuser$");
+//    return users;
+//}
 
 //QString WindowsManagement::getUserNameOfCurrentThread() {
 
@@ -670,7 +670,7 @@ bool WindowsManagement::isAdmin(const QString &userName){
         return true;
     }
 
-    if(!localUsers().contains(name, Qt::CaseInsensitive)){
+    if(!WinUtilities::localUsers().contains(name, Qt::CaseInsensitive)){
         m_lastErrorString = tr("User '%1' does not exist!").arg(name);
         return false;
     }

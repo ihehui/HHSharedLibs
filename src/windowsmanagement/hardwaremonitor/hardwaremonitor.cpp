@@ -1,4 +1,7 @@
 #include <QDebug>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QDate>
 
 #include "hardwaremonitor.h"
 
@@ -17,6 +20,8 @@
 #include "OlsApiInit.h"
 
 #include "activex/wmiquery.h"
+
+#include "../winutilities.h"
 
 
 namespace HEHUI {
@@ -218,8 +223,8 @@ bool HardwareMonitor::getCPUInfo(int *numberOfLogicalProcessors, int *numberOfPr
     PCACHE_DESCRIPTOR Cache;
 
     glpi = (LPFN_GLPI) GetProcAddress(
-                            GetModuleHandle(TEXT("kernel32")),
-                            "GetLogicalProcessorInformation");
+                GetModuleHandle(TEXT("kernel32")),
+                "GetLogicalProcessorInformation");
     if (NULL == glpi)
     {
         qCritical()<<"\nGetLogicalProcessorInformation is not supported.";
@@ -238,7 +243,7 @@ bool HardwareMonitor::getCPUInfo(int *numberOfLogicalProcessors, int *numberOfPr
                     free(buffer);
 
                 buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION)malloc(
-                        returnLength);
+                            returnLength);
 
                 if (NULL == buffer)
                 {
@@ -312,9 +317,9 @@ bool HardwareMonitor::getCPUInfo(int *numberOfLogicalProcessors, int *numberOfPr
     qDebug()<<"Number of processor cores: " << processorCoreCount;
     qDebug()<<"Number of logical processors: " << logicalProcessorCount;
     qDebug()<<"Number of processor L1/L2/L3 caches: "
-              <<processorL1CacheCount<<"/"
-             <<processorL2CacheCount<<"/"
-            <<processorL3CacheCount;
+           <<processorL1CacheCount<<"/"
+          <<processorL2CacheCount<<"/"
+         <<processorL3CacheCount;
 
     free(buffer);
 
@@ -351,8 +356,8 @@ QString HardwareMonitor::getHardDiskTemperature(){
             temp = ba[i];
             if(temp == 0xc2){
                 temp = ba[i+5];
-               results.append(QString::number(temp));
-               break;
+                results.append(QString::number(temp));
+                break;
             }
 
         }
@@ -384,6 +389,362 @@ float HardwareMonitor::getMotherBoardTemperature(){
 
 }
 
+QString HardwareMonitor::WinOSProductKey(){
+
+    ////See:http://www.codeproject.com/Articles/15261/WebControls/
+
+    QString value;
+    bool ok = WinUtilities::regRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "DigitalProductId", &value, true);
+    if(!ok){
+        qCritical()<<"ERROR! Can not read registry.";
+        return "";
+    }
+    QByteArray byteBuffer = QByteArray::fromHex(value.toLatin1());
+    if(byteBuffer.isEmpty()){return "";}
+
+    BYTE   *DigitalProductID;
+    BYTE ProductKeyExtract [15]; //Extract Key
+    char sCDKey  [256];   //Temp, adding a Window Product Key
+    long ByteCounter;    //Counter
+    long ByteConvert;    //Convert
+    int  nCur;      //XOR calculate
+
+    char *KeyChars[] = {
+        "B","C","D","F","G","H","J","K","M",
+        "P","Q","R","T","V","W","X","Y",
+        "2","3","4","6","7","8","9",NULL
+    };
+
+    DWORD DataLength = 164;
+
+    //Allocate Memory
+    DigitalProductID = (BYTE *)malloc(DataLength);
+
+    //Memory Initializationd
+    memset(DigitalProductID, 0, DataLength);
+
+    DigitalProductID = (BYTE *)byteBuffer.data();
+
+    //reading a value start position 52, by 66
+    for(ByteCounter=52; ByteCounter<=66; ByteCounter++)
+    {
+        ProductKeyExtract[ByteCounter - 52] =
+                DigitalProductID[ByteCounter];
+    }
+    //Last Indexer
+    ProductKeyExtract[sizeof(ProductKeyExtract)] = NULL;
+
+    memset(sCDKey, 0, sizeof(sCDKey));
+    for(ByteCounter=24; ByteCounter>=0; ByteCounter--)
+    {
+        nCur = 0;
+
+        for(ByteConvert=14; ByteConvert>=0; ByteConvert--)
+        {
+            nCur = (nCur * 256) ^ ProductKeyExtract[ByteConvert];  //XOR&#44228;&#49328;
+            ProductKeyExtract[ByteConvert] = nCur / 24;
+            nCur = nCur % 24;
+        }
+
+        _strrev(sCDKey);
+        strcat_s(sCDKey, KeyChars[nCur]);
+        _strrev(sCDKey);
+
+        //Insert "-"
+        if(!(ByteCounter % 5) && (ByteCounter))
+        {
+            _strrev(sCDKey);
+            strcat_s(sCDKey, "-");
+            _strrev(sCDKey);
+        }
+    }
+
+    return QString::fromLatin1(sCDKey);
+}
+
+QString HardwareMonitor::EDIDBinToChr(const QString &bin){
+    QHash<QString, QString> hash;
+    hash.insert("00001", "A");
+    hash.insert("00010", "B");
+    hash.insert("00011", "C");
+    hash.insert("00100", "D");
+    hash.insert("00101", "E");
+    hash.insert("00110", "F");
+    hash.insert("00111", "G");
+    hash.insert("01000", "H");
+    hash.insert("01001", "I");
+    hash.insert("01010", "J");
+    hash.insert("01011", "K");
+    hash.insert("01100", "L");
+    hash.insert("01101", "M");
+    hash.insert("01110", "N");
+    hash.insert("01111", "O");
+    hash.insert("10000", "P");
+    hash.insert("10001", "Q");
+    hash.insert("10010", "R");
+    hash.insert("10011", "S");
+    hash.insert("10100", "T");
+    hash.insert("10101", "U");
+    hash.insert("10110", "V");
+    hash.insert("10111", "W");
+    hash.insert("11000", "X");
+    hash.insert("11001", "Y");
+    hash.insert("11010", "Z");
+
+    return hash.value(bin);
+
+}
+
+QString HardwareMonitor::MonitorID(const QString &pnpDeviceID){
+
+    QString value;
+    bool ok = WinUtilities::regRead("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Enum\\" + pnpDeviceID + "\\Device Parameters", "EDID", &value);
+    if(!ok){
+        qCritical()<<"ERROR! Can not read registry.";
+        return "";
+    }
+    QByteArray byteBuffer = QByteArray::fromHex(value.toLatin1());
+    if(byteBuffer.isEmpty()){return "";}
+
+    QByteArray productID;
+    productID.append(byteBuffer[11]);
+    productID.append(byteBuffer[10]);
+
+    QByteArray manufacturerID;
+    manufacturerID.append(byteBuffer[9]);
+    manufacturerID.append(byteBuffer[8]);
+
+    quint16 num = 0;
+    memcpy(&num, manufacturerID.data(), 2);
+
+    QString monitorID = QString::number(num, 2);
+    monitorID = monitorID.rightJustified(15, '0');
+
+    monitorID = EDIDBinToChr(monitorID.left(5)) + EDIDBinToChr(monitorID.mid(5,5)) + EDIDBinToChr(monitorID.right(5));
+    monitorID += productID.toHex().toUpper();
+
+    return monitorID;
+}
+
+
+bool HardwareMonitor::getOSInfo(QJsonObject *object){
+
+    if(!object){return false;}
+
+    initWMIQuery();
+
+    QString queryString = QString("SELECT * FROM Win32_OperatingSystem ");
+    qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Caption,CSDVersion,OSArchitecture,MUILanguages,InstallDate", "ROOT/CIMV2");
+    if(list.isEmpty()){return false;}
+
+    QVariantList variantList = list.at(0);
+    if(variantList.size() != 5){return false;}
+
+
+    QString caption = variantList.at(0).toString();
+    QString csdVersion = variantList.at(1).toString();
+    QString osArchitecture = variantList.at(2).toString();
+    QString muiLanguages = variantList.at(3).toString();
+    object->insert("OS", caption + " " + csdVersion + " " + osArchitecture + " " + muiLanguages);
+
+    QDate date = QDate::fromString(variantList.at(4).toString().left(8), "yyyyMMdd");
+    object->insert("InstallDate", date.toString("yyyy.MM.dd"));
+
+    object->insert("Key", WinOSProductKey());
+
+    return true;
+}
+
+bool HardwareMonitor::getBaseBoardInfo(QJsonObject *object){
+    if(!object){return false;}
+
+    initWMIQuery();
+
+    QString queryString = QString("SELECT * FROM Win32_BaseBoard ");
+    qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Manufacturer,Product", "ROOT/CIMV2");
+    if(list.isEmpty()){return false;}
+
+    QVariantList variantList = list.at(0);
+    if(variantList.size() != 2){return false;}
+
+    object->insert("BaseBoard", variantList.at(0).toString() + " " + variantList.at(1).toString());
+
+    return true;
+
+}
+
+bool HardwareMonitor::getProcessorInfo(QJsonObject *object){
+    if(!object){return false;}
+
+    initWMIQuery();
+
+    QString queryString = QString("SELECT * FROM Win32_Processor ");
+    qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Name,SocketDesignation", "ROOT/CIMV2");
+    if(list.isEmpty()){return false;}
+
+    QVariantList variantList = list.at(0);
+    if(variantList.size() != 2){return false;}
+
+    object->insert("Processor", variantList.at(0).toString() + " " + variantList.at(1).toString());
+
+    return true;
+}
+
+bool HardwareMonitor::getPhysicalMemoryInfo(QJsonObject *object){
+    if(!object){return false;}
+
+    initWMIQuery();
+
+    QString queryString = QString("SELECT * FROM Win32_PhysicalMemory ");
+    qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Manufacturer,Capacity,Speed", "ROOT/CIMV2");
+    if(list.isEmpty()){return false;}
+
+    QStringList memoryList;
+
+    foreach (QVariantList variantList, list) {
+        if(variantList.size() != 3){return false;}
+
+        QString manufacturer = variantList.at(0).toString();
+        int capacity = (variantList.at(1).toLongLong())/(1024*1024);
+        QString capacityString = QString::number(capacity) + "MB";
+        if(capacity >= 1024){
+            capacityString = QString::number(capacity/1024) + "GB";
+        }
+        QString Speed = variantList.at(2).toString();
+
+        memoryList.append(manufacturer + "(" + capacityString + "," + Speed + ")");
+    }
+
+    object->insert("PhysicalMemory", memoryList.join(";"));
+
+    return true;
+}
+
+bool HardwareMonitor::getDiskDriveInfo(QJsonObject *object){
+    if(!object){return false;}
+
+    initWMIQuery();
+
+    QString queryString = QString("SELECT * FROM Win32_DiskDrive ");
+    qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Caption,Size", "ROOT/CIMV2");
+    if(list.isEmpty()){return false;}
+
+    QStringList diskList;
+
+    foreach (QVariantList variantList, list) {
+        if(variantList.size() != 2){return false;}
+
+        QString caption = variantList.at(0).toString();
+        int size = (variantList.at(1).toLongLong())/(1024*1024*1024);
+        QString sizeString = QString::number(size) + "GB";
+
+        diskList.append(caption + "(" + sizeString + ")");
+    }
+
+    object->insert("DiskDrive", diskList.join(";"));
+
+    return true;
+}
+
+bool HardwareMonitor::getVideoControllerInfo(QJsonObject *object){
+    if(!object){return false;}
+
+    initWMIQuery();
+
+    QString queryString = QString("SELECT * FROM Win32_VideoController ");
+    qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "VideoProcessor", "ROOT/CIMV2");
+    if(list.isEmpty()){return false;}
+
+    QVariantList variantList = list.at(0);
+    if(variantList.size() != 1){return false;}
+
+    object->insert("VideoController", variantList.at(0).toString());
+
+    return true;
+}
+
+bool HardwareMonitor::getSoundDeviceInfo(QJsonObject *object){
+    if(!object){return false;}
+
+    initWMIQuery();
+
+    QString queryString = QString("SELECT * FROM Win32_SoundDevice ");
+    qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "ProductName", "ROOT/CIMV2");
+    if(list.isEmpty()){return false;}
+
+    QVariantList variantList = list.at(0);
+    if(variantList.size() != 1){return false;}
+
+    object->insert("SoundDevice", variantList.at(0).toString());
+
+    return true;
+}
+
+bool HardwareMonitor::getMonitorInfo(QJsonObject *object){
+    if(!object){return false;}
+
+    initWMIQuery();
+
+    QString queryString = QString("SELECT * FROM Win32_DesktopMonitor WHERE PNPDeviceID IS NOT NULL ");
+    qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "PNPDeviceID", "ROOT/CIMV2");
+    if(list.isEmpty()){
+        qDebug()<<"WMI query result is empty.";
+        return false;
+    }
+
+    QStringList monitorList;
+
+    foreach (QVariantList variantList, list) {
+        if(variantList.size() != 1){return false;}
+
+        QString pnpDeviceID = variantList.at(0).toString();
+        QString id = MonitorID(pnpDeviceID);
+        if(!id.isEmpty()){
+            monitorList.append(id);
+        }
+    }
+
+    object->insert("Monitor", monitorList.join(";"));
+
+    return true;
+}
+
+bool HardwareMonitor::getNetworkAdapterInfo(QJsonObject *object){
+    if(!object){return false;}
+
+    initWMIQuery();
+
+    QString queryString = QString("SELECT * FROM Win32_NetworkAdapter WHERE MACAddress IS NOT NULL AND Manufacturer <> 'Microsoft' ");
+    qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "ProductName,MACAddress", "ROOT/CIMV2");
+    if(list.isEmpty()){
+        qDebug()<<"WMI query result is empty.";
+        return false;
+    }
+
+
+    QStringList nicList;
+
+    foreach (QVariantList variantList, list) {
+        if(variantList.size() != 2){return false;}
+
+        QString productName = variantList.at(0).toString();
+        QString macAddress = variantList.at(1).toString();
+        nicList.append(productName + "(" + macAddress + ")");
+    }
+
+    object->insert("NetworkAdapter", nicList.join(";"));
+
+    return true;
+}
 
 
 

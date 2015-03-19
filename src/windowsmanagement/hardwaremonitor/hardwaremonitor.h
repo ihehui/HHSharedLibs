@@ -28,6 +28,22 @@ public:
 
     float getMotherBoardTemperature();
 
+    QString WinOSProductKey();
+
+    QString EDIDBinToChr(const QString &bin);
+    QString MonitorID(const QString &pnpDeviceID);
+
+    bool getOSInfo(QJsonObject *object);
+    bool getBaseBoardInfo(QJsonObject *object);
+    bool getProcessorInfo(QJsonObject *object);
+    bool getPhysicalMemoryInfo(QJsonObject *object);
+    bool getDiskDriveInfo(QJsonObject *object);
+    bool getVideoControllerInfo(QJsonObject *object);
+    bool getSoundDeviceInfo(QJsonObject *object);
+    bool getMonitorInfo(QJsonObject *object);
+    bool getNetworkAdapterInfo(QJsonObject *object);
+
+
 
 public slots:
 

@@ -1084,6 +1084,93 @@ void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &server
 
 }
 
+QStringList WinUtilities::localUsers(DWORD *apiStatus) {
+    qDebug()<<"--WinUtilities::localUsers()";
+
+    QStringList users;
+
+    LPUSER_INFO_0 pBuf = NULL;
+    LPUSER_INFO_0 pTempBuf = NULL;
+    DWORD dwLevel = 0;
+    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
+    DWORD dwEntriesRead = 0;
+    DWORD dwTotalEntries = 0;
+    DWORD dwResumeHandle = 0;
+    DWORD i;
+    NET_API_STATUS nStatus;
+
+    do {
+        nStatus = NetUserEnum(NULL, dwLevel, FILTER_NORMAL_ACCOUNT,
+                              (LPBYTE*) & pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries,
+                              &dwResumeHandle);
+
+        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)) {
+            if ((pTempBuf = pBuf) != NULL) {
+                for (i = 0; i < dwEntriesRead; i++) {
+                    Q_ASSERT(pTempBuf != NULL);
+                    if (pTempBuf == NULL) {
+                        break;
+                    }
+                    QString username = 	QString::fromWCharArray(pTempBuf->usri0_name);
+                    users.append(username.toLower());
+
+                    pTempBuf++;
+                    // dwTotalCount++;
+
+                }
+            }
+        } else {
+            //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
+            qCritical()<<"A system error has occurred:"<<nStatus;
+        }
+
+        if (pBuf != NULL) {
+            NetApiBufferFree(pBuf);
+            pBuf = NULL;
+        }
+
+    }while (nStatus == ERROR_MORE_DATA);
+
+    if(apiStatus){
+        *apiStatus = nStatus;
+    }
+
+    if (pBuf != NULL) {
+        NetApiBufferFree(pBuf);
+        pBuf = NULL;
+    }
+
+    return users;
+
+}
+
+QStringList WinUtilities::localCreatedUsers() {
+    //qDebug()<<"--WinUtilities::localCreatedUsers()";
+
+    QStringList users = localUsers();
+    users.removeAll("system$");
+    users.removeAll("administrator");
+    users.removeAll("guest");
+    users.removeAll("helpassistant");
+    users.removeAll("support_388945a0");
+    users.removeAll("aspnet");
+    users.removeAll("homegroupuser$");
+    return users;
+}
+
+
+
+
+
+void WinUtilities::freeMemory(){
+
+#if defined(Q_OS_WIN32)
+    //SetProcessWorkingSetSize(GetCurrentProcess(), 0xFFFFFFFF, 0xFFFFFFFF);
+    SetProcessWorkingSetSize(GetCurrentProcess(), -1, -1);
+#endif
+
+}
+
 
 
 
