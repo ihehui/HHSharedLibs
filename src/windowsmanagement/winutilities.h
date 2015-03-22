@@ -36,6 +36,7 @@
 
 
 #include <QObject>
+#include <QJsonArray>
 //#include <QImage>
 
 #include <Windows.h>
@@ -45,6 +46,25 @@
 
 namespace HEHUI {
 
+//class WM_LIB_API ServiceInfo : public QObject{
+//public:
+//    ServiceInfo() : QObject(){
+//        processID = 0;
+//        serviceType = 0x00000020;
+//        startType = 0x00000002;
+//    }
+//    QString serviceName;
+//    QString displayName;
+//    DWORD processID;
+//    QString description;
+//    DWORD startType;
+//    QString account;
+//    QString dependencies;
+//    QString binaryPath;
+//    DWORD serviceType;
+
+
+//} ;
 
 class WM_LIB_API WinUtilities {
 
@@ -53,6 +73,9 @@ public:
     virtual ~WinUtilities();
 
     static QString WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId = 0);
+    static void freeMemory();
+
+    //Computer
     static QString getComputerName(DWORD *errorCode = 0);
     static bool getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName, DWORD *errorCode = 0);
     static QString getJoinInformation(bool *isJoinedToDomain = 0, const QString &serverName = "", DWORD *errorCode = 0);
@@ -88,8 +111,32 @@ public:
     static QStringList localCreatedUsers() ;
 
 
+    //Service
+    typedef struct SERVICE_INFO{
+        SERVICE_INFO(){
+            processID = 0;
+            serviceType = 0xFFFFFFFF;
+            startType = 0xFFFFFFFF;
+        }
+        QString serviceName;
+        QString displayName;
+        DWORD processID;
+        QString description;
+        DWORD startType;
+        QString account;
+        QString dependencies;
+        QString binaryPath;
+        DWORD serviceType;
 
-    static void freeMemory();
+    } ServiceInfo;
+    static bool serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode = 0);
+    static bool serviceOpenService(const QString &serviceName, SC_HANDLE *schSCManager, SC_HANDLE *schService, DWORD *errorCode = 0);
+    static bool serviceQueryInfo(const QString &serviceName, ServiceInfo *serviceInfo,  DWORD *errorCode = 0);
+    static bool serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serviceName, ServiceInfo *serviceInfo,  DWORD *errorCode = 0);
+    static bool serviceChangeStartType(const QString &serviceName, DWORD startType = SERVICE_DEMAND_START, DWORD *errorCode = 0);
+    static bool serviceChangeDescription(const QString &serviceName, const QString &description, DWORD *errorCode = 0);
+    static bool serviceDelete(const QString &serviceName, DWORD *errorCode = 0);
+    static bool serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD serviceType = SERVICE_WIN32, DWORD *errorCode = 0);
 
 
 

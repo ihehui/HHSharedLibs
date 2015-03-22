@@ -534,7 +534,7 @@ bool HardwareMonitor::getOSInfo(QJsonObject *object){
     initWMIQuery();
 
     QString queryString = QString("SELECT * FROM Win32_OperatingSystem ");
-    qDebug()<<"queryString:"<<queryString;
+    //qDebug()<<"queryString:"<<queryString;
     QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Caption,CSDVersion,OSArchitecture,MUILanguages,InstallDate", "ROOT/CIMV2");
     if(list.isEmpty()){return false;}
 
@@ -562,7 +562,7 @@ bool HardwareMonitor::getBaseBoardInfo(QJsonObject *object){
     initWMIQuery();
 
     QString queryString = QString("SELECT * FROM Win32_BaseBoard ");
-    qDebug()<<"queryString:"<<queryString;
+    //qDebug()<<"queryString:"<<queryString;
     QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Manufacturer,Product", "ROOT/CIMV2");
     if(list.isEmpty()){return false;}
 
@@ -581,7 +581,7 @@ bool HardwareMonitor::getProcessorInfo(QJsonObject *object){
     initWMIQuery();
 
     QString queryString = QString("SELECT * FROM Win32_Processor ");
-    qDebug()<<"queryString:"<<queryString;
+    //qDebug()<<"queryString:"<<queryString;
     QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Name,SocketDesignation", "ROOT/CIMV2");
     if(list.isEmpty()){return false;}
 
@@ -599,7 +599,7 @@ bool HardwareMonitor::getPhysicalMemoryInfo(QJsonObject *object){
     initWMIQuery();
 
     QString queryString = QString("SELECT * FROM Win32_PhysicalMemory ");
-    qDebug()<<"queryString:"<<queryString;
+    //qDebug()<<"queryString:"<<queryString;
     QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Manufacturer,Capacity,Speed", "ROOT/CIMV2");
     if(list.isEmpty()){return false;}
 
@@ -630,7 +630,7 @@ bool HardwareMonitor::getDiskDriveInfo(QJsonObject *object){
     initWMIQuery();
 
     QString queryString = QString("SELECT * FROM Win32_DiskDrive ");
-    qDebug()<<"queryString:"<<queryString;
+    //qDebug()<<"queryString:"<<queryString;
     QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Caption,Size", "ROOT/CIMV2");
     if(list.isEmpty()){return false;}
 
@@ -657,7 +657,7 @@ bool HardwareMonitor::getVideoControllerInfo(QJsonObject *object){
     initWMIQuery();
 
     QString queryString = QString("SELECT * FROM Win32_VideoController ");
-    qDebug()<<"queryString:"<<queryString;
+    //qDebug()<<"queryString:"<<queryString;
     QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "VideoProcessor", "ROOT/CIMV2");
     if(list.isEmpty()){return false;}
 
@@ -675,7 +675,7 @@ bool HardwareMonitor::getSoundDeviceInfo(QJsonObject *object){
     initWMIQuery();
 
     QString queryString = QString("SELECT * FROM Win32_SoundDevice ");
-    qDebug()<<"queryString:"<<queryString;
+    //qDebug()<<"queryString:"<<queryString;
     QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "ProductName", "ROOT/CIMV2");
     if(list.isEmpty()){return false;}
 
@@ -693,7 +693,7 @@ bool HardwareMonitor::getMonitorInfo(QJsonObject *object){
     initWMIQuery();
 
     QString queryString = QString("SELECT * FROM Win32_DesktopMonitor WHERE PNPDeviceID IS NOT NULL ");
-    qDebug()<<"queryString:"<<queryString;
+    //qDebug()<<"queryString:"<<queryString;
     QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "PNPDeviceID", "ROOT/CIMV2");
     if(list.isEmpty()){
         qDebug()<<"WMI query result is empty.";
@@ -723,7 +723,7 @@ bool HardwareMonitor::getNetworkAdapterInfo(QJsonObject *object){
     initWMIQuery();
 
     QString queryString = QString("SELECT * FROM Win32_NetworkAdapter WHERE MACAddress IS NOT NULL AND Manufacturer <> 'Microsoft' ");
-    qDebug()<<"queryString:"<<queryString;
+    //qDebug()<<"queryString:"<<queryString;
     QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "ProductName,MACAddress", "ROOT/CIMV2");
     if(list.isEmpty()){
         qDebug()<<"WMI query result is empty.";

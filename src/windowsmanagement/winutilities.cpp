@@ -125,6 +125,15 @@ QString WinUtilities::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId){
 
 }
 
+void WinUtilities::freeMemory(){
+
+#if defined(Q_OS_WIN32)
+    //SetProcessWorkingSetSize(GetCurrentProcess(), 0xFFFFFFFF, 0xFFFFFFFF);
+    SetProcessWorkingSetSize(GetCurrentProcess(), -1, -1);
+#endif
+
+}
+
 QString WinUtilities::getComputerName(DWORD *errorCode){
     qDebug()<<"--WinUtilities::getComputerName()";
 
@@ -884,7 +893,7 @@ QString WinUtilities::getUserNameOfCurrentThread(DWORD *errorCode) {
 
     if(!GetUserNameW(username, &size)){
         qDebug()<<QString("Can not retrieve the name of the user associated with the current thread! Code:%1 ")
-                .arg(QString::number(GetLastError()));
+                  .arg(QString::number(GetLastError()));
 
         if(errorCode){
             *errorCode = GetLastError();
@@ -1158,18 +1167,578 @@ QStringList WinUtilities::localCreatedUsers() {
     return users;
 }
 
+bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode){
+
+    if(!schSCManager){
+        return false;
+    }
+
+    // Get a handle to the SCM database.
+
+    *schSCManager = OpenSCManager(
+                NULL,                    // local computer
+                NULL,                    // ServicesActive database
+                SC_MANAGER_ALL_ACCESS);  // full access rights
+
+    if (NULL == (*schSCManager))
+    {
+        printf("OpenSCManager failed (%d)\n", GetLastError());
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        return false;
+    }
+
+    return true;
+}
+
+bool WinUtilities::serviceOpenService(const QString &serviceName, SC_HANDLE *schSCManager, SC_HANDLE *schService, DWORD *errorCode){
+
+    if(serviceName.trimmed().isEmpty() || !schSCManager || !schService){
+        return false;
+    }
+
+//    // Get a handle to the SCM database.
+//    *schSCManager = OpenSCManager(
+//                NULL,                    // local computer
+//                NULL,                    // ServicesActive database
+//                SC_MANAGER_ALL_ACCESS);  // full access rights
+
+//    if (NULL == (*schSCManager))
+//    {
+//        printf("OpenSCManager failed (%d)\n", GetLastError());
+//        if(errorCode){
+//            *errorCode = GetLastError();
+//        }
+//        return false;
+//    }
+
+    // Get a handle to the service.
+
+    *schService = OpenServiceW(
+                (*schSCManager),          // SCM database
+                serviceName.toStdWString().c_str(),             // name of service
+                SERVICE_QUERY_CONFIG); // need query config access
+
+    if (schService == NULL)
+    {
+        printf("OpenService failed (%d)\n", GetLastError());
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        CloseServiceHandle(*schSCManager);
+        return false;
+    }
+
+    return true;
+}
+
+bool WinUtilities::serviceQueryInfo(const QString &serviceName, ServiceInfo *serviceInfo, DWORD *errorCode){
+    if(serviceName.trimmed().isEmpty() || !serviceInfo){return false;}
+
+    SC_HANDLE schSCManager;
+//    SC_HANDLE schService;
+    bool ok = serviceOpenSCManager(&schSCManager, errorCode);
+    if(!ok){
+        return false;
+    }
+
+    ok = serviceQueryInfo(&schSCManager, serviceName, serviceInfo, errorCode);
+
+    CloseServiceHandle(schSCManager);
+
+    return ok;
+
+
+//    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
+//    if(!ok){
+//        return false;
+//    }
+
+//    LPQUERY_SERVICE_CONFIG lpServiceConfig;
+//    LPSERVICE_DESCRIPTION lpsd;
+//    DWORD dwBytesNeeded, cbBufSize, dwError;
+
+//    // Get the configuration information.
+//    if( !QueryServiceConfig(
+//                schService,
+//                NULL,
+//                0,
+//                &dwBytesNeeded))
+//    {
+//        dwError = GetLastError();
+//        if( ERROR_INSUFFICIENT_BUFFER == dwError )
+//        {
+//            cbBufSize = dwBytesNeeded;
+//            lpServiceConfig = (LPQUERY_SERVICE_CONFIG) LocalAlloc(LMEM_FIXED, cbBufSize);
+//        }
+//        else
+//        {
+//            printf("QueryServiceConfig failed (%d)", dwError);
+//            if(errorCode){
+//                *errorCode = dwError;
+//            }
+//            goto cleanup;
+//        }
+//    }
+
+//    if( !QueryServiceConfig(
+//                schService,
+//                lpServiceConfig,
+//                cbBufSize,
+//                &dwBytesNeeded) )
+//    {
+//        printf("QueryServiceConfig failed (%d)", GetLastError());
+//        if(errorCode){
+//            *errorCode = GetLastError();
+//        }
+//        goto cleanup;
+//    }
+
+//    if( !QueryServiceConfig2(
+//                schService,
+//                SERVICE_CONFIG_DESCRIPTION,
+//                NULL,
+//                0,
+//                &dwBytesNeeded))
+//    {
+//        dwError = GetLastError();
+//        if( ERROR_INSUFFICIENT_BUFFER == dwError )
+//        {
+//            cbBufSize = dwBytesNeeded;
+//            lpsd = (LPSERVICE_DESCRIPTION) LocalAlloc(LMEM_FIXED, cbBufSize);
+//        }
+//        else
+//        {
+//            printf("QueryServiceConfig2 failed (%d)", dwError);
+//            if(errorCode){
+//                *errorCode = dwError;
+//            }
+//            goto cleanup;
+//        }
+//    }
+
+//    if (! QueryServiceConfig2(
+//                schService,
+//                SERVICE_CONFIG_DESCRIPTION,
+//                (LPBYTE) lpsd,
+//                cbBufSize,
+//                &dwBytesNeeded) )
+//    {
+//        printf("QueryServiceConfig2 failed (%d)", GetLastError());
+//        if(errorCode){
+//            *errorCode = GetLastError();
+//        }
+//        goto cleanup;
+//    }
+
+//    serviceInfo->serviceName = serviceName;
+//    serviceInfo->displayName = QString::fromWCharArray(lpServiceConfig->lpDisplayName);
+//    serviceInfo->description = QString::fromWCharArray(lpsd->lpDescription);;
+
+//    serviceInfo->serviceType = lpServiceConfig->dwServiceType;
+//    serviceInfo->startType = lpServiceConfig->dwStartType;
+//    serviceInfo->binaryPath = QString::fromWCharArray(lpServiceConfig->lpBinaryPathName);
+//    serviceInfo->account = QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
+
+//    serviceInfo->dependencies = QString::fromWCharArray(lpServiceConfig->lpDependencies);
+
+
+
+////     //Print the configuration information.
+////    qDebug()<<"configuration: "<< serviceName;
+////    qDebug()<<"  Type: "<< lpServiceConfig->dwServiceType;
+////    qDebug()<<"  Start Type: "<< lpServiceConfig->dwStartType;
+////    qDebug()<<"  Error Control: "<< lpServiceConfig->dwErrorControl;
+////    qDebug()<<"  Binary path: "<< QString::fromWCharArray(lpServiceConfig->lpBinaryPathName);
+////    qDebug()<<"  Account: "<< QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
+////    qDebug()<<"  Display Name: "<< QString::fromWCharArray(lpServiceConfig->lpDisplayName);
+
+////    if (lpsd->lpDescription != NULL && lstrcmp(lpsd->lpDescription, TEXT("")) != 0)
+////        qDebug()<<"  Description: "<< QString::fromWCharArray(lpsd->lpDescription);
+////    if (lpServiceConfig->lpLoadOrderGroup != NULL && lstrcmp(lpServiceConfig->lpLoadOrderGroup, TEXT("")) != 0)
+////        qDebug()<<"  Load order group: "<< QString::fromWCharArray(lpServiceConfig->lpLoadOrderGroup);
+////    if (lpServiceConfig->dwTagId != 0)
+////        qDebug()<<"  Tag ID: "<< lpServiceConfig->dwTagId;
+////    if (lpServiceConfig->lpDependencies != NULL && lstrcmp(lpServiceConfig->lpDependencies, TEXT("")) != 0)
+////        qDebug()<<"  Dependencies: "<< QString::fromWCharArray(lpServiceConfig->lpDependencies);
 
 
 
 
-void WinUtilities::freeMemory(){
+//    LocalFree(lpServiceConfig);
+//    LocalFree(lpsd);
 
-#if defined(Q_OS_WIN32)
-    //SetProcessWorkingSetSize(GetCurrentProcess(), 0xFFFFFFFF, 0xFFFFFFFF);
-    SetProcessWorkingSetSize(GetCurrentProcess(), -1, -1);
-#endif
+//cleanup:
+//    CloseServiceHandle(schService);
+//    CloseServiceHandle(schSCManager);
+
+//    return true;
 
 }
+
+bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serviceName, ServiceInfo *serviceInfo, DWORD *errorCode){
+    if(!schSCManager || serviceName.trimmed().isEmpty() || !serviceInfo){return false;}
+
+    SC_HANDLE schService;
+    bool ok = serviceOpenService(serviceName, schSCManager, &schService, errorCode);
+    if(!ok){
+        return false;
+    }
+
+    LPQUERY_SERVICE_CONFIG lpServiceConfig;
+    LPSERVICE_DESCRIPTION lpsd;
+    DWORD dwBytesNeeded, cbBufSize, dwError;
+
+    QString dependencies;
+
+    // Get the configuration information.
+    if( !QueryServiceConfig(
+                schService,
+                NULL,
+                0,
+                &dwBytesNeeded))
+    {
+        dwError = GetLastError();
+        if( ERROR_INSUFFICIENT_BUFFER == dwError )
+        {
+            cbBufSize = dwBytesNeeded;
+            lpServiceConfig = (LPQUERY_SERVICE_CONFIG) LocalAlloc(LMEM_FIXED, cbBufSize);
+        }
+        else
+        {
+            printf("QueryServiceConfig failed (%d)", dwError);
+            if(errorCode){
+                *errorCode = dwError;
+            }
+            goto cleanup;
+        }
+    }
+
+    if( !QueryServiceConfig(
+                schService,
+                lpServiceConfig,
+                cbBufSize,
+                &dwBytesNeeded) )
+    {
+        printf("QueryServiceConfig failed (%d)", GetLastError());
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        goto cleanup;
+    }
+
+    if( !QueryServiceConfig2(
+                schService,
+                SERVICE_CONFIG_DESCRIPTION,
+                NULL,
+                0,
+                &dwBytesNeeded))
+    {
+        dwError = GetLastError();
+        if( ERROR_INSUFFICIENT_BUFFER == dwError )
+        {
+            cbBufSize = dwBytesNeeded;
+            lpsd = (LPSERVICE_DESCRIPTION) LocalAlloc(LMEM_FIXED, cbBufSize);
+        }
+        else
+        {
+            printf("QueryServiceConfig2 failed (%d)", dwError);
+            if(errorCode){
+                *errorCode = dwError;
+            }
+            goto cleanup;
+        }
+    }
+
+    if (! QueryServiceConfig2(
+                schService,
+                SERVICE_CONFIG_DESCRIPTION,
+                (LPBYTE) lpsd,
+                cbBufSize,
+                &dwBytesNeeded) )
+    {
+        printf("QueryServiceConfig2 failed (%d)", GetLastError());
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        goto cleanup;
+    }
+
+    serviceInfo->serviceName = serviceName;
+    serviceInfo->displayName = QString::fromWCharArray(lpServiceConfig->lpDisplayName);
+    serviceInfo->description = QString::fromWCharArray(lpsd->lpDescription);;
+
+    serviceInfo->serviceType = lpServiceConfig->dwServiceType;
+    serviceInfo->startType = lpServiceConfig->dwStartType;
+    serviceInfo->binaryPath = QString::fromWCharArray(lpServiceConfig->lpBinaryPathName);
+    serviceInfo->account = QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
+
+
+    for(int i=0;i<256;i++){
+        QChar ch = lpServiceConfig->lpDependencies[i];
+        if(lpServiceConfig->lpDependencies[i] == '\0'){
+            if(lpServiceConfig->lpDependencies[i+1] == '\0'){break;}
+            ch = ';';
+        }
+        dependencies.append(ch);
+
+        qDebug()<<i<<":"<<ch;
+    }
+    serviceInfo->dependencies = dependencies;
+
+
+//     //Print the configuration information.
+//    qDebug()<<"configuration: "<< serviceName;
+//    qDebug()<<"  Type: "<< lpServiceConfig->dwServiceType;
+//    qDebug()<<"  Start Type: "<< lpServiceConfig->dwStartType;
+//    qDebug()<<"  Error Control: "<< lpServiceConfig->dwErrorControl;
+//    qDebug()<<"  Binary path: "<< QString::fromWCharArray(lpServiceConfig->lpBinaryPathName);
+//    qDebug()<<"  Account: "<< QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
+//    qDebug()<<"  Display Name: "<< QString::fromWCharArray(lpServiceConfig->lpDisplayName);
+
+//    if (lpsd->lpDescription != NULL && lstrcmp(lpsd->lpDescription, TEXT("")) != 0)
+//        qDebug()<<"  Description: "<< QString::fromWCharArray(lpsd->lpDescription);
+//    if (lpServiceConfig->lpLoadOrderGroup != NULL && lstrcmp(lpServiceConfig->lpLoadOrderGroup, TEXT("")) != 0)
+//        qDebug()<<"  Load order group: "<< QString::fromWCharArray(lpServiceConfig->lpLoadOrderGroup);
+//    if (lpServiceConfig->dwTagId != 0)
+//        qDebug()<<"  Tag ID: "<< lpServiceConfig->dwTagId;
+//    if (lpServiceConfig->lpDependencies != NULL && lstrcmp(lpServiceConfig->lpDependencies, TEXT("")) != 0)
+//        qDebug()<<"  Dependencies: "<< QString::fromWCharArray(lpServiceConfig->lpDependencies);
+
+
+
+
+    LocalFree(lpServiceConfig);
+    LocalFree(lpsd);
+
+cleanup:
+    CloseServiceHandle(schService);
+//    CloseServiceHandle(schSCManager);
+
+    return true;
+}
+
+bool WinUtilities::serviceChangeStartType(const QString &serviceName, DWORD startType, DWORD *errorCode){
+
+    SC_HANDLE schSCManager;
+    SC_HANDLE schService;
+
+    bool ok = serviceOpenSCManager(&schSCManager, errorCode);
+    if(!ok){
+        return false;
+    }
+    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
+    if(!ok){
+        return false;
+    }
+
+    // Change the service start type.
+
+    ok =  ChangeServiceConfig(
+                schService,            // handle of service
+                SERVICE_NO_CHANGE,     // service type: no change
+                startType,             // service start type
+                SERVICE_NO_CHANGE,     // error control: no change
+                NULL,                  // binary path: no change
+                NULL,                  // load order group: no change
+                NULL,                  // tag ID: no change
+                NULL,                  // dependencies: no change
+                NULL,                  // account name: no change
+                NULL,                  // password: no change
+                NULL);
+
+    if (!ok)                // display name: no change
+    {
+        printf("ChangeServiceConfig failed (%d)\n", GetLastError());
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+    }
+
+    CloseServiceHandle(schService);
+    CloseServiceHandle(schSCManager);
+
+    return ok;
+}
+
+bool WinUtilities::serviceChangeDescription(const QString &serviceName, const QString &description, DWORD *errorCode){
+
+    SC_HANDLE schSCManager;
+    SC_HANDLE schService;
+
+    bool ok = serviceOpenSCManager(&schSCManager, errorCode);
+    if(!ok){
+        return false;
+    }
+    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
+    if(!ok){
+        return false;
+    }
+
+    // Change the service description.
+
+    SERVICE_DESCRIPTION sd;
+    wchar_t desc[512];
+    wcscpy(desc, description.toStdWString().c_str());
+    sd.lpDescription = desc;
+
+    ok = ChangeServiceConfig2(
+                schService,                 // handle to service
+                SERVICE_CONFIG_DESCRIPTION, // change: description
+                &sd);
+
+    if(!ok)
+    {
+        printf("ChangeServiceConfig2 failed\n");
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+    }
+
+    CloseServiceHandle(schService);
+    CloseServiceHandle(schSCManager);
+
+    return ok;
+}
+
+bool WinUtilities::serviceDelete(const QString &serviceName, DWORD *errorCode){
+
+    SC_HANDLE schSCManager;
+    SC_HANDLE schService;
+
+    bool ok = serviceOpenSCManager(&schSCManager, errorCode);
+    if(!ok){
+        return false;
+    }
+    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
+    if(!ok){
+        return false;
+    }
+
+    // Delete the service.
+
+    ok = DeleteService(schService);
+    if(!ok)
+    {
+        printf("DeleteService failed (%d)\n", GetLastError());
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+    }
+    else printf("Service deleted successfully\n");
+
+    CloseServiceHandle(schService);
+    CloseServiceHandle(schSCManager);
+
+    return ok;
+}
+
+bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD serviceType, DWORD *errorCode){
+
+    if(!jsonArray){return false;}
+
+    SC_HANDLE schSCManager;
+    bool ok = serviceOpenSCManager(&schSCManager, errorCode);
+    if(!ok){
+        return false;
+    }
+
+    PUCHAR  pBuf    = NULL;
+    ULONG  dwBufSize   = 0x00;
+    ULONG  dwBufNeed   = 0x00;
+    ULONG  dwNumberOfService = 0x00;
+    LPENUM_SERVICE_STATUS_PROCESS pInfo = NULL;
+
+    EnumServicesStatusEx(
+        schSCManager,
+        SC_ENUM_PROCESS_INFO,
+        serviceType, // SERVICE_DRIVER
+        SERVICE_STATE_ALL,
+        NULL,
+        dwBufSize,
+        &dwBufNeed,
+        &dwNumberOfService,
+        NULL,
+        NULL);
+
+    if (dwBufNeed < 0x01)
+    {
+        printf_s("EnumServicesStatusEx failed. \n");
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        return false;
+    }
+
+    dwBufSize = dwBufNeed + 0x10;
+    pBuf  = (PUCHAR) malloc(dwBufSize);
+
+    EnumServicesStatusEx(
+        schSCManager,
+        SC_ENUM_PROCESS_INFO,
+        serviceType,  // SERVICE_DRIVER,
+        SERVICE_STATE_ALL,  //SERVICE_STATE_ALL,SERVICE_ACTIVE
+        pBuf,
+        dwBufSize,
+        &dwBufNeed,
+        &dwNumberOfService,
+        NULL,
+        NULL);
+
+    pInfo = (LPENUM_SERVICE_STATUS_PROCESS)pBuf;
+    for (ULONG i=0; i<dwNumberOfService; i++)
+    {
+//        qDebug();
+//        qDebug()<<i<<"."<<"Display Name \t : "<< QString::fromWCharArray(pInfo[i].lpDisplayName);
+//        qDebug()<<"Service Name \t : "<< QString::fromWCharArray(pInfo[i].lpServiceName);
+//        qDebug()<<"Process Id \t : "<< QString::number( pInfo[i].ServiceStatusProcess.dwProcessId);
+
+        QString serviceName = QString::fromWCharArray(pInfo[i].lpServiceName);
+        if(serviceName.trimmed().isEmpty()){continue;}
+
+        QString displayName = QString::fromWCharArray(pInfo[i].lpDisplayName);
+        DWORD processID = pInfo[i].ServiceStatusProcess.dwProcessId;
+
+        QJsonArray array;
+        array.append(serviceName);
+        array.append(displayName);
+        array.append(QString::number(processID));
+
+        ServiceInfo serviceInfo;
+
+//        ok = serviceQueryInfo(serviceName, &serviceInfo, errorCode);
+        ok = serviceQueryInfo(&schSCManager, serviceName, &serviceInfo, errorCode);
+
+//        if(ok){
+//            serviceQueryInfo(serviceName, &serviceInfo, errorCode);
+//        }
+
+        array.append(serviceInfo.description);
+        array.append(QString::number(serviceInfo.startType));
+        array.append(serviceInfo.account);
+        array.append(serviceInfo.dependencies);
+        array.append(serviceInfo.binaryPath);
+        array.append(QString::number(serviceInfo.serviceType));
+
+        //array.append(errorControl);
+        //array.append(loadOrderGroup);
+        //array.append(tagID);
+
+
+        jsonArray->append(array);
+
+
+    }
+    qDebug()<<"----------jsonArray->size():"<<jsonArray->size();
+
+    free(pBuf);
+    CloseServiceHandle(schSCManager);
+
+    return true;
+}
+
+
 
 
 
@@ -1245,7 +1814,7 @@ QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap){
         return byteArray;
     }
     byteArray = file.readAll();
-//    file.remove();
+    //    file.remove();
 
     return byteArray;
 
@@ -1509,15 +2078,15 @@ bool WinUtilities::setDesktop()
     CloseDesktop(hActiveDesktop);
     //打开winsta0
     HWINSTA m_hwinsta = OpenWindowStationW(L"winsta0", FALSE,
-                                  WINSTA_ACCESSCLIPBOARD   |
-                                  WINSTA_ACCESSGLOBALATOMS |
-                                  WINSTA_CREATEDESKTOP     |
-                                  WINSTA_ENUMDESKTOPS      |
-                                  WINSTA_ENUMERATE         |
-                                  WINSTA_EXITWINDOWS       |
-                                  WINSTA_READATTRIBUTES    |
-                                  WINSTA_READSCREEN        |
-                                  WINSTA_WRITEATTRIBUTES);
+                                           WINSTA_ACCESSCLIPBOARD   |
+                                           WINSTA_ACCESSGLOBALATOMS |
+                                           WINSTA_CREATEDESKTOP     |
+                                           WINSTA_ENUMDESKTOPS      |
+                                           WINSTA_ENUMERATE         |
+                                           WINSTA_EXITWINDOWS       |
+                                           WINSTA_READATTRIBUTES    |
+                                           WINSTA_READSCREEN        |
+                                           WINSTA_WRITEATTRIBUTES);
     if (m_hwinsta == NULL){
         qCritical()<<"ERROR! OpenWindowStationW failed.";
         return false;
@@ -1530,15 +2099,15 @@ bool WinUtilities::setDesktop()
 
     //打开desktop
     HDESK m_hdesk = OpenDesktopW(pvInfo, 0, FALSE,
-                          DESKTOP_CREATEMENU |
-                          DESKTOP_CREATEWINDOW |
-                          DESKTOP_ENUMERATE    |
-                          DESKTOP_HOOKCONTROL |
-                          DESKTOP_JOURNALPLAYBACK |
-                          DESKTOP_JOURNALRECORD |
-                          DESKTOP_READOBJECTS |
-                          DESKTOP_SWITCHDESKTOP |
-                          DESKTOP_WRITEOBJECTS);
+                                 DESKTOP_CREATEMENU |
+                                 DESKTOP_CREATEWINDOW |
+                                 DESKTOP_ENUMERATE    |
+                                 DESKTOP_HOOKCONTROL |
+                                 DESKTOP_JOURNALPLAYBACK |
+                                 DESKTOP_JOURNALRECORD |
+                                 DESKTOP_READOBJECTS |
+                                 DESKTOP_SWITCHDESKTOP |
+                                 DESKTOP_WRITEOBJECTS);
     if (m_hdesk == NULL){
         qCritical()<<"ERROR! OpenDesktopW failed.";
         return false;
@@ -1575,15 +2144,15 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
 
     //打开winsta0
     HWINSTA m_hwinsta = OpenWindowStationW(L"winsta0", FALSE,
-                                  WINSTA_ACCESSCLIPBOARD   |
-                                  WINSTA_ACCESSGLOBALATOMS |
-                                  WINSTA_CREATEDESKTOP     |
-                                  WINSTA_ENUMDESKTOPS      |
-                                  WINSTA_ENUMERATE         |
-                                  WINSTA_EXITWINDOWS       |
-                                  WINSTA_READATTRIBUTES    |
-                                  WINSTA_READSCREEN        |
-                                  WINSTA_WRITEATTRIBUTES);
+                                           WINSTA_ACCESSCLIPBOARD   |
+                                           WINSTA_ACCESSGLOBALATOMS |
+                                           WINSTA_CREATEDESKTOP     |
+                                           WINSTA_ENUMDESKTOPS      |
+                                           WINSTA_ENUMERATE         |
+                                           WINSTA_EXITWINDOWS       |
+                                           WINSTA_READATTRIBUTES    |
+                                           WINSTA_READSCREEN        |
+                                           WINSTA_WRITEATTRIBUTES);
     if (m_hwinsta == NULL){
         qCritical()<<"ERROR! OpenWindowStationW failed.";
         return hBmp;
@@ -1599,15 +2168,15 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
 
     //打开desktop
     HDESK m_hdesk = OpenDesktopW(pvInfo, 0, FALSE,
-                          DESKTOP_CREATEMENU |
-                          DESKTOP_CREATEWINDOW |
-                          DESKTOP_ENUMERATE    |
-                          DESKTOP_HOOKCONTROL |
-                          DESKTOP_JOURNALPLAYBACK |
-                          DESKTOP_JOURNALRECORD |
-                          DESKTOP_READOBJECTS |
-                          DESKTOP_SWITCHDESKTOP |
-                          DESKTOP_WRITEOBJECTS);
+                                 DESKTOP_CREATEMENU |
+                                 DESKTOP_CREATEWINDOW |
+                                 DESKTOP_ENUMERATE    |
+                                 DESKTOP_HOOKCONTROL |
+                                 DESKTOP_JOURNALPLAYBACK |
+                                 DESKTOP_JOURNALRECORD |
+                                 DESKTOP_READOBJECTS |
+                                 DESKTOP_SWITCHDESKTOP |
+                                 DESKTOP_WRITEOBJECTS);
     if (m_hdesk == NULL){
         qCritical()<<"ERROR! OpenDesktopW failed.";
         return hBmp;
@@ -1616,9 +2185,9 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
     HDESK hdeskCurrent = GetThreadDesktop(GetCurrentThreadId());
 
     SetThreadDesktop(m_hdesk);
- SwitchDesktop(m_hdesk);
+    SwitchDesktop(m_hdesk);
 
- ///////////////////////////////
+    ///////////////////////////////
 
 
     HDC     hDC;
@@ -1645,7 +2214,7 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
     return   hBmp;
 
 
-/////////////////////////////////
+    /////////////////////////////////
 
 
 
