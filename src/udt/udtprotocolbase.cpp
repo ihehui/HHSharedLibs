@@ -555,7 +555,7 @@ bool UDTProtocolBase::sendUDTStreamData(UDTSOCKET socket, const QByteArray *byte
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_4_7);
+    out.setVersion(QDataStream::Qt_4_8);
     out << *byteArray ;
 
     int size = block.size();
@@ -1039,7 +1039,7 @@ void UDTProtocolBase::processStreamDataAfterReceived(UDTSOCKET socket, QByteArra
 
 
     QDataStream in(byteArray, QIODevice::ReadOnly);
-    in.setVersion(QDataStream::Qt_4_7);
+    in.setVersion(QDataStream::Qt_4_8);
     QIODevice *dev = in.device();
 
     QByteArray temp;

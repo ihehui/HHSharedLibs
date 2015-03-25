@@ -54,8 +54,8 @@ NetworkUtilities::~NetworkUtilities() {
 QList<QHostAddress> NetworkUtilities::broadcastAddresses(){
     QList<QHostAddress> broadcastAddresses;
     //QList<QHostAddress> ipAddresses;
-    foreach (QNetworkInterface interface, QNetworkInterface::allInterfaces()) {
-        foreach (QNetworkAddressEntry entry, interface.addressEntries()) {
+    foreach (QNetworkInterface nic, QNetworkInterface::allInterfaces()) {
+        foreach (QNetworkAddressEntry entry, nic.addressEntries()) {
             QHostAddress broadcastAddress = entry.broadcast();
             if (broadcastAddress != QHostAddress::Null && entry.ip() != QHostAddress::LocalHost) {
                 broadcastAddresses << broadcastAddress;
@@ -71,8 +71,8 @@ QList<QHostAddress> NetworkUtilities::broadcastAddresses(){
 
 QList<QHostAddress> NetworkUtilities::validIPAddresses(){
     QList<QHostAddress> ipAddresses;
-    foreach (QNetworkInterface interface, QNetworkInterface::allInterfaces()) {
-        foreach (QNetworkAddressEntry entry, interface.addressEntries()) {
+    foreach (QNetworkInterface nic, QNetworkInterface::allInterfaces()) {
+        foreach (QNetworkAddressEntry entry, nic.addressEntries()) {
             qDebug()<<"entry.ip():"<<entry.ip().toString();
             QHostAddress broadcastAddress = entry.broadcast();
             if (broadcastAddress != QHostAddress::Null && entry.ip() != QHostAddress::LocalHost) {
@@ -88,11 +88,11 @@ QList<QHostAddress> NetworkUtilities::validIPAddresses(){
 QString NetworkUtilities::hardwareAddress(const QHostAddress &ipAddress){
     if(ipAddress.isNull()){return "";}
 
-    foreach (QNetworkInterface interface, QNetworkInterface::allInterfaces()) {
-        foreach (QNetworkAddressEntry entry, interface.addressEntries()) {
+    foreach (QNetworkInterface nic, QNetworkInterface::allInterfaces()) {
+        foreach (QNetworkAddressEntry entry, nic.addressEntries()) {
             //qDebug()<<"IP:"<<entry.ip()<<" Hardware Address:"<<interface.hardwareAddress();
             if (entry.ip() == ipAddress) {
-                return interface.hardwareAddress();
+                return nic.hardwareAddress();
             }
         }
     }

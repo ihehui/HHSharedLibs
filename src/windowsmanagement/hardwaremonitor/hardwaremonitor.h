@@ -28,7 +28,7 @@ public:
 
     float getMotherBoardTemperature();
 
-    QString WinOSProductKey();
+    static QString WinOSProductKey();
 
     QString EDIDBinToChr(const QString &bin);
     QString MonitorID(const QString &pnpDeviceID);

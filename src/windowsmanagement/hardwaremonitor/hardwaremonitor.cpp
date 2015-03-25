@@ -31,9 +31,7 @@ HardwareMonitor::HardwareMonitor(QObject *parent) : QObject(parent)
 {
 
     m_winRing0Initialized = false;
-
-    getCPUInfo(&numberOfLogicalProcessors);
-
+    numberOfLogicalProcessors = 0;
     m_wmiQuery = 0;
 
 }
@@ -135,6 +133,7 @@ QString HardwareMonitor::getCPUTemperature(){
     //0x007F 00000000 01111111 1, 2, 3, 4, 5, 6 and 7
 
     QStringList results;
+    getCPUInfo(&numberOfLogicalProcessors);
 
     for(int i=0;i<numberOfLogicalProcessors;i++){
         mask = 1<<i;

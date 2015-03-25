@@ -210,7 +210,7 @@ void UDPSocket::readPendingDatagrams() {
         //qDebug()<<"~~datagramSize:"<<datagramSize;
 
         QDataStream in(datagram, QIODevice::ReadOnly);
-        in.setVersion(QDataStream::Qt_4_7);
+        in.setVersion(QDataStream::Qt_4_8);
         QVariant v;
         in >> v;
         if (v.canConvert<Packet>()){

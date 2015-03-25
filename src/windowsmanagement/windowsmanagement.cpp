@@ -1532,71 +1532,71 @@ bool WindowsManagement::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR group
 
 }
 
-QStringList WindowsManagement::getMembersOfLocalGroup(const QString &groupName, const QString &serverName){
+//QStringList WindowsManagement::getMembersOfLocalGroup(const QString &groupName, const QString &serverName){
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    QStringList users;
+//    QStringList users;
 
-    LPLOCALGROUP_MEMBERS_INFO_2 pBuf = NULL;
-    LPLOCALGROUP_MEMBERS_INFO_2 pTmpBuf;
-    DWORD dwLevel = 2;
-    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
-    DWORD dwEntriesRead = 0;
-    DWORD dwTotalEntries = 0;
-    DWORD dwResumeHandle = 0;
-    DWORD i;
-    DWORD dwTotalCount = 0;
-    NET_API_STATUS nStatus;
+//    LPLOCALGROUP_MEMBERS_INFO_2 pBuf = NULL;
+//    LPLOCALGROUP_MEMBERS_INFO_2 pTmpBuf;
+//    DWORD dwLevel = 2;
+//    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
+//    DWORD dwEntriesRead = 0;
+//    DWORD dwTotalEntries = 0;
+//    DWORD dwResumeHandle = 0;
+//    DWORD i;
+//    DWORD dwTotalCount = 0;
+//    NET_API_STATUS nStatus;
 
-    do
-    {
-        nStatus = NetLocalGroupGetMembers(serverName.toStdWString().c_str(),
-                                          groupName.toStdWString().c_str(),
-                                          dwLevel,
-                                          (LPBYTE*)&pBuf,
-                                          dwPrefMaxLen,
-                                          &dwEntriesRead,
-                                          &dwTotalEntries,
-                                          &dwResumeHandle);
+//    do
+//    {
+//        nStatus = NetLocalGroupGetMembers(serverName.toStdWString().c_str(),
+//                                          groupName.toStdWString().c_str(),
+//                                          dwLevel,
+//                                          (LPBYTE*)&pBuf,
+//                                          dwPrefMaxLen,
+//                                          &dwEntriesRead,
+//                                          &dwTotalEntries,
+//                                          &dwResumeHandle);
 
-        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA))
-        {
-            if ((pTmpBuf = pBuf) != NULL)
-            {
-                for (i = 0; (i < dwEntriesRead); i++)
-                {
-                    Q_ASSERT(pTmpBuf != NULL);
+//        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA))
+//        {
+//            if ((pTmpBuf = pBuf) != NULL)
+//            {
+//                for (i = 0; (i < dwEntriesRead); i++)
+//                {
+//                    Q_ASSERT(pTmpBuf != NULL);
 
-                    if (pTmpBuf == NULL)
-                    {
-                        m_lastErrorString += tr("An access violation has occurred\n");
-                        break;
-                    }
-                    users.append(QString::fromWCharArray(pTmpBuf->lgrmi2_domainandname).toLower());
+//                    if (pTmpBuf == NULL)
+//                    {
+//                        m_lastErrorString += tr("An access violation has occurred\n");
+//                        break;
+//                    }
+//                    users.append(QString::fromWCharArray(pTmpBuf->lgrmi2_domainandname).toLower());
 
-                    pTmpBuf++;
-                    dwTotalCount++;
-                }
-            }
-        }else{
-            m_lastErrorString += tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
-        }
+//                    pTmpBuf++;
+//                    dwTotalCount++;
+//                }
+//            }
+//        }else{
+//            m_lastErrorString += tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
+//        }
 
-        if (pBuf != NULL)
-        {
-            NetApiBufferFree(pBuf);
-            pBuf = NULL;
-        }
-    }while (nStatus == ERROR_MORE_DATA); // end do
+//        if (pBuf != NULL)
+//        {
+//            NetApiBufferFree(pBuf);
+//            pBuf = NULL;
+//        }
+//    }while (nStatus == ERROR_MORE_DATA); // end do
 
-    if (pBuf != NULL)
-        NetApiBufferFree(pBuf);
+//    if (pBuf != NULL)
+//        NetApiBufferFree(pBuf);
 
 
-    return users;
+//    return users;
 
-}
+//}
 
 bool WindowsManagement::setComputerName(const QString &newComputerName) {
 

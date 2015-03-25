@@ -109,6 +109,7 @@ public:
     static void getAllUsersLoggedOn(QStringList *users, const QString &serverName = "", DWORD *apiStatus = 0);
     static QStringList localUsers(DWORD *apiStatus = 0) ;
     static QStringList localCreatedUsers() ;
+    static QStringList getMembersOfLocalGroup(const QString &groupName, const QString &serverName = "");
 
 
     //Service
@@ -129,16 +130,24 @@ public:
         DWORD serviceType;
 
     } ServiceInfo;
-    static bool serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode = 0);
-    static bool serviceOpenService(const QString &serviceName, SC_HANDLE *schSCManager, SC_HANDLE *schService, DWORD *errorCode = 0);
+    static bool serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode = 0, DWORD dwDesiredAccess = SC_MANAGER_ALL_ACCESS);
+    static bool serviceOpenService(const QString &serviceName, SC_HANDLE *schSCManager, SC_HANDLE *schService, DWORD *errorCode = 0, DWORD dwDesiredAccess = SERVICE_ALL_ACCESS);
     static bool serviceQueryInfo(const QString &serviceName, ServiceInfo *serviceInfo,  DWORD *errorCode = 0);
     static bool serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serviceName, ServiceInfo *serviceInfo,  DWORD *errorCode = 0);
     static bool serviceChangeStartType(const QString &serviceName, DWORD startType = SERVICE_DEMAND_START, DWORD *errorCode = 0);
     static bool serviceChangeDescription(const QString &serviceName, const QString &description, DWORD *errorCode = 0);
     static bool serviceDelete(const QString &serviceName, DWORD *errorCode = 0);
     static bool serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD serviceType = SERVICE_WIN32, DWORD *errorCode = 0);
+    static bool serviceStart(const QString &serviceName, DWORD *errorCode = 0);
+    static bool serviceStop(const QString &serviceName, DWORD *errorCode = 0);
+    static bool serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HANDLE *schService);
+    static void serviceCloseHandle(SC_HANDLE *schSCManager, SC_HANDLE *schService);
 
-
+    //System
+    static BOOL EnableShutdownPrivilege();
+    static BOOL Shutdown(BOOL bForce);
+    static BOOL Logoff(BOOL bForce);
+    static BOOL Reboot(BOOL bForce);
 
     //GDI+
     //Get image format Clsid

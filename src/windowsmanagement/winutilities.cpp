@@ -1167,7 +1167,72 @@ QStringList WinUtilities::localCreatedUsers() {
     return users;
 }
 
-bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode){
+QStringList WinUtilities::getMembersOfLocalGroup(const QString &groupName, const QString &serverName){
+
+    QStringList users;
+
+    LPLOCALGROUP_MEMBERS_INFO_2 pBuf = NULL;
+    LPLOCALGROUP_MEMBERS_INFO_2 pTmpBuf;
+    DWORD dwLevel = 2;
+    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
+    DWORD dwEntriesRead = 0;
+    DWORD dwTotalEntries = 0;
+    DWORD dwResumeHandle = 0;
+    DWORD i;
+    DWORD dwTotalCount = 0;
+    NET_API_STATUS nStatus;
+
+    do
+    {
+        nStatus = NetLocalGroupGetMembers(serverName.toStdWString().c_str(),
+                                          groupName.toStdWString().c_str(),
+                                          dwLevel,
+                                          (LPBYTE*)&pBuf,
+                                          dwPrefMaxLen,
+                                          &dwEntriesRead,
+                                          &dwTotalEntries,
+                                          &dwResumeHandle);
+
+        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA))
+        {
+            if ((pTmpBuf = pBuf) != NULL)
+            {
+                for (i = 0; (i < dwEntriesRead); i++)
+                {
+                    Q_ASSERT(pTmpBuf != NULL);
+
+                    if (pTmpBuf == NULL)
+                    {
+                        qDebug()<<"An access violation has occurred\n";
+                        break;
+                    }
+                    users.append(QString::fromWCharArray(pTmpBuf->lgrmi2_domainandname).toLower());
+
+                    pTmpBuf++;
+                    dwTotalCount++;
+                }
+            }
+        }else{
+            qDebug()<< QString("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
+        }
+
+        if (pBuf != NULL)
+        {
+            NetApiBufferFree(pBuf);
+            pBuf = NULL;
+        }
+    }while (nStatus == ERROR_MORE_DATA); // end do
+
+    if (pBuf != NULL)
+        NetApiBufferFree(pBuf);
+
+
+    return users;
+
+}
+
+
+bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode, DWORD dwDesiredAccess){
 
     if(!schSCManager){
         return false;
@@ -1178,7 +1243,7 @@ bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCod
     *schSCManager = OpenSCManager(
                 NULL,                    // local computer
                 NULL,                    // ServicesActive database
-                SC_MANAGER_ALL_ACCESS);  // full access rights
+                dwDesiredAccess);  // full access rights
 
     if (NULL == (*schSCManager))
     {
@@ -1192,41 +1257,41 @@ bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCod
     return true;
 }
 
-bool WinUtilities::serviceOpenService(const QString &serviceName, SC_HANDLE *schSCManager, SC_HANDLE *schService, DWORD *errorCode){
+bool WinUtilities::serviceOpenService(const QString &serviceName, SC_HANDLE *schSCManager, SC_HANDLE *schService, DWORD *errorCode, DWORD dwDesiredAccess){
 
     if(serviceName.trimmed().isEmpty() || !schSCManager || !schService){
         return false;
     }
 
-//    // Get a handle to the SCM database.
-//    *schSCManager = OpenSCManager(
-//                NULL,                    // local computer
-//                NULL,                    // ServicesActive database
-//                SC_MANAGER_ALL_ACCESS);  // full access rights
+    //    // Get a handle to the SCM database.
+    //    *schSCManager = OpenSCManager(
+    //                NULL,                    // local computer
+    //                NULL,                    // ServicesActive database
+    //                SC_MANAGER_ALL_ACCESS);  // full access rights
 
-//    if (NULL == (*schSCManager))
-//    {
-//        printf("OpenSCManager failed (%d)\n", GetLastError());
-//        if(errorCode){
-//            *errorCode = GetLastError();
-//        }
-//        return false;
-//    }
+    //    if (NULL == (*schSCManager))
+    //    {
+    //        printf("OpenSCManager failed (%d)\n", GetLastError());
+    //        if(errorCode){
+    //            *errorCode = GetLastError();
+    //        }
+    //        return false;
+    //    }
 
     // Get a handle to the service.
 
     *schService = OpenServiceW(
                 (*schSCManager),          // SCM database
                 serviceName.toStdWString().c_str(),             // name of service
-                SERVICE_QUERY_CONFIG); // need query config access
+                dwDesiredAccess); // need query config access
 
-    if (schService == NULL)
+    if (*schService == NULL)
     {
         printf("OpenService failed (%d)\n", GetLastError());
         if(errorCode){
             *errorCode = GetLastError();
         }
-        CloseServiceHandle(*schSCManager);
+        //CloseServiceHandle(*schSCManager);
         return false;
     }
 
@@ -1237,7 +1302,7 @@ bool WinUtilities::serviceQueryInfo(const QString &serviceName, ServiceInfo *ser
     if(serviceName.trimmed().isEmpty() || !serviceInfo){return false;}
 
     SC_HANDLE schSCManager;
-//    SC_HANDLE schService;
+    //    SC_HANDLE schService;
     bool ok = serviceOpenSCManager(&schSCManager, errorCode);
     if(!ok){
         return false;
@@ -1250,130 +1315,130 @@ bool WinUtilities::serviceQueryInfo(const QString &serviceName, ServiceInfo *ser
     return ok;
 
 
-//    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
-//    if(!ok){
-//        return false;
-//    }
+    //    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
+    //    if(!ok){
+    //        return false;
+    //    }
 
-//    LPQUERY_SERVICE_CONFIG lpServiceConfig;
-//    LPSERVICE_DESCRIPTION lpsd;
-//    DWORD dwBytesNeeded, cbBufSize, dwError;
+    //    LPQUERY_SERVICE_CONFIG lpServiceConfig;
+    //    LPSERVICE_DESCRIPTION lpsd;
+    //    DWORD dwBytesNeeded, cbBufSize, dwError;
 
-//    // Get the configuration information.
-//    if( !QueryServiceConfig(
-//                schService,
-//                NULL,
-//                0,
-//                &dwBytesNeeded))
-//    {
-//        dwError = GetLastError();
-//        if( ERROR_INSUFFICIENT_BUFFER == dwError )
-//        {
-//            cbBufSize = dwBytesNeeded;
-//            lpServiceConfig = (LPQUERY_SERVICE_CONFIG) LocalAlloc(LMEM_FIXED, cbBufSize);
-//        }
-//        else
-//        {
-//            printf("QueryServiceConfig failed (%d)", dwError);
-//            if(errorCode){
-//                *errorCode = dwError;
-//            }
-//            goto cleanup;
-//        }
-//    }
+    //    // Get the configuration information.
+    //    if( !QueryServiceConfig(
+    //                schService,
+    //                NULL,
+    //                0,
+    //                &dwBytesNeeded))
+    //    {
+    //        dwError = GetLastError();
+    //        if( ERROR_INSUFFICIENT_BUFFER == dwError )
+    //        {
+    //            cbBufSize = dwBytesNeeded;
+    //            lpServiceConfig = (LPQUERY_SERVICE_CONFIG) LocalAlloc(LMEM_FIXED, cbBufSize);
+    //        }
+    //        else
+    //        {
+    //            printf("QueryServiceConfig failed (%d)", dwError);
+    //            if(errorCode){
+    //                *errorCode = dwError;
+    //            }
+    //            goto cleanup;
+    //        }
+    //    }
 
-//    if( !QueryServiceConfig(
-//                schService,
-//                lpServiceConfig,
-//                cbBufSize,
-//                &dwBytesNeeded) )
-//    {
-//        printf("QueryServiceConfig failed (%d)", GetLastError());
-//        if(errorCode){
-//            *errorCode = GetLastError();
-//        }
-//        goto cleanup;
-//    }
+    //    if( !QueryServiceConfig(
+    //                schService,
+    //                lpServiceConfig,
+    //                cbBufSize,
+    //                &dwBytesNeeded) )
+    //    {
+    //        printf("QueryServiceConfig failed (%d)", GetLastError());
+    //        if(errorCode){
+    //            *errorCode = GetLastError();
+    //        }
+    //        goto cleanup;
+    //    }
 
-//    if( !QueryServiceConfig2(
-//                schService,
-//                SERVICE_CONFIG_DESCRIPTION,
-//                NULL,
-//                0,
-//                &dwBytesNeeded))
-//    {
-//        dwError = GetLastError();
-//        if( ERROR_INSUFFICIENT_BUFFER == dwError )
-//        {
-//            cbBufSize = dwBytesNeeded;
-//            lpsd = (LPSERVICE_DESCRIPTION) LocalAlloc(LMEM_FIXED, cbBufSize);
-//        }
-//        else
-//        {
-//            printf("QueryServiceConfig2 failed (%d)", dwError);
-//            if(errorCode){
-//                *errorCode = dwError;
-//            }
-//            goto cleanup;
-//        }
-//    }
+    //    if( !QueryServiceConfig2(
+    //                schService,
+    //                SERVICE_CONFIG_DESCRIPTION,
+    //                NULL,
+    //                0,
+    //                &dwBytesNeeded))
+    //    {
+    //        dwError = GetLastError();
+    //        if( ERROR_INSUFFICIENT_BUFFER == dwError )
+    //        {
+    //            cbBufSize = dwBytesNeeded;
+    //            lpsd = (LPSERVICE_DESCRIPTION) LocalAlloc(LMEM_FIXED, cbBufSize);
+    //        }
+    //        else
+    //        {
+    //            printf("QueryServiceConfig2 failed (%d)", dwError);
+    //            if(errorCode){
+    //                *errorCode = dwError;
+    //            }
+    //            goto cleanup;
+    //        }
+    //    }
 
-//    if (! QueryServiceConfig2(
-//                schService,
-//                SERVICE_CONFIG_DESCRIPTION,
-//                (LPBYTE) lpsd,
-//                cbBufSize,
-//                &dwBytesNeeded) )
-//    {
-//        printf("QueryServiceConfig2 failed (%d)", GetLastError());
-//        if(errorCode){
-//            *errorCode = GetLastError();
-//        }
-//        goto cleanup;
-//    }
+    //    if (! QueryServiceConfig2(
+    //                schService,
+    //                SERVICE_CONFIG_DESCRIPTION,
+    //                (LPBYTE) lpsd,
+    //                cbBufSize,
+    //                &dwBytesNeeded) )
+    //    {
+    //        printf("QueryServiceConfig2 failed (%d)", GetLastError());
+    //        if(errorCode){
+    //            *errorCode = GetLastError();
+    //        }
+    //        goto cleanup;
+    //    }
 
-//    serviceInfo->serviceName = serviceName;
-//    serviceInfo->displayName = QString::fromWCharArray(lpServiceConfig->lpDisplayName);
-//    serviceInfo->description = QString::fromWCharArray(lpsd->lpDescription);;
+    //    serviceInfo->serviceName = serviceName;
+    //    serviceInfo->displayName = QString::fromWCharArray(lpServiceConfig->lpDisplayName);
+    //    serviceInfo->description = QString::fromWCharArray(lpsd->lpDescription);;
 
-//    serviceInfo->serviceType = lpServiceConfig->dwServiceType;
-//    serviceInfo->startType = lpServiceConfig->dwStartType;
-//    serviceInfo->binaryPath = QString::fromWCharArray(lpServiceConfig->lpBinaryPathName);
-//    serviceInfo->account = QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
+    //    serviceInfo->serviceType = lpServiceConfig->dwServiceType;
+    //    serviceInfo->startType = lpServiceConfig->dwStartType;
+    //    serviceInfo->binaryPath = QString::fromWCharArray(lpServiceConfig->lpBinaryPathName);
+    //    serviceInfo->account = QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
 
-//    serviceInfo->dependencies = QString::fromWCharArray(lpServiceConfig->lpDependencies);
-
-
-
-////     //Print the configuration information.
-////    qDebug()<<"configuration: "<< serviceName;
-////    qDebug()<<"  Type: "<< lpServiceConfig->dwServiceType;
-////    qDebug()<<"  Start Type: "<< lpServiceConfig->dwStartType;
-////    qDebug()<<"  Error Control: "<< lpServiceConfig->dwErrorControl;
-////    qDebug()<<"  Binary path: "<< QString::fromWCharArray(lpServiceConfig->lpBinaryPathName);
-////    qDebug()<<"  Account: "<< QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
-////    qDebug()<<"  Display Name: "<< QString::fromWCharArray(lpServiceConfig->lpDisplayName);
-
-////    if (lpsd->lpDescription != NULL && lstrcmp(lpsd->lpDescription, TEXT("")) != 0)
-////        qDebug()<<"  Description: "<< QString::fromWCharArray(lpsd->lpDescription);
-////    if (lpServiceConfig->lpLoadOrderGroup != NULL && lstrcmp(lpServiceConfig->lpLoadOrderGroup, TEXT("")) != 0)
-////        qDebug()<<"  Load order group: "<< QString::fromWCharArray(lpServiceConfig->lpLoadOrderGroup);
-////    if (lpServiceConfig->dwTagId != 0)
-////        qDebug()<<"  Tag ID: "<< lpServiceConfig->dwTagId;
-////    if (lpServiceConfig->lpDependencies != NULL && lstrcmp(lpServiceConfig->lpDependencies, TEXT("")) != 0)
-////        qDebug()<<"  Dependencies: "<< QString::fromWCharArray(lpServiceConfig->lpDependencies);
+    //    serviceInfo->dependencies = QString::fromWCharArray(lpServiceConfig->lpDependencies);
 
 
 
+    ////     //Print the configuration information.
+    ////    qDebug()<<"configuration: "<< serviceName;
+    ////    qDebug()<<"  Type: "<< lpServiceConfig->dwServiceType;
+    ////    qDebug()<<"  Start Type: "<< lpServiceConfig->dwStartType;
+    ////    qDebug()<<"  Error Control: "<< lpServiceConfig->dwErrorControl;
+    ////    qDebug()<<"  Binary path: "<< QString::fromWCharArray(lpServiceConfig->lpBinaryPathName);
+    ////    qDebug()<<"  Account: "<< QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
+    ////    qDebug()<<"  Display Name: "<< QString::fromWCharArray(lpServiceConfig->lpDisplayName);
 
-//    LocalFree(lpServiceConfig);
-//    LocalFree(lpsd);
+    ////    if (lpsd->lpDescription != NULL && lstrcmp(lpsd->lpDescription, TEXT("")) != 0)
+    ////        qDebug()<<"  Description: "<< QString::fromWCharArray(lpsd->lpDescription);
+    ////    if (lpServiceConfig->lpLoadOrderGroup != NULL && lstrcmp(lpServiceConfig->lpLoadOrderGroup, TEXT("")) != 0)
+    ////        qDebug()<<"  Load order group: "<< QString::fromWCharArray(lpServiceConfig->lpLoadOrderGroup);
+    ////    if (lpServiceConfig->dwTagId != 0)
+    ////        qDebug()<<"  Tag ID: "<< lpServiceConfig->dwTagId;
+    ////    if (lpServiceConfig->lpDependencies != NULL && lstrcmp(lpServiceConfig->lpDependencies, TEXT("")) != 0)
+    ////        qDebug()<<"  Dependencies: "<< QString::fromWCharArray(lpServiceConfig->lpDependencies);
 
-//cleanup:
-//    CloseServiceHandle(schService);
-//    CloseServiceHandle(schSCManager);
 
-//    return true;
+
+
+    //    LocalFree(lpServiceConfig);
+    //    LocalFree(lpsd);
+
+    //cleanup:
+    //    CloseServiceHandle(schService);
+    //    CloseServiceHandle(schSCManager);
+
+    //    return true;
 
 }
 
@@ -1381,7 +1446,7 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
     if(!schSCManager || serviceName.trimmed().isEmpty() || !serviceInfo){return false;}
 
     SC_HANDLE schService;
-    bool ok = serviceOpenService(serviceName, schSCManager, &schService, errorCode);
+    bool ok = serviceOpenService(serviceName, schSCManager, &schService, errorCode, SERVICE_QUERY_CONFIG );
     if(!ok){
         return false;
     }
@@ -1407,11 +1472,13 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
         }
         else
         {
-            printf("QueryServiceConfig failed (%d)", dwError);
+            qCritical()<<QString("ERROR! QueryServiceConfig failed. Error code: %1. Service Name: %2").arg(dwError).arg(serviceName);
             if(errorCode){
                 *errorCode = dwError;
             }
-            goto cleanup;
+            //goto cleanup;
+            serviceCloseHandle(0, &schService);
+            return false;
         }
     }
 
@@ -1421,11 +1488,13 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
                 cbBufSize,
                 &dwBytesNeeded) )
     {
-        printf("QueryServiceConfig failed (%d)", GetLastError());
+        qCritical()<<QString("ERROR! QueryServiceConfig failed. Error code: %1. Service Name: %2").arg(dwError).arg(serviceName);
         if(errorCode){
             *errorCode = GetLastError();
         }
-        goto cleanup;
+        //goto cleanup;
+        serviceCloseHandle(0, &schService);
+        return false;
     }
 
     if( !QueryServiceConfig2(
@@ -1443,11 +1512,13 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
         }
         else
         {
-            printf("QueryServiceConfig2 failed (%d)", dwError);
+            qCritical()<<QString("ERROR! QueryServiceConfig2 failed. Error code: %1. Service Name: %2").arg(GetLastError()).arg(serviceName);
             if(errorCode){
                 *errorCode = dwError;
             }
-            goto cleanup;
+            //goto cleanup;
+            serviceCloseHandle(0, &schService);
+            return false;
         }
     }
 
@@ -1458,11 +1529,13 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
                 cbBufSize,
                 &dwBytesNeeded) )
     {
-        printf("QueryServiceConfig2 failed (%d)", GetLastError());
+        qCritical()<<QString("ERROR! QueryServiceConfig2 failed. Error code: %1. Service Name: %2").arg(GetLastError()).arg(serviceName);
         if(errorCode){
             *errorCode = GetLastError();
         }
-        goto cleanup;
+        //goto cleanup;
+        serviceCloseHandle(0, &schService);
+        return false;
     }
 
     serviceInfo->serviceName = serviceName;
@@ -1482,29 +1555,27 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
             ch = ';';
         }
         dependencies.append(ch);
-
-        qDebug()<<i<<":"<<ch;
     }
     serviceInfo->dependencies = dependencies;
 
 
-//     //Print the configuration information.
-//    qDebug()<<"configuration: "<< serviceName;
-//    qDebug()<<"  Type: "<< lpServiceConfig->dwServiceType;
-//    qDebug()<<"  Start Type: "<< lpServiceConfig->dwStartType;
-//    qDebug()<<"  Error Control: "<< lpServiceConfig->dwErrorControl;
-//    qDebug()<<"  Binary path: "<< QString::fromWCharArray(lpServiceConfig->lpBinaryPathName);
-//    qDebug()<<"  Account: "<< QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
-//    qDebug()<<"  Display Name: "<< QString::fromWCharArray(lpServiceConfig->lpDisplayName);
+    //     //Print the configuration information.
+    //    qDebug()<<"configuration: "<< serviceName;
+    //    qDebug()<<"  Type: "<< lpServiceConfig->dwServiceType;
+    //    qDebug()<<"  Start Type: "<< lpServiceConfig->dwStartType;
+    //    qDebug()<<"  Error Control: "<< lpServiceConfig->dwErrorControl;
+    //    qDebug()<<"  Binary path: "<< QString::fromWCharArray(lpServiceConfig->lpBinaryPathName);
+    //    qDebug()<<"  Account: "<< QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
+    //    qDebug()<<"  Display Name: "<< QString::fromWCharArray(lpServiceConfig->lpDisplayName);
 
-//    if (lpsd->lpDescription != NULL && lstrcmp(lpsd->lpDescription, TEXT("")) != 0)
-//        qDebug()<<"  Description: "<< QString::fromWCharArray(lpsd->lpDescription);
-//    if (lpServiceConfig->lpLoadOrderGroup != NULL && lstrcmp(lpServiceConfig->lpLoadOrderGroup, TEXT("")) != 0)
-//        qDebug()<<"  Load order group: "<< QString::fromWCharArray(lpServiceConfig->lpLoadOrderGroup);
-//    if (lpServiceConfig->dwTagId != 0)
-//        qDebug()<<"  Tag ID: "<< lpServiceConfig->dwTagId;
-//    if (lpServiceConfig->lpDependencies != NULL && lstrcmp(lpServiceConfig->lpDependencies, TEXT("")) != 0)
-//        qDebug()<<"  Dependencies: "<< QString::fromWCharArray(lpServiceConfig->lpDependencies);
+    //    if (lpsd->lpDescription != NULL && lstrcmp(lpsd->lpDescription, TEXT("")) != 0)
+    //        qDebug()<<"  Description: "<< QString::fromWCharArray(lpsd->lpDescription);
+    //    if (lpServiceConfig->lpLoadOrderGroup != NULL && lstrcmp(lpServiceConfig->lpLoadOrderGroup, TEXT("")) != 0)
+    //        qDebug()<<"  Load order group: "<< QString::fromWCharArray(lpServiceConfig->lpLoadOrderGroup);
+    //    if (lpServiceConfig->dwTagId != 0)
+    //        qDebug()<<"  Tag ID: "<< lpServiceConfig->dwTagId;
+    //    if (lpServiceConfig->lpDependencies != NULL && lstrcmp(lpServiceConfig->lpDependencies, TEXT("")) != 0)
+    //        qDebug()<<"  Dependencies: "<< QString::fromWCharArray(lpServiceConfig->lpDependencies);
 
 
 
@@ -1512,9 +1583,9 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
     LocalFree(lpServiceConfig);
     LocalFree(lpsd);
 
-cleanup:
-    CloseServiceHandle(schService);
-//    CloseServiceHandle(schSCManager);
+//cleanup:
+    //CloseServiceHandle(schService);
+    //CloseServiceHandle(schSCManager);
 
     return true;
 }
@@ -1530,6 +1601,8 @@ bool WinUtilities::serviceChangeStartType(const QString &serviceName, DWORD star
     }
     ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
     if(!ok){
+        //CloseServiceHandle(schSCManager);
+        serviceCloseHandle(&schSCManager, 0);
         return false;
     }
 
@@ -1556,8 +1629,9 @@ bool WinUtilities::serviceChangeStartType(const QString &serviceName, DWORD star
         }
     }
 
-    CloseServiceHandle(schService);
-    CloseServiceHandle(schSCManager);
+    //CloseServiceHandle(schService);
+    //CloseServiceHandle(schSCManager);
+    serviceCloseHandle(&schSCManager, &schService);
 
     return ok;
 }
@@ -1573,6 +1647,8 @@ bool WinUtilities::serviceChangeDescription(const QString &serviceName, const QS
     }
     ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
     if(!ok){
+        //CloseServiceHandle(schSCManager);
+        serviceCloseHandle(&schSCManager, 0);
         return false;
     }
 
@@ -1596,8 +1672,9 @@ bool WinUtilities::serviceChangeDescription(const QString &serviceName, const QS
         }
     }
 
-    CloseServiceHandle(schService);
-    CloseServiceHandle(schSCManager);
+    //CloseServiceHandle(schService);
+    //CloseServiceHandle(schSCManager);
+    serviceCloseHandle(&schSCManager, &schService);
 
     return ok;
 }
@@ -1613,6 +1690,8 @@ bool WinUtilities::serviceDelete(const QString &serviceName, DWORD *errorCode){
     }
     ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
     if(!ok){
+        //CloseServiceHandle(schSCManager);
+        serviceCloseHandle(&schSCManager, 0);
         return false;
     }
 
@@ -1628,8 +1707,9 @@ bool WinUtilities::serviceDelete(const QString &serviceName, DWORD *errorCode){
     }
     else printf("Service deleted successfully\n");
 
-    CloseServiceHandle(schService);
-    CloseServiceHandle(schSCManager);
+    //CloseServiceHandle(schService);
+    //CloseServiceHandle(schSCManager);
+    serviceCloseHandle(&schSCManager, &schService);
 
     return ok;
 }
@@ -1651,16 +1731,16 @@ bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD servic
     LPENUM_SERVICE_STATUS_PROCESS pInfo = NULL;
 
     EnumServicesStatusEx(
-        schSCManager,
-        SC_ENUM_PROCESS_INFO,
-        serviceType, // SERVICE_DRIVER
-        SERVICE_STATE_ALL,
-        NULL,
-        dwBufSize,
-        &dwBufNeed,
-        &dwNumberOfService,
-        NULL,
-        NULL);
+                schSCManager,
+                SC_ENUM_PROCESS_INFO,
+                serviceType, // SERVICE_DRIVER
+                SERVICE_STATE_ALL,
+                NULL,
+                dwBufSize,
+                &dwBufNeed,
+                &dwNumberOfService,
+                NULL,
+                NULL);
 
     if (dwBufNeed < 0x01)
     {
@@ -1675,24 +1755,24 @@ bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD servic
     pBuf  = (PUCHAR) malloc(dwBufSize);
 
     EnumServicesStatusEx(
-        schSCManager,
-        SC_ENUM_PROCESS_INFO,
-        serviceType,  // SERVICE_DRIVER,
-        SERVICE_STATE_ALL,  //SERVICE_STATE_ALL,SERVICE_ACTIVE
-        pBuf,
-        dwBufSize,
-        &dwBufNeed,
-        &dwNumberOfService,
-        NULL,
-        NULL);
+                schSCManager,
+                SC_ENUM_PROCESS_INFO,
+                serviceType,  // SERVICE_DRIVER,
+                SERVICE_STATE_ALL,  //SERVICE_STATE_ALL,SERVICE_ACTIVE
+                pBuf,
+                dwBufSize,
+                &dwBufNeed,
+                &dwNumberOfService,
+                NULL,
+                NULL);
 
     pInfo = (LPENUM_SERVICE_STATUS_PROCESS)pBuf;
     for (ULONG i=0; i<dwNumberOfService; i++)
     {
-//        qDebug();
-//        qDebug()<<i<<"."<<"Display Name \t : "<< QString::fromWCharArray(pInfo[i].lpDisplayName);
-//        qDebug()<<"Service Name \t : "<< QString::fromWCharArray(pInfo[i].lpServiceName);
-//        qDebug()<<"Process Id \t : "<< QString::number( pInfo[i].ServiceStatusProcess.dwProcessId);
+        //        qDebug();
+        //        qDebug()<<i<<"."<<"Display Name \t : "<< QString::fromWCharArray(pInfo[i].lpDisplayName);
+        //        qDebug()<<"Service Name \t : "<< QString::fromWCharArray(pInfo[i].lpServiceName);
+        //        qDebug()<<"Process Id \t : "<< QString::number( pInfo[i].ServiceStatusProcess.dwProcessId);
 
         QString serviceName = QString::fromWCharArray(pInfo[i].lpServiceName);
         if(serviceName.trimmed().isEmpty()){continue;}
@@ -1707,12 +1787,12 @@ bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD servic
 
         ServiceInfo serviceInfo;
 
-//        ok = serviceQueryInfo(serviceName, &serviceInfo, errorCode);
+        //        ok = serviceQueryInfo(serviceName, &serviceInfo, errorCode);
         ok = serviceQueryInfo(&schSCManager, serviceName, &serviceInfo, errorCode);
 
-//        if(ok){
-//            serviceQueryInfo(serviceName, &serviceInfo, errorCode);
-//        }
+        //        if(ok){
+        //            serviceQueryInfo(serviceName, &serviceInfo, errorCode);
+        //        }
 
         array.append(serviceInfo.description);
         array.append(QString::number(serviceInfo.startType));
@@ -1733,13 +1813,529 @@ bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD servic
     qDebug()<<"----------jsonArray->size():"<<jsonArray->size();
 
     free(pBuf);
-    CloseServiceHandle(schSCManager);
+    //CloseServiceHandle(schSCManager);
+    serviceCloseHandle(&schSCManager, 0);
 
     return true;
 }
 
+bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
+
+    SC_HANDLE schSCManager;
+    SC_HANDLE schService;
+
+    bool ok = serviceOpenSCManager(&schSCManager, errorCode);
+    if(!ok){
+        return false;
+    }
+    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode, SERVICE_QUERY_STATUS|SERVICE_START);
+    if(!ok){
+        //CloseServiceHandle(schSCManager);
+        serviceCloseHandle(&schSCManager, 0);
+        return false;
+    }
+
+    SERVICE_STATUS_PROCESS ssStatus;
+    DWORD dwOldCheckPoint;
+    DWORD dwStartTickCount;
+    DWORD dwWaitTime;
+    DWORD dwBytesNeeded;
+
+    // Check the status in case the service is not stopped.
+
+    if (!QueryServiceStatusEx(
+                schService,                     // handle to service
+                SC_STATUS_PROCESS_INFO,         // information level
+                (LPBYTE) &ssStatus,             // address of structure
+                sizeof(SERVICE_STATUS_PROCESS), // size of structure
+                &dwBytesNeeded ) )              // size needed if buffer is too small
+    {
+        printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
+        //CloseServiceHandle(schService);
+        //CloseServiceHandle(schSCManager);
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        serviceCloseHandle(&schSCManager, &schService);
+        return false;
+    }
+
+    // Check if the service is already running. It would be possible
+    // to stop the service here, but for simplicity this example just returns.
+    if(ssStatus.dwCurrentState != SERVICE_STOPPED && ssStatus.dwCurrentState != SERVICE_STOP_PENDING)
+    {
+        printf("Cannot start the service because it is already running\n");
+        CloseServiceHandle(schService);
+        CloseServiceHandle(schSCManager);
+        return true;
+    }
+
+    // Save the tick count and initial checkpoint.
+    dwStartTickCount = GetTickCount();
+    dwOldCheckPoint = ssStatus.dwCheckPoint;
+
+    // Wait for the service to stop before attempting to start it.
+    while (ssStatus.dwCurrentState == SERVICE_STOP_PENDING)
+    {
+        // Do not wait longer than the wait hint. A good interval is
+        // one-tenth of the wait hint but not less than 1 second
+        // and not more than 10 seconds.
+
+        dwWaitTime = ssStatus.dwWaitHint / 10;
+        if( dwWaitTime < 1000 )
+            dwWaitTime = 1000;
+        else if ( dwWaitTime > 10000 )
+            dwWaitTime = 10000;
+
+        Sleep( dwWaitTime );
+
+        // Check the status until the service is no longer stop pending.
+        if (!QueryServiceStatusEx(
+                    schService,                     // handle to service
+                    SC_STATUS_PROCESS_INFO,         // information level
+                    (LPBYTE) &ssStatus,             // address of structure
+                    sizeof(SERVICE_STATUS_PROCESS), // size of structure
+                    &dwBytesNeeded ) )              // size needed if buffer is too small
+        {
+            printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
+            //CloseServiceHandle(schService);
+            //CloseServiceHandle(schSCManager);
+            if(errorCode){
+                *errorCode = GetLastError();
+            }
+            serviceCloseHandle(&schSCManager, &schService);
+            return false;
+        }
+
+        if ( ssStatus.dwCheckPoint > dwOldCheckPoint )
+        {
+            // Continue to wait and check.
+            dwStartTickCount = GetTickCount();
+            dwOldCheckPoint = ssStatus.dwCheckPoint;
+        }
+        else
+        {
+            if(GetTickCount()-dwStartTickCount > ssStatus.dwWaitHint)
+            {
+                qCritical("Timeout waiting for service to stop\n");
+                //CloseServiceHandle(schService);
+                //CloseServiceHandle(schSCManager);
+                serviceCloseHandle(&schSCManager, &schService);
+                return false;
+            }
+        }
+    }
+
+    // Attempt to start the service.
+    if (!StartService(
+                schService,  // handle to service
+                0,           // number of arguments
+                NULL) )      // no arguments
+    {
+        printf("StartService failed (%d)\n", GetLastError());
+        //CloseServiceHandle(schService);
+        //CloseServiceHandle(schSCManager);
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        serviceCloseHandle(&schSCManager, &schService);
+        return false;
+    }
+    else printf("Service start pending...\n");
+
+    // Check the status until the service is no longer start pending.
+    if (!QueryServiceStatusEx(
+                schService,                     // handle to service
+                SC_STATUS_PROCESS_INFO,         // info level
+                (LPBYTE) &ssStatus,             // address of structure
+                sizeof(SERVICE_STATUS_PROCESS), // size of structure
+                &dwBytesNeeded ) )              // if buffer too small
+    {
+        printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
+        //CloseServiceHandle(schService);
+        //CloseServiceHandle(schSCManager);
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        serviceCloseHandle(&schSCManager, &schService);
+        return false;
+    }
+
+    // Save the tick count and initial checkpoint.
+    dwStartTickCount = GetTickCount();
+    dwOldCheckPoint = ssStatus.dwCheckPoint;
+    while (ssStatus.dwCurrentState == SERVICE_START_PENDING)
+    {
+        // Do not wait longer than the wait hint. A good interval is
+        // one-tenth the wait hint, but no less than 1 second and no
+        // more than 10 seconds.
+        dwWaitTime = ssStatus.dwWaitHint / 10;
+        if( dwWaitTime < 1000 )
+            dwWaitTime = 1000;
+        else if ( dwWaitTime > 10000 )
+            dwWaitTime = 10000;
+
+        Sleep( dwWaitTime );
+
+        // Check the status again.
+        if (!QueryServiceStatusEx(
+                    schService,             // handle to service
+                    SC_STATUS_PROCESS_INFO, // info level
+                    (LPBYTE) &ssStatus,             // address of structure
+                    sizeof(SERVICE_STATUS_PROCESS), // size of structure
+                    &dwBytesNeeded ) )              // if buffer too small
+        {
+            printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
+            break;
+        }
+
+        if ( ssStatus.dwCheckPoint > dwOldCheckPoint )
+        {
+            // Continue to wait and check.
+            dwStartTickCount = GetTickCount();
+            dwOldCheckPoint = ssStatus.dwCheckPoint;
+        }
+        else
+        {
+            if(GetTickCount()-dwStartTickCount > ssStatus.dwWaitHint)
+            {
+                // No progress made within the wait hint.
+                break;
+            }
+        }
+    }
+
+    // Determine whether the service is running.
+    ok = (ssStatus.dwCurrentState == SERVICE_RUNNING);
+    if (ok)
+    {
+        printf("Service started successfully.\n");
+    }
+    else
+    {
+        printf("Service not started. \n");
+        printf("  Current State: %d\n", ssStatus.dwCurrentState);
+        printf("  Exit Code: %d\n", ssStatus.dwWin32ExitCode);
+        printf("  Check Point: %d\n", ssStatus.dwCheckPoint);
+        printf("  Wait Hint: %d\n", ssStatus.dwWaitHint);
+    }
+
+    //CloseServiceHandle(schService);
+    //CloseServiceHandle(schSCManager);
+    serviceCloseHandle(&schSCManager, &schService);
+
+    return ok;
+
+}
+
+bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode){
+
+    SC_HANDLE schSCManager;
+    SC_HANDLE schService;
+
+    bool ok = serviceOpenSCManager(&schSCManager, errorCode);
+    if(!ok){
+        return false;
+    }
+    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode, SERVICE_QUERY_STATUS|SERVICE_STOP|SERVICE_ENUMERATE_DEPENDENTS);
+    if(!ok){
+        //CloseServiceHandle(schSCManager);
+        serviceCloseHandle(&schSCManager, 0);
+        return false;
+    }
+
+    SERVICE_STATUS_PROCESS ssp;
+    DWORD dwStartTime = GetTickCount();
+    DWORD dwBytesNeeded;
+    DWORD dwTimeout = 30000; // 30-second time-out
+    DWORD dwWaitTime;
+
+    // Make sure the service is not already stopped.
+
+    if ( !QueryServiceStatusEx(
+             schService,
+             SC_STATUS_PROCESS_INFO,
+             (LPBYTE)&ssp,
+             sizeof(SERVICE_STATUS_PROCESS),
+             &dwBytesNeeded ) )
+    {
+        printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
+        serviceCloseHandle(&schSCManager, &schService);
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        return false;
+    }
+
+    if ( ssp.dwCurrentState == SERVICE_STOPPED )
+    {
+        printf("Service is already stopped.\n");
+        serviceCloseHandle(&schSCManager, &schService);
+        return true;
+    }
+
+    // If a stop is pending, wait for it.
+
+    while ( ssp.dwCurrentState == SERVICE_STOP_PENDING )
+    {
+        printf("Service stop pending...\n");
+
+        // Do not wait longer than the wait hint. A good interval is
+        // one-tenth of the wait hint but not less than 1 second
+        // and not more than 10 seconds.
+
+        dwWaitTime = ssp.dwWaitHint / 10;
+
+        if( dwWaitTime < 1000 )
+            dwWaitTime = 1000;
+        else if ( dwWaitTime > 10000 )
+            dwWaitTime = 10000;
+
+        Sleep( dwWaitTime );
+
+        if ( !QueryServiceStatusEx(
+                 schService,
+                 SC_STATUS_PROCESS_INFO,
+                 (LPBYTE)&ssp,
+                 sizeof(SERVICE_STATUS_PROCESS),
+                 &dwBytesNeeded ) )
+        {
+            printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
+            serviceCloseHandle(&schSCManager, &schService);
+            if(errorCode){
+                *errorCode = GetLastError();
+            }
+            return false;
+        }
+
+        if ( ssp.dwCurrentState == SERVICE_STOPPED )
+        {
+            printf("Service stopped successfully.\n");
+            serviceCloseHandle(&schSCManager, &schService);
+            return true;
+        }
+
+        if ( GetTickCount() - dwStartTime > dwTimeout )
+        {
+            printf("Service stop timed out.\n");
+            serviceCloseHandle(&schSCManager, &schService);
+            return false;
+        }
+    }
+
+    // If the service is running, dependencies must be stopped first.
+    serviceStopDependentServices(&schSCManager, &schService);
+
+    // Send a stop code to the service.
+    if ( !ControlService(
+             schService,
+             SERVICE_CONTROL_STOP,
+             (LPSERVICE_STATUS) &ssp ) )
+    {
+        printf( "ControlService failed (%d)\n", GetLastError() );
+        serviceCloseHandle(&schSCManager, &schService);
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        return false;
+    }
+
+    // Wait for the service to stop.
+
+    while ( ssp.dwCurrentState != SERVICE_STOPPED )
+    {
+        Sleep( ssp.dwWaitHint );
+        if ( !QueryServiceStatusEx(
+                 schService,
+                 SC_STATUS_PROCESS_INFO,
+                 (LPBYTE)&ssp,
+                 sizeof(SERVICE_STATUS_PROCESS),
+                 &dwBytesNeeded ) )
+        {
+            printf( "QueryServiceStatusEx failed (%d)\n", GetLastError() );
+            serviceCloseHandle(&schSCManager, &schService);
+            if(errorCode){
+                *errorCode = GetLastError();
+            }
+            return false;
+        }
+
+        if ( ssp.dwCurrentState == SERVICE_STOPPED )
+            break;
+
+        if ( GetTickCount() - dwStartTime > dwTimeout )
+        {
+            printf( "Wait timed out\n" );
+            serviceCloseHandle(&schSCManager, &schService);
+            return false;
+        }
+    }
+    printf("Service stopped successfully\n");
+
+    return true;
+}
+
+bool WinUtilities::serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HANDLE *schService)
+{
+    DWORD i;
+    DWORD dwBytesNeeded;
+    DWORD dwCount;
+
+    LPENUM_SERVICE_STATUS   lpDependencies = NULL;
+    ENUM_SERVICE_STATUS     ess;
+    SC_HANDLE               hDepService;
+    SERVICE_STATUS_PROCESS  ssp;
+
+    DWORD dwStartTime = GetTickCount();
+    DWORD dwTimeout = 30000; // 30-second time-out
+
+    // Pass a zero-length buffer to get the required buffer size.
+    if ( EnumDependentServices( *schService, SERVICE_ACTIVE,
+         lpDependencies, 0, &dwBytesNeeded, &dwCount ) )
+    {
+         // If the Enum call succeeds, then there are no dependent
+         // services, so do nothing.
+         return TRUE;
+    }
+    else
+    {
+        if ( GetLastError() != ERROR_MORE_DATA )
+            return FALSE; // Unexpected error
+
+        // Allocate a buffer for the dependencies.
+        lpDependencies = (LPENUM_SERVICE_STATUS) HeapAlloc(
+            GetProcessHeap(), HEAP_ZERO_MEMORY, dwBytesNeeded );
+
+        if ( !lpDependencies )
+            return FALSE;
+
+        __try {
+            // Enumerate the dependencies.
+            if ( !EnumDependentServices( *schService, SERVICE_ACTIVE,
+                lpDependencies, dwBytesNeeded, &dwBytesNeeded,
+                &dwCount ) )
+            return FALSE;
+
+            for ( i = 0; i < dwCount; i++ )
+            {
+                ess = *(lpDependencies + i);
+                // Open the service.
+                hDepService = OpenService( *schSCManager,
+                   ess.lpServiceName,
+                   SERVICE_STOP | SERVICE_QUERY_STATUS );
+
+                if ( !hDepService )
+                   return FALSE;
+
+                __try {
+                    // Send a stop code.
+                    if ( !ControlService( hDepService,
+                            SERVICE_CONTROL_STOP,
+                            (LPSERVICE_STATUS) &ssp ) )
+                    return FALSE;
+
+                    // Wait for the service to stop.
+                    while ( ssp.dwCurrentState != SERVICE_STOPPED )
+                    {
+                        Sleep( ssp.dwWaitHint );
+                        if ( !QueryServiceStatusEx(
+                                hDepService,
+                                SC_STATUS_PROCESS_INFO,
+                                (LPBYTE)&ssp,
+                                sizeof(SERVICE_STATUS_PROCESS),
+                                &dwBytesNeeded ) )
+                        return FALSE;
+
+                        if ( ssp.dwCurrentState == SERVICE_STOPPED )
+                            break;
+
+                        if ( GetTickCount() - dwStartTime > dwTimeout )
+                            return FALSE;
+                    }
+                }
+                __finally
+                {
+                    // Always release the service handle.
+                    CloseServiceHandle( hDepService );
+                }
+            }
+        }
+        __finally
+        {
+            // Always free the enumeration buffer.
+            HeapFree( GetProcessHeap(), 0, lpDependencies );
+        }
+    }
+    return TRUE;
+}
 
 
+void WinUtilities::serviceCloseHandle(SC_HANDLE *schSCManager, SC_HANDLE *schService){
+    if(schService){
+        CloseServiceHandle(*schService);
+    }
+
+    if(schSCManager){
+        CloseServiceHandle(*schSCManager);
+    }
+}
+
+
+
+
+BOOL WinUtilities::EnableShutdownPrivilege(){
+    HANDLE hProcess = NULL;
+    HANDLE hToken = NULL;
+    LUID uID = {0};
+    TOKEN_PRIVILEGES stToken_Privileges = {0};
+
+    hProcess = ::GetCurrentProcess();
+    if(!::OpenProcessToken(hProcess,TOKEN_ADJUST_PRIVILEGES,&hToken))
+        return FALSE;
+
+    if(!::LookupPrivilegeValue(NULL,SE_SHUTDOWN_NAME,&uID))
+        return FALSE;
+
+    stToken_Privileges.PrivilegeCount = 1;
+    stToken_Privileges.Privileges[0].Luid = uID;
+    stToken_Privileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+    if(!::AdjustTokenPrivileges(hToken,FALSE,&stToken_Privileges,sizeof stToken_Privileges,NULL,NULL))
+        return FALSE;
+
+    if(::GetLastError() != ERROR_SUCCESS)
+        return FALSE;
+
+    ::CloseHandle(hToken);
+    return TRUE;
+}
+
+//Shutdown
+BOOL WinUtilities::Shutdown(BOOL bForce){
+    EnableShutdownPrivilege();
+    if(bForce)
+        return ::ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE,0);
+    else
+        return ::ExitWindowsEx(EWX_SHUTDOWN,0);
+}
+
+//Logoff数
+BOOL WinUtilities::Logoff(BOOL bForce){
+    if(bForce)
+        return ::ExitWindowsEx(EWX_LOGOFF | EWX_FORCE, 0);
+    else
+        return ::ExitWindowsEx(EWX_LOGOFF,0);
+}
+
+//Reboot
+BOOL WinUtilities::Reboot(BOOL bForce){
+    EnableShutdownPrivilege();
+    if(bForce){
+        return ExitWindowsEx(EWX_REBOOT | EWX_FORCE,0);
+    }else{
+        return ::ExitWindowsEx(EWX_REBOOT,0);
+    }
+}
 
 
 
