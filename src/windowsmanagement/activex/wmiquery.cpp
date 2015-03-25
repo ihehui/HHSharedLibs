@@ -87,7 +87,7 @@ bool WMIQuery::isNull(){
 }
 
 QList<QVariantList> WMIQuery::queryValues(const QString &queryString, const QString &propertiesToRetrieve,
-                              const QString &wmiNamespace, const QString &server){
+                              const QString &wmiNamespace, DWORD *errorCode, const QString &server){
 
     QList<QVariantList> resultList;
     if(m_isNull || propertiesToRetrieve.trimmed().isEmpty()){
@@ -117,11 +117,13 @@ QList<QVariantList> WMIQuery::queryValues(const QString &queryString, const QStr
     {
         qCritical()<<"ERROR! ConnectServer failed. "<<hr<<" "<<WinUtilities::WinSysErrorMsg(hr);
 
+        if(*errorCode){
+            *errorCode = hr;
+        }
         return resultList;
     }
 
     // Set security levels on the proxy
-
     hr = CoSetProxyBlanket(
         pSvc,                        // Indicates the proxy to set
         RPC_C_AUTHN_WINNT,           // RPC_C_AUTHN_xxx
@@ -137,7 +139,9 @@ QList<QVariantList> WMIQuery::queryValues(const QString &queryString, const QStr
     {
         pSvc->Release();
         qCritical()<<"ERROR! Could not set proxy blanket. "<<hr<<" "<<WinUtilities::WinSysErrorMsg(hr);
-
+        if(*errorCode){
+            *errorCode = hr;
+        }
         return resultList;
     }
 
@@ -159,23 +163,20 @@ QList<QVariantList> WMIQuery::queryValues(const QString &queryString, const QStr
     {
         pSvc->Release();
         qCritical()<<"ERROR! Query for operating system name failed. "<<hr<<" "<<WinUtilities::WinSysErrorMsg(hr);
-
+        if(*errorCode){
+            *errorCode = hr;
+        }
         return resultList;
     }
 
-    // Get the data from the query
+    //Get the data from the query
     IWbemClassObject *pclsObj;
-    ULONG uReturn = 0;
-
+    ULONG uReturned = 0;
     while (pEnumerator)
     {
-        HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1,
-            &pclsObj, &uReturn);
-
-        if(0 == uReturn)
-        {
-            break;
-        }
+        HRESULT hRes = pEnumerator->Next(WBEM_INFINITE, 1, &pclsObj, &uReturned);
+        //if(WBEM_S_NO_ERROR != hRes){break;}
+        if(0 == uReturned){break;}
 
         VARIANT vtProp;
         VariantInit(&vtProp);
@@ -183,19 +184,21 @@ QList<QVariantList> WMIQuery::queryValues(const QString &queryString, const QStr
         QVariantList propertyValueList;
         foreach (QString property, properties) {
             // Get the value of the VendorSpecific property
-            hr = pclsObj->Get(property.toStdWString().c_str(), 0, &vtProp, 0, 0);
+            hRes = pclsObj->Get(property.toStdWString().c_str(), 0, &vtProp, 0, 0);
             propertyValueList.append(VARIANTToQVariant(vtProp, 0));
             VariantClear(&vtProp);
         }
+        pclsObj->Release();
+
         resultList.append(propertyValueList);
 
     }
 
+
     // Cleanup
     pSvc->Release();
     pEnumerator->Release();
-    pclsObj->Release();
-
+    //pclsObj->Release();
     return resultList;
 }
 

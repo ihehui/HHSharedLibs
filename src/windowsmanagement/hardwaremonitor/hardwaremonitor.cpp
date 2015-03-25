@@ -556,11 +556,13 @@ bool HardwareMonitor::getOSInfo(QJsonObject *object){
 }
 
 bool HardwareMonitor::getBaseBoardInfo(QJsonObject *object){
+    qDebug()<<"--HardwareMonitor::getBaseBoardInfo(...)";
+
     if(!object){return false;}
 
     initWMIQuery();
 
-    QString queryString = QString("SELECT * FROM Win32_BaseBoard ");
+    QString queryString = QString("SELECT Manufacturer,Product FROM Win32_BaseBoard ");
     //qDebug()<<"queryString:"<<queryString;
     QList<QVariantList> list = m_wmiQuery->queryValues(queryString, "Manufacturer,Product", "ROOT/CIMV2");
     if(list.isEmpty()){return false;}

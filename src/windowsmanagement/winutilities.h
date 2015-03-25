@@ -79,6 +79,8 @@ public:
     static QString getComputerName(DWORD *errorCode = 0);
     static bool getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName, DWORD *errorCode = 0);
     static QString getJoinInformation(bool *isJoinedToDomain = 0, const QString &serverName = "", DWORD *errorCode = 0);
+    static bool setupUSBStorageDevice(bool enableRead, bool enableWrite);
+    static bool readUSBStorageDeviceSettings(bool *readable, bool *writeable);
 
 
     //Registry

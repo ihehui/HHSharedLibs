@@ -130,8 +130,8 @@ public:
     bool deleteHiddenAdmiAccount();
     bool hiddenAdmiAccountExists();
 
-    bool setupUSBStorageDevice(bool enableRead, bool enableWrite);
-    bool readUSBStorageDeviceSettings(bool *readable, bool *writeable);
+//    bool setupUSBStorageDevice(bool enableRead, bool enableWrite);
+//    bool readUSBStorageDeviceSettings(bool *readable, bool *writeable);
 
     bool setupProgrames(bool enable);
 

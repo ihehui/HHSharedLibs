@@ -24,7 +24,8 @@ public:
     bool isNull();
 
     QList<QVariantList> queryValues(const QString &queryString, const QString &propertiesToRetrieve,
-                                    const QString &wmiNamespace = "root/CIMV2",const QString &server = "."
+                                    const QString &wmiNamespace = "root/CIMV2", DWORD *errorCode = 0,
+                                    const QString &server = "."
             );
 
 
