@@ -184,18 +184,18 @@ public:
     //    void setNewComputerNameToBeUsed(const QString &m_newComputerNameToBeUsed);
 
 
-    //////////////////////////////////////////////////////
-    bool runAs(const QString &userName, const QString &dowmainName, const QString &password,
-               const QString &exeFilePath, const QString &parameters = "", bool show = true,
-               const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
+//    //////////////////////////////////////////////////////
+//    bool runAs(const QString &userName, const QString &dowmainName, const QString &password,
+//               const QString &exeFilePath, const QString &parameters = "", bool show = true,
+//               const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
 
-    bool runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password,
-                                    const QString &exeFilePath, const QString &parameters = "", bool show = true,
-                                    const QString &workingDir = "");
-    bool runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password,
-                                    const QString &exeFilePath, const QString &parameters = "", bool show = true,
-                                    const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
-    //////////////////////////////////////////////////////
+//    bool runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password,
+//                                    const QString &exeFilePath, const QString &parameters = "", bool show = true,
+//                                    const QString &workingDir = "");
+//    bool runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password,
+//                                    const QString &exeFilePath, const QString &parameters = "", bool show = true,
+//                                    const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
+//    //////////////////////////////////////////////////////
 
     QString getCPUSerialNumber();
     QString getHardDriveSerialNumber(unsigned int driveIndex = 0);

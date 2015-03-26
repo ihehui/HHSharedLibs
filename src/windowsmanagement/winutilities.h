@@ -148,8 +148,25 @@ public:
     //System
     static BOOL EnableShutdownPrivilege();
     static BOOL Shutdown(BOOL bForce);
+    static BOOL Shutdown(const QString &machineName, const QString &message, DWORD timeout, bool forceAppsClosed, bool rebootAfterShutdown);
     static BOOL Logoff(BOOL bForce);
     static BOOL Reboot(BOOL bForce);
+    static BOOL LockWindows();
+
+    static bool isNT6OS();
+    //////////////////////////////////////////////////////
+    static bool runAs(const QString &userName, const QString &dowmainName, const QString &password,
+               const QString &exeFilePath, const QString &parameters = "", bool show = true,
+               const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
+
+    static bool runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password,
+                                    const QString &exeFilePath, const QString &parameters = "", bool show = true,
+                                    const QString &workingDir = "");
+    static bool runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password,
+                                    const QString &exeFilePath, const QString &parameters = "", bool show = true,
+                                    const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
+    //////////////////////////////////////////////////////
+
 
     //GDI+
     //Get image format Clsid

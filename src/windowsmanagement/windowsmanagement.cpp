@@ -3296,218 +3296,218 @@ void WindowsManagement::setLocation(Location location){
 
 //////////////////////////////////////////////////////
 
-bool WindowsManagement::runAs(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds){
-    qDebug()<<"----WindowsManagement::runAs(...)";
-    //qDebug()<<"User Name Of CurrentThread:"<<m_currentUserName;
+//bool WindowsManagement::runAs(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds){
+//    qDebug()<<"----WindowsManagement::runAs(...)";
+//    //qDebug()<<"User Name Of CurrentThread:"<<m_currentUserName;
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    if(userName.simplified().isEmpty()){
-        m_lastErrorString = tr("Invalid user name!");
-        return false;
-    }
-
-    //     if(!QFileInfo(exeFilePath).exists()){
-    //         error = tr("Can not find file '%1'!").arg(exeFilePath);
-    //         return false;
-    //     }
-
-    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
-    wcscpy(name, userName.toStdWString().c_str());
-
-    wchar_t domain[MaxGroupNameLength*sizeof(wchar_t)+1];
-    wcscpy(domain, domainName.toStdWString().c_str());
-
-    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
-    wcscpy(pwd, password.toStdWString().c_str());
-
-
-    //服务程序以"SYSTEM"身份运行，无法调用CreateProcessWithLogonW，必须用LogonUser和CreateProcessAsUser
-    //You cannot call CreateProcessWithLogonW from a process that is running under the LocalSystem account,
-    //  because the function uses the logon SID in the caller token, and the token for the LocalSystem account does not contain this SID.
-    //  As an alternative, use the CreateProcessAsUser and LogonUser functions.
-    if(m_currentUserName.toUpper() == "SYSTEM"){
-        //        HANDLE hToken = NULL;
-        //        if(!LogonUserW(name, domain, pwd, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken)){
-        //            m_lastErrorString = tr("Can not log user %1 on to this computer! Error code:%2").arg(userName).arg(GetLastError());
-        //            return false;
-        //        }
-
-        //        QString cmdStr = QString("\"" + exeFilePath + "\" " + parameters);
-        //        wchar_t cmdLine[32000*sizeof(wchar_t)+1];
-        //        wcscpy(cmdLine, cmdStr.toStdWString().c_str());
-
-        //        STARTUPINFO si;
-        //        PROCESS_INFORMATION pi;
-        //        ZeroMemory(&si, sizeof(STARTUPINFO));
-        //        si.cb= sizeof(STARTUPINFO);
-
-        //        wchar_t desktop[64];
-        //        wcscpy(desktop, "WinSta0\\Default");
-        //        si.lpDesktop = desktop;
-        //        si.dwFlags = STARTF_USESHOWWINDOW;
-        //        if(show){
-        //            si.wShowWindow = SW_SHOW;
-        //        }else{
-        //            si.wShowWindow = SW_HIDE;
-        //        }
-
-
-        //        bool ok = CreateProcessAsUserW(hToken, exeFilePath.toStdWString().c_str(), cmdLine, NULL, NULL, false, NORMAL_PRIORITY_CLASS, NULL,workingDir.toStdWString().c_str(), &si,&pi);
-        //        DWORD dwRet = GetLastError();
-        //        CloseHandle(hToken);
-        //        if(!ok){
-        //            m_lastErrorString = tr("Starting process '%1' failed! Error Code:%2").arg(exeFilePath).arg(dwRet);
-        //            qWarning()<<m_lastErrorString;
-        //            return false;
-        //        }else{
-        //            return true;
-        //        }
-
-        return runAsForInteractiveService(userName, domainName, password, exeFilePath, parameters, show, workingDir);
-
-    }else{
-        return runAsForDesktopApplication(userName, domainName, password, exeFilePath, parameters, show, workingDir, wait);
-    }
-
-}
-
-bool WindowsManagement::runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir){
-    m_lastErrorString = "";
-
-    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
-    wcscpy(name, userName.toStdWString().c_str());
-
-    wchar_t domain[512];
-    if(domainName.trimmed().isEmpty()){
-        wcscpy(domain, L".");
-    }else{
-        wcscpy(domain, domainName.toStdWString().c_str());
-    }
-
-    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
-    wcscpy(pwd, password.toStdWString().c_str());
-
-    QString cmdStr = QString("\"" + exeFilePath + "\" " + parameters);
-    wchar_t cmdLine[32000*sizeof(wchar_t)+1];
-    wcscpy(cmdLine, cmdStr.toStdWString().c_str());
-
-    wchar_t currentDirectory[MAX_PATH*sizeof(wchar_t)+1];
-    if(workingDir.trimmed().isEmpty()){
-        wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
-    }else{
-        wcscpy(currentDirectory, workingDir.toStdWString().c_str());
-    }
-
-    DWORD errorCode;
-    if(isNT6OS() && show){
-        DWORD sessionID;
-        if(!getUserSessionID(name, &sessionID)){
-            errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
-        }else{
-            errorCode = runAsForNT6InteractiveService(sessionID, NULL, cmdLine, currentDirectory, show);
-        }
-    }else{
-        errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
-    }
-
-    if(ERROR_SUCCESS != errorCode){
-        m_lastErrorString = tr("Failed to start process '%1'! %2:%3.").arg(exeFilePath).arg(errorCode).arg(WinUtilities::WinSysErrorMsg(errorCode));
-        return false;
-    }
-
-    return true;
-}
-
-bool WindowsManagement::runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds){
-    m_lastErrorString = "";
-
-    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
-    wcscpy(name, userName.toStdWString().c_str());
-
-    wchar_t domain[512];
-    if(domainName.trimmed().isEmpty()){
-        wcscpy(domain, L".");
-    }else{
-        wcscpy(domain, domainName.toStdWString().c_str());
-    }
-
-    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
-    wcscpy(pwd, password.toStdWString().c_str());
-
-    wchar_t cmdLine[8192*sizeof(wchar_t)+1];
-    wcscpy(cmdLine, parameters.toStdWString().c_str());
-    //wcscpy(cmdLine, QString("\"" + exeFilePath + "\" " + parameters).toStdWString().c_str());
-
-    wchar_t currentDirectory[MAX_PATH*sizeof(wchar_t)+1];
-    if(workingDir.trimmed().isEmpty()){
-        wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
-    }else{
-        wcscpy(currentDirectory, workingDir.toStdWString().c_str());
-    }
-
-    DWORD dwRet;
-    STARTUPINFO si = {0};
-    PROCESS_INFORMATION pi = {0};
-    //ZeroMemory(&si, sizeof(STARTUPINFO));
-    si.cb= sizeof(STARTUPINFO);
-    si.dwFlags = STARTF_USESHOWWINDOW;
-    if(show){
-        si.wShowWindow = SW_SHOW;
-    }else{
-        si.wShowWindow = SW_HIDE;
-    }
-
-//    HANDLE hToken = NULL;
-//    LPVOID lpvEnv = NULL;
-//    WCHAR szUserProfile[512] = L"";
-//    DWORD dwSize = sizeof(szUserProfile)/sizeof(WCHAR);
-//    wcscpy(szUserProfile, workingDir.toStdWString().c_str());
-//    if(LogonUserW(name, domain, pwd, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken)){
-//        if (!CreateEnvironmentBlock(&lpvEnv, hToken, TRUE)){
-//            dwRet = GetLastError();
-//            m_lastErrorString = tr("Can not create environment block! %1: %2").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
-//            //return false;
-//        }
-//        if (!GetUserProfileDirectoryW(hToken, szUserProfile, &dwSize)){
-//            dwRet = GetLastError();
-//            m_lastErrorString = tr("Can not get user profile directory! %1: %2").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
-//            //return false;
-//        }
-//    }else{
-//        m_lastErrorString = tr("Can not log user %1 on to this computer! Error code:%2").arg(userName).arg(GetLastError());
+//    if(userName.simplified().isEmpty()){
+//        m_lastErrorString = tr("Invalid user name!");
 //        return false;
 //    }
 
-    DWORD dwCreationFlags = CREATE_UNICODE_ENVIRONMENT;
-    //bool ok = CreateProcessWithLogonW(name, domain, pwd, LOGON_WITH_PROFILE, NULL, cmdLine, dwCreationFlags, lpvEnv, szUserProfile, &si, &pi);
-    bool ok = CreateProcessWithLogonW(name, domain, pwd, LOGON_WITH_PROFILE, exeFilePath.toStdWString().c_str(), cmdLine, dwCreationFlags, NULL, currentDirectory, &si, &pi);
+//    //     if(!QFileInfo(exeFilePath).exists()){
+//    //         error = tr("Can not find file '%1'!").arg(exeFilePath);
+//    //         return false;
+//    //     }
 
-//    if (!DestroyEnvironmentBlock(lpvEnv)){
-//        dwRet = GetLastError();
-//        m_lastErrorString = tr("Can not destroy environment block! %1:%2.").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
-//        qWarning()<<m_lastErrorString;
+//    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+//    wcscpy(name, userName.toStdWString().c_str());
+
+//    wchar_t domain[MaxGroupNameLength*sizeof(wchar_t)+1];
+//    wcscpy(domain, domainName.toStdWString().c_str());
+
+//    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+//    wcscpy(pwd, password.toStdWString().c_str());
+
+
+//    //服务程序以"SYSTEM"身份运行，无法调用CreateProcessWithLogonW，必须用LogonUser和CreateProcessAsUser
+//    //You cannot call CreateProcessWithLogonW from a process that is running under the LocalSystem account,
+//    //  because the function uses the logon SID in the caller token, and the token for the LocalSystem account does not contain this SID.
+//    //  As an alternative, use the CreateProcessAsUser and LogonUser functions.
+//    if(m_currentUserName.toUpper() == "SYSTEM"){
+//        //        HANDLE hToken = NULL;
+//        //        if(!LogonUserW(name, domain, pwd, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken)){
+//        //            m_lastErrorString = tr("Can not log user %1 on to this computer! Error code:%2").arg(userName).arg(GetLastError());
+//        //            return false;
+//        //        }
+
+//        //        QString cmdStr = QString("\"" + exeFilePath + "\" " + parameters);
+//        //        wchar_t cmdLine[32000*sizeof(wchar_t)+1];
+//        //        wcscpy(cmdLine, cmdStr.toStdWString().c_str());
+
+//        //        STARTUPINFO si;
+//        //        PROCESS_INFORMATION pi;
+//        //        ZeroMemory(&si, sizeof(STARTUPINFO));
+//        //        si.cb= sizeof(STARTUPINFO);
+
+//        //        wchar_t desktop[64];
+//        //        wcscpy(desktop, "WinSta0\\Default");
+//        //        si.lpDesktop = desktop;
+//        //        si.dwFlags = STARTF_USESHOWWINDOW;
+//        //        if(show){
+//        //            si.wShowWindow = SW_SHOW;
+//        //        }else{
+//        //            si.wShowWindow = SW_HIDE;
+//        //        }
+
+
+//        //        bool ok = CreateProcessAsUserW(hToken, exeFilePath.toStdWString().c_str(), cmdLine, NULL, NULL, false, NORMAL_PRIORITY_CLASS, NULL,workingDir.toStdWString().c_str(), &si,&pi);
+//        //        DWORD dwRet = GetLastError();
+//        //        CloseHandle(hToken);
+//        //        if(!ok){
+//        //            m_lastErrorString = tr("Starting process '%1' failed! Error Code:%2").arg(exeFilePath).arg(dwRet);
+//        //            qWarning()<<m_lastErrorString;
+//        //            return false;
+//        //        }else{
+//        //            return true;
+//        //        }
+
+//        return runAsForInteractiveService(userName, domainName, password, exeFilePath, parameters, show, workingDir);
+
+//    }else{
+//        return runAsForDesktopApplication(userName, domainName, password, exeFilePath, parameters, show, workingDir, wait);
 //    }
-//    CloseHandle(hToken);
+
+//}
+
+//bool WindowsManagement::runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir){
+//    m_lastErrorString = "";
+
+//    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+//    wcscpy(name, userName.toStdWString().c_str());
+
+//    wchar_t domain[512];
+//    if(domainName.trimmed().isEmpty()){
+//        wcscpy(domain, L".");
+//    }else{
+//        wcscpy(domain, domainName.toStdWString().c_str());
+//    }
+
+//    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+//    wcscpy(pwd, password.toStdWString().c_str());
+
+//    QString cmdStr = QString("\"" + exeFilePath + "\" " + parameters);
+//    wchar_t cmdLine[32000*sizeof(wchar_t)+1];
+//    wcscpy(cmdLine, cmdStr.toStdWString().c_str());
+
+//    wchar_t currentDirectory[MAX_PATH*sizeof(wchar_t)+1];
+//    if(workingDir.trimmed().isEmpty()){
+//        wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
+//    }else{
+//        wcscpy(currentDirectory, workingDir.toStdWString().c_str());
+//    }
+
+//    DWORD errorCode;
+//    if(isNT6OS() && show){
+//        DWORD sessionID;
+//        if(!getUserSessionID(name, &sessionID)){
+//            errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
+//        }else{
+//            errorCode = runAsForNT6InteractiveService(sessionID, NULL, cmdLine, currentDirectory, show);
+//        }
+//    }else{
+//        errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
+//    }
+
+//    if(ERROR_SUCCESS != errorCode){
+//        m_lastErrorString = tr("Failed to start process '%1'! %2:%3.").arg(exeFilePath).arg(errorCode).arg(WinUtilities::WinSysErrorMsg(errorCode));
+//        return false;
+//    }
+
+//    return true;
+//}
+
+//bool WindowsManagement::runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds){
+//    m_lastErrorString = "";
+
+//    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+//    wcscpy(name, userName.toStdWString().c_str());
+
+//    wchar_t domain[512];
+//    if(domainName.trimmed().isEmpty()){
+//        wcscpy(domain, L".");
+//    }else{
+//        wcscpy(domain, domainName.toStdWString().c_str());
+//    }
+
+//    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+//    wcscpy(pwd, password.toStdWString().c_str());
+
+//    wchar_t cmdLine[8192*sizeof(wchar_t)+1];
+//    wcscpy(cmdLine, parameters.toStdWString().c_str());
+//    //wcscpy(cmdLine, QString("\"" + exeFilePath + "\" " + parameters).toStdWString().c_str());
+
+//    wchar_t currentDirectory[MAX_PATH*sizeof(wchar_t)+1];
+//    if(workingDir.trimmed().isEmpty()){
+//        wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
+//    }else{
+//        wcscpy(currentDirectory, workingDir.toStdWString().c_str());
+//    }
+
+//    DWORD dwRet;
+//    STARTUPINFO si = {0};
+//    PROCESS_INFORMATION pi = {0};
+//    //ZeroMemory(&si, sizeof(STARTUPINFO));
+//    si.cb= sizeof(STARTUPINFO);
+//    si.dwFlags = STARTF_USESHOWWINDOW;
+//    if(show){
+//        si.wShowWindow = SW_SHOW;
+//    }else{
+//        si.wShowWindow = SW_HIDE;
+//    }
+
+////    HANDLE hToken = NULL;
+////    LPVOID lpvEnv = NULL;
+////    WCHAR szUserProfile[512] = L"";
+////    DWORD dwSize = sizeof(szUserProfile)/sizeof(WCHAR);
+////    wcscpy(szUserProfile, workingDir.toStdWString().c_str());
+////    if(LogonUserW(name, domain, pwd, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken)){
+////        if (!CreateEnvironmentBlock(&lpvEnv, hToken, TRUE)){
+////            dwRet = GetLastError();
+////            m_lastErrorString = tr("Can not create environment block! %1: %2").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+////            //return false;
+////        }
+////        if (!GetUserProfileDirectoryW(hToken, szUserProfile, &dwSize)){
+////            dwRet = GetLastError();
+////            m_lastErrorString = tr("Can not get user profile directory! %1: %2").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+////            //return false;
+////        }
+////    }else{
+////        m_lastErrorString = tr("Can not log user %1 on to this computer! Error code:%2").arg(userName).arg(GetLastError());
+////        return false;
+////    }
+
+//    DWORD dwCreationFlags = CREATE_UNICODE_ENVIRONMENT;
+//    //bool ok = CreateProcessWithLogonW(name, domain, pwd, LOGON_WITH_PROFILE, NULL, cmdLine, dwCreationFlags, lpvEnv, szUserProfile, &si, &pi);
+//    bool ok = CreateProcessWithLogonW(name, domain, pwd, LOGON_WITH_PROFILE, exeFilePath.toStdWString().c_str(), cmdLine, dwCreationFlags, NULL, currentDirectory, &si, &pi);
+
+////    if (!DestroyEnvironmentBlock(lpvEnv)){
+////        dwRet = GetLastError();
+////        m_lastErrorString = tr("Can not destroy environment block! %1:%2.").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+////        qWarning()<<m_lastErrorString;
+////    }
+////    CloseHandle(hToken);
 
 
-    if(!ok){
-        dwRet = GetLastError();
-        m_lastErrorString = tr("Starting process '%1' failed! %2:%3.").arg(exeFilePath).arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
-        qWarning()<<m_lastErrorString;
-        return false;
-    }
+//    if(!ok){
+//        dwRet = GetLastError();
+//        m_lastErrorString = tr("Starting process '%1' failed! %2:%3.").arg(exeFilePath).arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+//        qWarning()<<m_lastErrorString;
+//        return false;
+//    }
 
-    if(wait){
-        dwRet = WaitForSingleObject(pi.hProcess, milliseconds?milliseconds:INFINITE);
-        qDebug()<<"dwRet:"<<dwRet;
-    }
+//    if(wait){
+//        dwRet = WaitForSingleObject(pi.hProcess, milliseconds?milliseconds:INFINITE);
+//        qDebug()<<"dwRet:"<<dwRet;
+//    }
 
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-    return true;
+//    CloseHandle(pi.hProcess);
+//    CloseHandle(pi.hThread);
+//    return true;
 
-}
+//}
 
 
 ////////////////////////////////////////////////////

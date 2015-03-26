@@ -40,6 +40,7 @@
 #include <QDateTime>
 #include <QFile>
 #include <QDir>
+#include <QCoreApplication>
 
 #include <windows.h>
 #include <gdiplus.h>
@@ -56,7 +57,7 @@ const int MaxUserPasswordLength = LM20_PWLEN;
 const int MaxUserCommentLength = 256;
 const int MaxGroupNameLength = 256;
 
-
+#include "WindowsAPI.h"
 
 
 
@@ -2429,6 +2430,28 @@ BOOL WinUtilities::Shutdown(BOOL bForce){
         return ::ExitWindowsEx(EWX_SHUTDOWN,0);
 }
 
+BOOL WinUtilities::Shutdown(const QString &machineName, const QString &message, DWORD timeout, bool forceAppsClosed, bool rebootAfterShutdown){
+    EnableShutdownPrivilege();
+
+
+    wchar_t lpMachineName[64], lpMessage[3072];
+    memset(lpMachineName, 0, sizeof(lpMachineName));
+    memset(lpMessage, 0, sizeof(lpMessage));
+
+    wcscpy(lpMachineName, machineName.toStdWString().c_str());
+    wcscpy(lpMessage, message.toStdWString().c_str());
+
+    // Display the shutdown dialog box and start the countdown.
+    BOOL fResult = InitiateSystemShutdownW(
+       lpMachineName,    // NULL:shut down local computer
+       lpMessage,   // message for user
+       timeout,      // time-out period, in seconds
+       forceAppsClosed,   // if ask user to close apps
+       rebootAfterShutdown);   // reboot after shutdown
+
+    return fResult;
+}
+
 //Logoff数
 BOOL WinUtilities::Logoff(BOOL bForce){
     if(bForce)
@@ -2447,7 +2470,192 @@ BOOL WinUtilities::Reboot(BOOL bForce){
     }
 }
 
+BOOL WinUtilities::LockWindows(){
+    return LockWorkStation();
+}
 
+bool WinUtilities::isNT6OS()
+{
+    OSVERSIONINFO  osvi;
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx (&osvi);
+    if(osvi.dwMajorVersion > 5){
+        return true;
+    }
+
+    return false;
+}
+
+//////////////////////////////////////////////////////
+
+bool WinUtilities::runAs(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds){
+    qDebug()<<"----WinUtilities::runAs(...)";
+    //qDebug()<<"User Name Of CurrentThread:"<<m_currentUserName;
+
+
+    if(userName.simplified().isEmpty()){
+        return false;
+    }
+
+//    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+//    wcscpy(name, userName.toStdWString().c_str());
+
+//    wchar_t domain[MaxGroupNameLength*sizeof(wchar_t)+1];
+//    wcscpy(domain, domainName.toStdWString().c_str());
+
+//    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+//    wcscpy(pwd, password.toStdWString().c_str());
+
+
+    //服务程序以"SYSTEM"身份运行，无法调用CreateProcessWithLogonW，必须用LogonUser和CreateProcessAsUser
+    //You cannot call CreateProcessWithLogonW from a process that is running under the LocalSystem account,
+    //  because the function uses the logon SID in the caller token, and the token for the LocalSystem account does not contain this SID.
+    //  As an alternative, use the CreateProcessAsUser and LogonUser functions.
+    if(getUserNameOfCurrentThread().toUpper() == "SYSTEM"){
+        return runAsForInteractiveService(userName, domainName, password, exeFilePath, parameters, show, workingDir);
+    }else{
+        return runAsForDesktopApplication(userName, domainName, password, exeFilePath, parameters, show, workingDir, wait);
+    }
+
+}
+
+bool WinUtilities::runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir){
+
+    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+    wcscpy(name, userName.toStdWString().c_str());
+
+    wchar_t domain[512];
+    if(domainName.trimmed().isEmpty()){
+        wcscpy(domain, L".");
+    }else{
+        wcscpy(domain, domainName.toStdWString().c_str());
+    }
+
+    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+    wcscpy(pwd, password.toStdWString().c_str());
+
+    QString cmdStr = QString("\"" + exeFilePath + "\" " + parameters);
+    wchar_t cmdLine[32000*sizeof(wchar_t)+1];
+    wcscpy(cmdLine, cmdStr.toStdWString().c_str());
+
+    wchar_t currentDirectory[MAX_PATH*sizeof(wchar_t)+1];
+    if(workingDir.trimmed().isEmpty()){
+        wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
+    }else{
+        wcscpy(currentDirectory, workingDir.toStdWString().c_str());
+    }
+
+    DWORD errorCode;
+    if(isNT6OS() && show){
+        DWORD sessionID;
+        if(!getUserSessionID(name, &sessionID)){
+            errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
+        }else{
+            errorCode = runAsForNT6InteractiveService(sessionID, NULL, cmdLine, currentDirectory, show);
+        }
+    }else{
+        errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
+    }
+
+    if(ERROR_SUCCESS != errorCode){
+        qCritical()<<QString("Failed to start process '%1'! %2:%3.").arg(exeFilePath).arg(errorCode).arg(WinUtilities::WinSysErrorMsg(errorCode));
+        return false;
+    }
+
+    return true;
+}
+
+bool WinUtilities::runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds){
+
+    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+    wcscpy(name, userName.toStdWString().c_str());
+
+    wchar_t domain[512];
+    if(domainName.trimmed().isEmpty()){
+        wcscpy(domain, L".");
+    }else{
+        wcscpy(domain, domainName.toStdWString().c_str());
+    }
+
+    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+    wcscpy(pwd, password.toStdWString().c_str());
+
+    wchar_t cmdLine[8192*sizeof(wchar_t)+1];
+    wcscpy(cmdLine, parameters.toStdWString().c_str());
+    //wcscpy(cmdLine, QString("\"" + exeFilePath + "\" " + parameters).toStdWString().c_str());
+
+    wchar_t currentDirectory[MAX_PATH*sizeof(wchar_t)+1];
+    if(workingDir.trimmed().isEmpty()){
+        wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
+    }else{
+        wcscpy(currentDirectory, workingDir.toStdWString().c_str());
+    }
+
+    DWORD dwRet;
+    STARTUPINFO si = {0};
+    PROCESS_INFORMATION pi = {0};
+    //ZeroMemory(&si, sizeof(STARTUPINFO));
+    si.cb= sizeof(STARTUPINFO);
+    si.dwFlags = STARTF_USESHOWWINDOW;
+    if(show){
+        si.wShowWindow = SW_SHOW;
+    }else{
+        si.wShowWindow = SW_HIDE;
+    }
+
+//    HANDLE hToken = NULL;
+//    LPVOID lpvEnv = NULL;
+//    WCHAR szUserProfile[512] = L"";
+//    DWORD dwSize = sizeof(szUserProfile)/sizeof(WCHAR);
+//    wcscpy(szUserProfile, workingDir.toStdWString().c_str());
+//    if(LogonUserW(name, domain, pwd, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken)){
+//        if (!CreateEnvironmentBlock(&lpvEnv, hToken, TRUE)){
+//            dwRet = GetLastError();
+//            m_lastErrorString = tr("Can not create environment block! %1: %2").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+//            //return false;
+//        }
+//        if (!GetUserProfileDirectoryW(hToken, szUserProfile, &dwSize)){
+//            dwRet = GetLastError();
+//            m_lastErrorString = tr("Can not get user profile directory! %1: %2").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+//            //return false;
+//        }
+//    }else{
+//        m_lastErrorString = tr("Can not log user %1 on to this computer! Error code:%2").arg(userName).arg(GetLastError());
+//        return false;
+//    }
+
+    DWORD dwCreationFlags = CREATE_UNICODE_ENVIRONMENT;
+    //bool ok = CreateProcessWithLogonW(name, domain, pwd, LOGON_WITH_PROFILE, NULL, cmdLine, dwCreationFlags, lpvEnv, szUserProfile, &si, &pi);
+    bool ok = CreateProcessWithLogonW(name, domain, pwd, LOGON_WITH_PROFILE, exeFilePath.toStdWString().c_str(), cmdLine, dwCreationFlags, NULL, currentDirectory, &si, &pi);
+
+//    if (!DestroyEnvironmentBlock(lpvEnv)){
+//        dwRet = GetLastError();
+//        m_lastErrorString = tr("Can not destroy environment block! %1:%2.").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+//        qWarning()<<m_lastErrorString;
+//    }
+//    CloseHandle(hToken);
+
+
+    if(!ok){
+        dwRet = GetLastError();
+        QString errorString = QString("Starting process '%1' failed! %2:%3.").arg(exeFilePath).arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+        qCritical()<<errorString;
+        return false;
+    }
+
+    if(wait){
+        dwRet = WaitForSingleObject(pi.hProcess, milliseconds?milliseconds:INFINITE);
+        qDebug()<<"dwRet:"<<dwRet;
+    }
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    return true;
+
+}
+
+
+////////////////////////////////////////////////////
 
 
 
