@@ -130,7 +130,7 @@ bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, co
 
     emit signalProgressUpdate(QString(tr("Adding user %1 to local system...").arg(userName)), 0);
     QCoreApplication::processEvents();
-    if(!addUserToLocalSystem(id, pwd, cmt)){
+    if(!WinUtilities::createLocalUser(id, pwd, cmt)){
         emit signalAddingUserJobDone(false);
         return false;
     }
@@ -676,7 +676,7 @@ bool WindowsManagement::isAdmin(const QString &userName){
     }
 
     QStringList groups;
-    getLocalGroupsTheUserBelongs(&groups, userName);
+    WinUtilities::getLocalGroupsTheUserBelongs(&groups, userName);
     //qWarning()<<QString("User:%1 Groups:%2").arg(userName).arg(groups.join(","));
     
     bool userIsAdmin = groups.contains("Administrators", Qt::CaseInsensitive);
@@ -686,178 +686,178 @@ bool WindowsManagement::isAdmin(const QString &userName){
 
 }
 
-bool WindowsManagement::updateUserPassword(const QString &userName, const QString &password, bool activeIfAccountDisabled){
-    qDebug()<<"--WindowsManagement::updateUserPassword(...) "<<"userName:"<<userName;
-    m_lastErrorString = "";
+//bool WindowsManagement::updateUserPassword(const QString &userName, const QString &password, bool activeIfAccountDisabled){
+//    qDebug()<<"--WindowsManagement::updateUserPassword(...) "<<"userName:"<<userName;
+//    m_lastErrorString = "";
 
-    QString name = userName.trimmed();
-    if(name.isEmpty()){
-        name = m_currentUserName;
-    }
+//    QString name = userName.trimmed();
+//    if(name.isEmpty()){
+//        name = m_currentUserName;
+//    }
 
-    if(name.isEmpty()){
-        m_lastErrorString = tr("Invalid user name!");
-        return false;
-    }
+//    if(name.isEmpty()){
+//        m_lastErrorString = tr("Invalid user name!");
+//        return false;
+//    }
 
-    //    if(!localUsers().contains(name, Qt::CaseInsensitive)){
-    //        error = tr("User '%1' does not exist!").arg(name);
-    //        return false;
-    //    }
+//    //    if(!localUsers().contains(name, Qt::CaseInsensitive)){
+//    //        error = tr("User '%1' does not exist!").arg(name);
+//    //        return false;
+//    //    }
 
 
-    bool result = false;
+//    bool result = false;
 
-    DWORD dwLevel = 1;
-    PUSER_INFO_1 pUsr = NULL;
-    NET_API_STATUS netRet = 0;
-    DWORD dwParmError = 0;
-    //
-    // First, retrieve the user information at level 3. This is
-    //  necessary to prevent resetting other user information when
-    //  the NetUserSetInfo call is made.
-    //
-    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
-    if( netRet == NERR_Success )
-    {
-        //
-        // The function was successful;
-        //  set the usri3_password_expired value to a nonzero value.
-        //  Call the NetUserSetInfo function.
-        //
-        wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
-        wcscpy(pwd, password.toStdWString().c_str());
-        pUsr->usri1_password = pwd;
+//    DWORD dwLevel = 1;
+//    PUSER_INFO_1 pUsr = NULL;
+//    NET_API_STATUS netRet = 0;
+//    DWORD dwParmError = 0;
+//    //
+//    // First, retrieve the user information at level 3. This is
+//    //  necessary to prevent resetting other user information when
+//    //  the NetUserSetInfo call is made.
+//    //
+//    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
+//    if( netRet == NERR_Success )
+//    {
+//        //
+//        // The function was successful;
+//        //  set the usri3_password_expired value to a nonzero value.
+//        //  Call the NetUserSetInfo function.
+//        //
+//        wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+//        wcscpy(pwd, password.toStdWString().c_str());
+//        pUsr->usri1_password = pwd;
 
-        if(activeIfAccountDisabled){
-            DWORD flags = pUsr->usri1_flags;
-            if(flags & UF_ACCOUNTDISABLE){
-                pUsr->usri1_flags = flags ^ UF_ACCOUNTDISABLE;
-            }
-        }
+//        if(activeIfAccountDisabled){
+//            DWORD flags = pUsr->usri1_flags;
+//            if(flags & UF_ACCOUNTDISABLE){
+//                pUsr->usri1_flags = flags ^ UF_ACCOUNTDISABLE;
+//            }
+//        }
 
-        netRet = NetUserSetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE)pUsr, &dwParmError);
-        //
-        // A zero return indicates success.
-        // If the return value is ERROR_INVALID_PARAMETER,
-        //  the dwParmError parameter will contain a value indicating the
-        //  invalid parameter within the user_info_3 structure. These values
-        //  are defined in the lmaccess.h file.
-        //
-        if( netRet == NERR_Success ){
-            printf("Password has been changed for user %S\n", name.toStdWString().c_str());
-            result = true;
+//        netRet = NetUserSetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE)pUsr, &dwParmError);
+//        //
+//        // A zero return indicates success.
+//        // If the return value is ERROR_INVALID_PARAMETER,
+//        //  the dwParmError parameter will contain a value indicating the
+//        //  invalid parameter within the user_info_3 structure. These values
+//        //  are defined in the lmaccess.h file.
+//        //
+//        if( netRet == NERR_Success ){
+//            printf("Password has been changed for user %S\n", name.toStdWString().c_str());
+//            result = true;
 
-        }else {
-            //printf("Error %d occurred.  Parm Error %d returned.\n", netRet, dwParmError);
-            m_lastErrorString = tr("Error %1 occurred while updating the password. Parm Error %2 returned.").arg(netRet).arg(dwParmError);
-            qCritical()<<m_lastErrorString;
-            result = false;
-        }
-        //
-        // Must free the buffer returned by NetUserGetInfo.
-        //
-        NetApiBufferFree( pUsr);
-    }else{
-        //printf("NetUserGetInfo failed: %d\n",netRet);
-        m_lastErrorString = tr("An error occurred while updating the password. %1:%2.").arg(netRet).arg(WinUtilities::WinSysErrorMsg(netRet));
-        qCritical()<<m_lastErrorString;
-        result = false;
-    }
+//        }else {
+//            //printf("Error %d occurred.  Parm Error %d returned.\n", netRet, dwParmError);
+//            m_lastErrorString = tr("Error %1 occurred while updating the password. Parm Error %2 returned.").arg(netRet).arg(dwParmError);
+//            qCritical()<<m_lastErrorString;
+//            result = false;
+//        }
+//        //
+//        // Must free the buffer returned by NetUserGetInfo.
+//        //
+//        NetApiBufferFree( pUsr);
+//    }else{
+//        //printf("NetUserGetInfo failed: %d\n",netRet);
+//        m_lastErrorString = tr("An error occurred while updating the password. %1:%2.").arg(netRet).arg(WinUtilities::WinSysErrorMsg(netRet));
+//        qCritical()<<m_lastErrorString;
+//        result = false;
+//    }
 
-    return result;
-}
+//    return result;
+//}
 
-bool WindowsManagement::setupUserAccountState(const QString &userName,  bool enableAccount){
+//bool WindowsManagement::setupUserAccountState(const QString &userName,  bool enableAccount){
 
-    m_lastErrorString = "";
-    QString name = userName.trimmed();
+//    m_lastErrorString = "";
+//    QString name = userName.trimmed();
 
-    if(name.isEmpty()){
-        m_lastErrorString = tr("Invalid user name!");
-        return false;
-    }
+//    if(name.isEmpty()){
+//        m_lastErrorString = tr("Invalid user name!");
+//        return false;
+//    }
 
-    bool result = false;
+//    bool result = false;
 
-    DWORD dwLevel = 1;
-    PUSER_INFO_1 pUsr = NULL;
-    NET_API_STATUS netRet = 0;
-    DWORD dwParmError = 0;
+//    DWORD dwLevel = 1;
+//    PUSER_INFO_1 pUsr = NULL;
+//    NET_API_STATUS netRet = 0;
+//    DWORD dwParmError = 0;
 
-    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
-    if( netRet == NERR_Success )
-    {
-        DWORD flags = pUsr->usri1_flags;
-        if(enableAccount){
-            if(flags & UF_ACCOUNTDISABLE){
-                pUsr->usri1_flags = flags ^ UF_ACCOUNTDISABLE;
-            }
-        }else{
-            pUsr->usri1_flags = flags | UF_ACCOUNTDISABLE;
-        }
+//    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
+//    if( netRet == NERR_Success )
+//    {
+//        DWORD flags = pUsr->usri1_flags;
+//        if(enableAccount){
+//            if(flags & UF_ACCOUNTDISABLE){
+//                pUsr->usri1_flags = flags ^ UF_ACCOUNTDISABLE;
+//            }
+//        }else{
+//            pUsr->usri1_flags = flags | UF_ACCOUNTDISABLE;
+//        }
 
-        netRet = NetUserSetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE)pUsr, &dwParmError);
+//        netRet = NetUserSetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE)pUsr, &dwParmError);
 
-        if( netRet == NERR_Success ){
-            //printf("Password has been changed for user %S\n", name.toStdWString().c_str());
-            m_lastErrorString = "";
-            result = true;
+//        if( netRet == NERR_Success ){
+//            //printf("Password has been changed for user %S\n", name.toStdWString().c_str());
+//            m_lastErrorString = "";
+//            result = true;
 
-        }else {
-            //printf("Error %d occurred.  Parm Error %d returned.\n", netRet, dwParmError);
-            m_lastErrorString = tr("Error %1 occurred while setting up the account. Parm Error %2 returned.").arg(netRet).arg(dwParmError);
-            qCritical()<<m_lastErrorString;
-            result = false;
-        }
+//        }else {
+//            //printf("Error %d occurred.  Parm Error %d returned.\n", netRet, dwParmError);
+//            m_lastErrorString = tr("Error %1 occurred while setting up the account. Parm Error %2 returned.").arg(netRet).arg(dwParmError);
+//            qCritical()<<m_lastErrorString;
+//            result = false;
+//        }
 
-        NetApiBufferFree( pUsr);
-    }else{
-        //printf("NetUserGetInfo failed: %d\n",netRet);
-        m_lastErrorString = tr("An error occurred while setting up the account. NetUserGetInfo failed: %1").arg(netRet);
-        qCritical()<<m_lastErrorString;
-        result = false;
-    }
+//        NetApiBufferFree( pUsr);
+//    }else{
+//        //printf("NetUserGetInfo failed: %d\n",netRet);
+//        m_lastErrorString = tr("An error occurred while setting up the account. NetUserGetInfo failed: %1").arg(netRet);
+//        qCritical()<<m_lastErrorString;
+//        result = false;
+//    }
 
-    return result;
-}
+//    return result;
+//}
 
-WindowsManagement::UserAccountState WindowsManagement::getUserAccountState(const QString &userName){
-    qDebug()<<"--WindowsManagement::getUserAccountState(...) "<<" userName:"<<userName;
-    UserAccountState result = UAS_Unknown;
-    m_lastErrorString = "";
+//WindowsManagement::UserAccountState WindowsManagement::getUserAccountState(const QString &userName){
+//    qDebug()<<"--WindowsManagement::getUserAccountState(...) "<<" userName:"<<userName;
+//    UserAccountState result = UAS_Unknown;
+//    m_lastErrorString = "";
 
-    QString name = userName.trimmed();
-    if(name.isEmpty()){
-        m_lastErrorString = tr("Invalid user name!");
-        return result;
-    }
+//    QString name = userName.trimmed();
+//    if(name.isEmpty()){
+//        m_lastErrorString = tr("Invalid user name!");
+//        return result;
+//    }
 
-    DWORD dwLevel = 1;
-    PUSER_INFO_1 pUsr = NULL;
-    NET_API_STATUS netRet = 0;
+//    DWORD dwLevel = 1;
+//    PUSER_INFO_1 pUsr = NULL;
+//    NET_API_STATUS netRet = 0;
 
-    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
-    if( netRet == NERR_Success )
-    {
+//    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
+//    if( netRet == NERR_Success )
+//    {
 
-        DWORD flags = pUsr->usri1_flags;
+//        DWORD flags = pUsr->usri1_flags;
 
-        if(flags & UF_ACCOUNTDISABLE){
-            result = UAS_Disabled;
-        }else{
-            result = UAS_Enabled;
-        }
+//        if(flags & UF_ACCOUNTDISABLE){
+//            result = UAS_Disabled;
+//        }else{
+//            result = UAS_Enabled;
+//        }
 
-    }else{
-        //printf("NetUserGetInfo failed: %d\n",netRet);
-        m_lastErrorString = tr("An error occurred while setting up the account. %1:%2.").arg(netRet).arg(WinUtilities::WinSysErrorMsg(netRet));
-        qDebug()<<m_lastErrorString;
-    }
+//    }else{
+//        //printf("NetUserGetInfo failed: %d\n",netRet);
+//        m_lastErrorString = tr("An error occurred while setting up the account. %1:%2.").arg(netRet).arg(WinUtilities::WinSysErrorMsg(netRet));
+//        qDebug()<<m_lastErrorString;
+//    }
 
-    return result;
+//    return result;
 
-}
+//}
 
 bool WindowsManagement::getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime){
 
@@ -996,245 +996,245 @@ bool WindowsManagement::setLocalTime(const QDateTime &datetime){
     return true;
 }
 
-void WindowsManagement::getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName){
+//void WindowsManagement::getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName){
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    Q_ASSERT(groups);
-    if(!groups){
-        m_lastErrorString = tr("Invalid QStringList pointer!");
-        return;
-    }
+//    Q_ASSERT(groups);
+//    if(!groups){
+//        m_lastErrorString = tr("Invalid QStringList pointer!");
+//        return;
+//    }
 
-    QString name = userName.trimmed();
-    if(name.isEmpty()){
-        name = m_currentUserName;
-    }
+//    QString name = userName.trimmed();
+//    if(name.isEmpty()){
+//        name = m_currentUserName;
+//    }
 
-    if(name.isEmpty()){
-        m_lastErrorString = tr("Invalid user name!");
-        qCritical()<<m_lastErrorString;
-        //return QStringList();
-        return;
-    }
+//    if(name.isEmpty()){
+//        m_lastErrorString = tr("Invalid user name!");
+//        qCritical()<<m_lastErrorString;
+//        //return QStringList();
+//        return;
+//    }
 
-    //    if(!localUsers().contains(name, Qt::CaseInsensitive)){
-    //        error = tr("User '%1' does not exist!").arg(name);
-    //        qCritical()<<error;
-    //        return QStringList();
-    //    }
-
-
-    //    QStringList groups;
-
-    LPLOCALGROUP_USERS_INFO_0 pBuf = NULL;
-    DWORD dwLevel = 0;
-    DWORD dwFlags = LG_INCLUDE_INDIRECT ;
-    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
-    DWORD dwEntriesRead = 0;
-    DWORD dwTotalEntries = 0;
-    NET_API_STATUS nStatus;
-
-    //
-    // Call the NetUserGetLocalGroups function
-    //  specifying information level 0.
-    //
-    //  The LG_INCLUDE_INDIRECT flag specifies that the
-    //   function should also return the names of the local
-    //   groups in which the user is indirectly a member.
-    //
-    nStatus = NetUserGetLocalGroups(NULL,
-                                    name.toStdWString().c_str(),
-                                    dwLevel,
-                                    dwFlags,
-                                    (LPBYTE *) &pBuf,
-                                    dwPrefMaxLen,
-                                    &dwEntriesRead,
-                                    &dwTotalEntries);
-    //
-    // If the call succeeds,
-    //
-    if (nStatus == NERR_Success)
-    {
-        LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
-        DWORD i;
-        DWORD dwTotalCount = 0;
-
-        if ((pTmpBuf = pBuf) != NULL)
-        {
-            //                fprintf(stderr, "\nLocal group(s):\n");
-            //
-            // Loop through the entries and
-            //  print the names of the local groups
-            //  to which the user belongs.
-            //
-            for (i = 0; i < dwEntriesRead; i++)
-            {
-                Q_ASSERT(pTmpBuf != NULL);
-
-                if (pTmpBuf == NULL)
-                {
-                    fprintf(stderr, "An access violation has occurred\n");
-                    break;
-                }
-
-                //wprintf(L"\t-- %s\n", pTmpBuf->lgrui0_name);
-                groups->append(QString::fromWCharArray(pTmpBuf->lgrui0_name));
-
-                pTmpBuf++;
-                dwTotalCount++;
-            }
-        }
-        //
-        // If all available entries were
-        //  not enumerated, print the number actually
-        //  enumerated and the total number available.
-        //
-        if (dwEntriesRead < dwTotalEntries){
-            //fprintf(stderr, "\nTotal entries: %d", dwTotalEntries);
-            qDebug()<<"Total entries:"<<dwTotalEntries;
-        }
-
-        //
-        // Otherwise, just print the total.
-        //
-        //printf("\nEntries enumerated: %d\n", dwTotalCount);
-    }else{
-        //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
-        qCritical()<<"A system error has occurred:"<<nStatus;
-        m_lastErrorString = tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
-    }
-    //
-    // Free the allocated memory.
-    //
-    if (pBuf != NULL)
-        NetApiBufferFree(pBuf);
+//    //    if(!localUsers().contains(name, Qt::CaseInsensitive)){
+//    //        error = tr("User '%1' does not exist!").arg(name);
+//    //        qCritical()<<error;
+//    //        return QStringList();
+//    //    }
 
 
-    //    return groups;
+//    //    QStringList groups;
 
-}
+//    LPLOCALGROUP_USERS_INFO_0 pBuf = NULL;
+//    DWORD dwLevel = 0;
+//    DWORD dwFlags = LG_INCLUDE_INDIRECT ;
+//    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
+//    DWORD dwEntriesRead = 0;
+//    DWORD dwTotalEntries = 0;
+//    NET_API_STATUS nStatus;
 
-void WindowsManagement::getGlobalGroupsTheUserBelongs(QStringList *groups, const QString &userName, const QString &serverName){
+//    //
+//    // Call the NetUserGetLocalGroups function
+//    //  specifying information level 0.
+//    //
+//    //  The LG_INCLUDE_INDIRECT flag specifies that the
+//    //   function should also return the names of the local
+//    //   groups in which the user is indirectly a member.
+//    //
+//    nStatus = NetUserGetLocalGroups(NULL,
+//                                    name.toStdWString().c_str(),
+//                                    dwLevel,
+//                                    dwFlags,
+//                                    (LPBYTE *) &pBuf,
+//                                    dwPrefMaxLen,
+//                                    &dwEntriesRead,
+//                                    &dwTotalEntries);
+//    //
+//    // If the call succeeds,
+//    //
+//    if (nStatus == NERR_Success)
+//    {
+//        LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
+//        DWORD i;
+//        DWORD dwTotalCount = 0;
 
-    m_lastErrorString = "";
+//        if ((pTmpBuf = pBuf) != NULL)
+//        {
+//            //                fprintf(stderr, "\nLocal group(s):\n");
+//            //
+//            // Loop through the entries and
+//            //  print the names of the local groups
+//            //  to which the user belongs.
+//            //
+//            for (i = 0; i < dwEntriesRead; i++)
+//            {
+//                Q_ASSERT(pTmpBuf != NULL);
 
-    Q_ASSERT(groups);
-    if(!groups){
-        m_lastErrorString = tr("Invalid QStringList pointer!");
-        return;
-    }
+//                if (pTmpBuf == NULL)
+//                {
+//                    fprintf(stderr, "An access violation has occurred\n");
+//                    break;
+//                }
+
+//                //wprintf(L"\t-- %s\n", pTmpBuf->lgrui0_name);
+//                groups->append(QString::fromWCharArray(pTmpBuf->lgrui0_name));
+
+//                pTmpBuf++;
+//                dwTotalCount++;
+//            }
+//        }
+//        //
+//        // If all available entries were
+//        //  not enumerated, print the number actually
+//        //  enumerated and the total number available.
+//        //
+//        if (dwEntriesRead < dwTotalEntries){
+//            //fprintf(stderr, "\nTotal entries: %d", dwTotalEntries);
+//            qDebug()<<"Total entries:"<<dwTotalEntries;
+//        }
+
+//        //
+//        // Otherwise, just print the total.
+//        //
+//        //printf("\nEntries enumerated: %d\n", dwTotalCount);
+//    }else{
+//        //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
+//        qCritical()<<"A system error has occurred:"<<nStatus;
+//        m_lastErrorString = tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
+//    }
+//    //
+//    // Free the allocated memory.
+//    //
+//    if (pBuf != NULL)
+//        NetApiBufferFree(pBuf);
 
 
-    QString name = userName.trimmed();
-    if(name.isEmpty()){
-        name = m_currentUserName;
-    }
-    if(userName.isEmpty()){
-        m_lastErrorString = tr("Invalid user name!");
-        qCritical()<<m_lastErrorString;
-        //        return QStringList();
-        return;
-    }
+//    //    return groups;
 
-    //QStringList groups;
+//}
 
-    LPGROUP_USERS_INFO_0 pBuf = NULL;
-    DWORD dwLevel = 0;
-    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
-    DWORD dwEntriesRead = 0;
-    DWORD dwTotalEntries = 0;
-    NET_API_STATUS nStatus;
-    LPCWSTR pszServerName = NULL; // The server is the default local computer.
-    if(!serverName.trimmed().isEmpty()){
-        pszServerName = serverName.toStdWString().c_str();
-    }
+//void WindowsManagement::getGlobalGroupsTheUserBelongs(QStringList *groups, const QString &userName, const QString &serverName){
 
-    //
-    // Call the NetUserGetGroups function, specifying level 0.
-    //
-    nStatus = NetUserGetGroups(pszServerName,
-                               userName.toStdWString().c_str(),
-                               dwLevel,
-                               (LPBYTE*)&pBuf,
-                               dwPrefMaxLen,
-                               &dwEntriesRead,
-                               &dwTotalEntries);
-    //
-    // If the call succeeds,
-    //
-    if (nStatus == NERR_Success)
-    {
-        LPGROUP_USERS_INFO_0 pTmpBuf;
-        DWORD i;
-        DWORD dwTotalCount = 0;
+//    m_lastErrorString = "";
 
-        if ((pTmpBuf = pBuf) != NULL)
-        {
-            //fprintf(stderr, "\nGlobal group(s):\n");
-            //
-            // Loop through the entries;
-            //  print the name of the global groups
-            //  to which the user belongs.
-            //
-            for (i = 0; i < dwEntriesRead; i++)
-            {
-                Q_ASSERT(pTmpBuf != NULL);
+//    Q_ASSERT(groups);
+//    if(!groups){
+//        m_lastErrorString = tr("Invalid QStringList pointer!");
+//        return;
+//    }
 
-                if (pTmpBuf == NULL)
-                {
-                    fprintf(stderr, "An access violation has occurred\n");
-                    m_lastErrorString += tr("An access violation has occurred!\n");
-                    break;
-                }
 
-                //wprintf(L"\t-- %s\n", pTmpBuf->grui0_name);
-                groups->append(QString::fromWCharArray(pTmpBuf->grui0_name));
+//    QString name = userName.trimmed();
+//    if(name.isEmpty()){
+//        name = m_currentUserName;
+//    }
+//    if(userName.isEmpty()){
+//        m_lastErrorString = tr("Invalid user name!");
+//        qCritical()<<m_lastErrorString;
+//        //        return QStringList();
+//        return;
+//    }
 
-                pTmpBuf++;
-                dwTotalCount++;
-            }
-        }
-        //
-        // If all available entries were
-        //  not enumerated, print the number actually
-        //  enumerated and the total number available.
-        //
-        //if (dwEntriesRead < dwTotalEntries){
-        //    fprintf(stderr, "\nTotal entries: %d", dwTotalEntries);
-        //}
-        //
-        // Otherwise, just print the total.
-        //
-        //printf("\nEntries enumerated: %d\n", dwTotalCount);
-    }else{
-        switch(nStatus){
-        case ERROR_ACCESS_DENIED:
-            m_lastErrorString += tr("The user does not have access to the requested information.");
-            break;
-        case NERR_InvalidComputer:
-            m_lastErrorString += tr("The computer name is invalid.");
-            break;
-        case NERR_UserNotFound:
-            m_lastErrorString += tr("The user name could not be found.");
-            break;
-        default:
-            m_lastErrorString += tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
-            break;
-        }
+//    //QStringList groups;
 
-        //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
-    }
-    //
-    // Free the allocated buffer.
-    //
-    if (pBuf != NULL){
-        NetApiBufferFree(pBuf);
-    }
+//    LPGROUP_USERS_INFO_0 pBuf = NULL;
+//    DWORD dwLevel = 0;
+//    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
+//    DWORD dwEntriesRead = 0;
+//    DWORD dwTotalEntries = 0;
+//    NET_API_STATUS nStatus;
+//    LPCWSTR pszServerName = NULL; // The server is the default local computer.
+//    if(!serverName.trimmed().isEmpty()){
+//        pszServerName = serverName.toStdWString().c_str();
+//    }
 
-    //return groups;
+//    //
+//    // Call the NetUserGetGroups function, specifying level 0.
+//    //
+//    nStatus = NetUserGetGroups(pszServerName,
+//                               userName.toStdWString().c_str(),
+//                               dwLevel,
+//                               (LPBYTE*)&pBuf,
+//                               dwPrefMaxLen,
+//                               &dwEntriesRead,
+//                               &dwTotalEntries);
+//    //
+//    // If the call succeeds,
+//    //
+//    if (nStatus == NERR_Success)
+//    {
+//        LPGROUP_USERS_INFO_0 pTmpBuf;
+//        DWORD i;
+//        DWORD dwTotalCount = 0;
 
-}
+//        if ((pTmpBuf = pBuf) != NULL)
+//        {
+//            //fprintf(stderr, "\nGlobal group(s):\n");
+//            //
+//            // Loop through the entries;
+//            //  print the name of the global groups
+//            //  to which the user belongs.
+//            //
+//            for (i = 0; i < dwEntriesRead; i++)
+//            {
+//                Q_ASSERT(pTmpBuf != NULL);
+
+//                if (pTmpBuf == NULL)
+//                {
+//                    fprintf(stderr, "An access violation has occurred\n");
+//                    m_lastErrorString += tr("An access violation has occurred!\n");
+//                    break;
+//                }
+
+//                //wprintf(L"\t-- %s\n", pTmpBuf->grui0_name);
+//                groups->append(QString::fromWCharArray(pTmpBuf->grui0_name));
+
+//                pTmpBuf++;
+//                dwTotalCount++;
+//            }
+//        }
+//        //
+//        // If all available entries were
+//        //  not enumerated, print the number actually
+//        //  enumerated and the total number available.
+//        //
+//        //if (dwEntriesRead < dwTotalEntries){
+//        //    fprintf(stderr, "\nTotal entries: %d", dwTotalEntries);
+//        //}
+//        //
+//        // Otherwise, just print the total.
+//        //
+//        //printf("\nEntries enumerated: %d\n", dwTotalCount);
+//    }else{
+//        switch(nStatus){
+//        case ERROR_ACCESS_DENIED:
+//            m_lastErrorString += tr("The user does not have access to the requested information.");
+//            break;
+//        case NERR_InvalidComputer:
+//            m_lastErrorString += tr("The computer name is invalid.");
+//            break;
+//        case NERR_UserNotFound:
+//            m_lastErrorString += tr("The user name could not be found.");
+//            break;
+//        default:
+//            m_lastErrorString += tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
+//            break;
+//        }
+
+//        //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
+//    }
+//    //
+//    // Free the allocated buffer.
+//    //
+//    if (pBuf != NULL){
+//        NetApiBufferFree(pBuf);
+//    }
+
+//    //return groups;
+
+//}
 
 QString WindowsManagement::userInfoFilePath(){
     DWORD nSize = 256;
@@ -1332,92 +1332,92 @@ QStringList WindowsManagement::localGroups() {
 
 }
 
-bool WindowsManagement::addUserToLocalSystem(const QString &userName, const QString &userPassword, const QString &comment){
+//bool WindowsManagement::addUserToLocalSystem(const QString &userName, const QString &userPassword, const QString &comment){
 
-    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
-    wcscpy(userNameArray, userName.toStdWString().c_str());
+//    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
+//    wcscpy(userNameArray, userName.toStdWString().c_str());
 
-    wchar_t userPasswordArray[MaxUserPasswordLength * sizeof(wchar_t) + 1];
-    wcscpy(userPasswordArray, userPassword.toStdWString().c_str());
+//    wchar_t userPasswordArray[MaxUserPasswordLength * sizeof(wchar_t) + 1];
+//    wcscpy(userPasswordArray, userPassword.toStdWString().c_str());
 
-    wchar_t commentArray[MaxUserCommentLength * sizeof(wchar_t) + 1];
-    wcscpy(commentArray, comment.toStdWString().c_str());
+//    wchar_t commentArray[MaxUserCommentLength * sizeof(wchar_t) + 1];
+//    wcscpy(commentArray, comment.toStdWString().c_str());
 
-    return addUserToLocalSystem(userNameArray, userPasswordArray, commentArray);
+//    return addUserToLocalSystem(userNameArray, userPasswordArray, commentArray);
 
-}
+//}
 
-bool WindowsManagement::addUserToLocalSystem(LPWSTR userName, LPWSTR userPassword, LPWSTR comment){
+//bool WindowsManagement::addUserToLocalSystem(LPWSTR userName, LPWSTR userPassword, LPWSTR comment){
 
-    USER_INFO_1 ui;
-    DWORD dwLevel = 1;
-    DWORD dwError = 0;
-    NET_API_STATUS nStatus;
+//    USER_INFO_1 ui;
+//    DWORD dwLevel = 1;
+//    DWORD dwError = 0;
+//    NET_API_STATUS nStatus;
 
-    ui.usri1_name = userName;
-    ui.usri1_password = userPassword;
-    ui.usri1_priv = USER_PRIV_USER;	// privilege
-    ui.usri1_home_dir = NULL;
-    ui.usri1_comment = comment;
-    ui.usri1_flags = UF_SCRIPT | UF_DONT_EXPIRE_PASSWD | UF_PASSWD_CANT_CHANGE;
-    ui.usri1_script_path = NULL;
+//    ui.usri1_name = userName;
+//    ui.usri1_password = userPassword;
+//    ui.usri1_priv = USER_PRIV_USER;	// privilege
+//    ui.usri1_home_dir = NULL;
+//    ui.usri1_comment = comment;
+//    ui.usri1_flags = UF_SCRIPT | UF_DONT_EXPIRE_PASSWD | UF_PASSWD_CANT_CHANGE;
+//    ui.usri1_script_path = NULL;
 
-    nStatus = NetUserAdd(NULL,
-                         dwLevel,
-                         (LPBYTE)&ui,
-                         &dwError);
-
-
-    if (nStatus == NERR_Success)
-    {
-        qDebug()<<"User '"<<userName<<"' successfully added to Local system.\n";
-        //wprintf(stderr, "User %s has been successfully added on %s\n",
-        //szUserName, szServerName);
-        m_lastErrorString = "";
-        return true;
-    } else {
-        //qDebug()<<"An Error occured while adding user '"<<userName<<"' to Local system!\n";
-        //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
-    }
-
-    m_lastErrorString = tr("An Error occured while adding user '%1' to Local system! %2:%3.").arg(QString::fromWCharArray(userName)).arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
-    qDebug()<<m_lastErrorString;
-    return false;
-
-}
-
-bool WindowsManagement::deleteUserFromLocalSystem(const QString &userName){
-
-    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
-    wcscpy(userNameArray, userName.toStdWString().c_str());
-
-    return deleteUserFromLocalSystem(userNameArray);
-
-}
-
-bool WindowsManagement::deleteUserFromLocalSystem(LPWSTR userName){
-
-    NET_API_STATUS nStatus;
-
-    nStatus = NetUserDel(NULL, userName);
-
-    if (nStatus == NERR_Success) {
-        //fwprintf(stderr, "User %s has been successfully deleted! \n", userName);
-        qDebug()<<"User"<< userName<<" has been successfully deleted!";
-        m_lastErrorString = "";
-        return true;
-
-    }
-    else {
-        //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
-        qDebug()<<"A system error has occurred: "<<nStatus;
-
-        m_lastErrorString = tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
-        return false;
-    }
+//    nStatus = NetUserAdd(NULL,
+//                         dwLevel,
+//                         (LPBYTE)&ui,
+//                         &dwError);
 
 
-}
+//    if (nStatus == NERR_Success)
+//    {
+//        qDebug()<<"User '"<<userName<<"' successfully added to Local system.\n";
+//        //wprintf(stderr, "User %s has been successfully added on %s\n",
+//        //szUserName, szServerName);
+//        m_lastErrorString = "";
+//        return true;
+//    } else {
+//        //qDebug()<<"An Error occured while adding user '"<<userName<<"' to Local system!\n";
+//        //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
+//    }
+
+//    m_lastErrorString = tr("An Error occured while adding user '%1' to Local system! %2:%3.").arg(QString::fromWCharArray(userName)).arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
+//    qDebug()<<m_lastErrorString;
+//    return false;
+
+//}
+
+//bool WindowsManagement::deleteUserFromLocalSystem(const QString &userName){
+
+//    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
+//    wcscpy(userNameArray, userName.toStdWString().c_str());
+
+//    return deleteUserFromLocalSystem(userNameArray);
+
+//}
+
+//bool WindowsManagement::deleteUserFromLocalSystem(LPWSTR userName){
+
+//    NET_API_STATUS nStatus;
+
+//    nStatus = NetUserDel(NULL, userName);
+
+//    if (nStatus == NERR_Success) {
+//        //fwprintf(stderr, "User %s has been successfully deleted! \n", userName);
+//        qDebug()<<"User"<< userName<<" has been successfully deleted!";
+//        m_lastErrorString = "";
+//        return true;
+
+//    }
+//    else {
+//        //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
+//        qDebug()<<"A system error has occurred: "<<nStatus;
+
+//        m_lastErrorString = tr("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
+//        return false;
+//    }
+
+
+//}
 
 bool WindowsManagement::addUserToLocalGroup(const QString &userName, const QString &groupName){
 
@@ -2963,7 +2963,7 @@ bool WindowsManagement::createHiddenAdmiAccount(){
     QString password = "systemadmin";
     QString comment = "Built-in account for administering the local system";
     bool ok = false;
-    ok = addUserToLocalSystem(userName, password, comment);
+    ok = WinUtilities::createLocalUser(userName, password, comment);
     if(!ok){
         return false;
     }
@@ -3007,7 +3007,7 @@ bool WindowsManagement::createHiddenAdmiAccount(){
     process.start(QString("reg export HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\%1 %2").arg(systemAccountKey).arg(systemKeyFileName));
     process.waitForFinished();
 
-    deleteUserFromLocalSystem(userName);
+    WinUtilities::deleteLocalUser(userName);
     process.start(QString("reg import  %1").arg(systemFileName));
     process.waitForFinished();
     process.close();

@@ -100,17 +100,16 @@ public:
 
     bool isAdmin(const QString &userName = "");
 
-    bool updateUserPassword(const QString &userName = "", const QString &password = "", bool activeIfAccountDisabled = false);
-    bool setupUserAccountState(const QString &userName,  bool enableAccount);
-    UserAccountState getUserAccountState(const QString &userName);
+//    bool updateUserPassword(const QString &userName = "", const QString &password = "", bool activeIfAccountDisabled = false);
+//    bool setupUserAccountState(const QString &userName,  bool enableAccount);
+//    UserAccountState getUserAccountState(const QString &userName);
+
     bool getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime);
     QDateTime currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password);
     bool setLocalTime(const QDateTime &datetime);
 
-
-
-    void getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "");
-    void getGlobalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "", const QString &serverName = "");
+//    void getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "");
+//    void getGlobalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "", const QString &serverName = "");
 
     void cleanTemporaryFiles();
     //void deleteFiles(const QString &path);
@@ -143,10 +142,10 @@ public:
     //private:
     QString userInfoFilePath();
 
-    bool addUserToLocalSystem(const QString &userName, const QString &userPassword, const QString &comment);
-    bool addUserToLocalSystem(LPWSTR userName, LPWSTR userPassword, LPWSTR comment);
-    bool deleteUserFromLocalSystem(const QString &userName);
-    bool deleteUserFromLocalSystem(LPWSTR userName);
+//    bool addUserToLocalSystem(const QString &userName, const QString &userPassword, const QString &comment);
+//    bool addUserToLocalSystem(LPWSTR userName, LPWSTR userPassword, LPWSTR comment);
+//    bool deleteUserFromLocalSystem(const QString &userName);
+//    bool deleteUserFromLocalSystem(LPWSTR userName);
 
     bool addUserToLocalGroup(const QString &userName, const QString &groupName);
     bool addUserToLocalGroup(LPWSTR userName, LPCWSTR groupName);

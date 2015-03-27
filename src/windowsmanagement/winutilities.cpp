@@ -51,6 +51,7 @@
 #include <Tlhelp32.h>
 #include <Lmjoin.h>
 #include <Userenv.h>
+#include <Sddl.h>
 
 const int MaxUserAccountNameLength = 20;
 const int MaxUserPasswordLength = LM20_PWLEN;
@@ -315,7 +316,7 @@ bool WinUtilities::setupUSBStorageDevice(bool enableRead, bool enableWrite){
     }
 
     if((enableRead == readable) && (enableWrite == writeable)){
-       return true;
+        return true;
     }
 
     return true;
@@ -997,6 +998,257 @@ bool WinUtilities::isWow64()
     return bIsWow64;
 }
 
+bool WinUtilities::isNT6OS()
+{
+    OSVERSIONINFO  osvi;
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx (&osvi);
+    if(osvi.dwMajorVersion > 5){
+        return true;
+    }
+
+    return false;
+}
+
+bool WinUtilities::createLocalUser(const QString &userName, const QString &userPassword, const QString &comment, DWORD *errorCode){
+
+    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
+    wcscpy(userNameArray, userName.toStdWString().c_str());
+
+    wchar_t userPasswordArray[MaxUserPasswordLength * sizeof(wchar_t) + 1];
+    wcscpy(userPasswordArray, userPassword.toStdWString().c_str());
+
+    wchar_t commentArray[MaxUserCommentLength * sizeof(wchar_t) + 1];
+    wcscpy(commentArray, comment.toStdWString().c_str());
+
+    return createLocalUser(userNameArray, userPasswordArray, commentArray, errorCode);
+
+}
+
+bool WinUtilities::createLocalUser(LPWSTR userName, LPWSTR userPassword, LPWSTR comment, DWORD *errorCode){
+
+    USER_INFO_1 ui;
+    DWORD dwLevel = 1;
+    DWORD dwError = 0;
+    NET_API_STATUS nStatus;
+
+    ui.usri1_name = userName;
+    ui.usri1_password = userPassword;
+    ui.usri1_priv = USER_PRIV_USER;	// privilege
+    ui.usri1_home_dir = NULL;
+    ui.usri1_comment = comment;
+    ui.usri1_flags = UF_SCRIPT | UF_DONT_EXPIRE_PASSWD | UF_PASSWD_CANT_CHANGE;
+    ui.usri1_script_path = NULL;
+
+    nStatus = NetUserAdd(NULL,
+                         dwLevel,
+                         (LPBYTE)&ui,
+                         &dwError);
+
+    if (nStatus == NERR_Success){return true;}
+
+    //qDebug()<<QString("ERROR! An Error occured while adding user '%1' to Local system! Error code:%2").arg(userName).arg(nStatus);
+    if(errorCode){
+        *errorCode = nStatus;
+    }
+
+    return false;
+
+}
+
+bool WinUtilities::deleteLocalUser(const QString &userName, DWORD *errorCode){
+
+    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
+    wcscpy(userNameArray, userName.toStdWString().c_str());
+
+    return deleteLocalUser(userNameArray, errorCode);
+
+}
+
+bool WinUtilities::deleteLocalUser(LPWSTR userName, DWORD *errorCode){
+
+    NET_API_STATUS nStatus;
+
+    nStatus = NetUserDel(NULL, userName);
+
+    if (nStatus == NERR_Success) {
+        qDebug()<<"User"<< userName<<" has been successfully deleted!";
+        return true;
+
+    }else{
+        qDebug()<<"A system error has occurred: "<<nStatus;
+
+        if(errorCode){
+            *errorCode = nStatus;
+        }
+        return false;
+    }
+
+
+}
+
+bool WinUtilities::updateUserPassword(const QString &userName, const QString &password, DWORD *errorCode, bool activeIfAccountDisabled){
+
+    QString name = userName.trimmed();
+    if(name.isEmpty()){
+        name = getUserNameOfCurrentThread(errorCode);
+    }
+
+    if(name.isEmpty()){
+        return false;
+    }
+
+    bool result = false;
+
+    DWORD dwLevel = 1;
+    PUSER_INFO_1 pUsr = NULL;
+    NET_API_STATUS netRet = 0;
+    DWORD dwParmError = 0;
+    //
+    // First, retrieve the user information at level 3. This is
+    //  necessary to prevent resetting other user information when
+    //  the NetUserSetInfo call is made.
+    //
+    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
+    if( netRet == NERR_Success )
+    {
+        //
+        // The function was successful;
+        //  set the usri3_password_expired value to a nonzero value.
+        //  Call the NetUserSetInfo function.
+        //
+        wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+        wcscpy(pwd, password.toStdWString().c_str());
+        pUsr->usri1_password = pwd;
+
+        if(activeIfAccountDisabled){
+            DWORD flags = pUsr->usri1_flags;
+            if(flags & UF_ACCOUNTDISABLE){
+                pUsr->usri1_flags = flags ^ UF_ACCOUNTDISABLE;
+            }
+        }
+
+        netRet = NetUserSetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE)pUsr, &dwParmError);
+        //
+        // A zero return indicates success.
+        // If the return value is ERROR_INVALID_PARAMETER,
+        //  the dwParmError parameter will contain a value indicating the
+        //  invalid parameter within the user_info_3 structure. These values
+        //  are defined in the lmaccess.h file.
+        //
+        if( netRet == NERR_Success ){
+            //printf("Password has been changed for user %S\n", name.toStdWString().c_str());
+            result = true;
+
+        }else {
+            qCritical()<<QString("ERROR! An error occurred while updating the password. Code: %1. Parm Error %2 returned.").arg(netRet).arg(dwParmError);
+            result = false;
+        }
+
+        // Must free the buffer returned by NetUserGetInfo.
+        NetApiBufferFree( pUsr);
+    }else{
+        //printf("NetUserGetInfo failed: %d\n",netRet);
+        qCritical()<<QString("ERROR! An error occurred while updating the password. Code:%1.").arg(netRet);
+        result = false;
+    }
+
+    if(errorCode){
+        *errorCode = netRet;
+    }
+
+    return result;
+}
+
+bool WinUtilities::setupUserAccountState(const QString &userName,  bool enableAccount, DWORD *errorCode){
+
+    QString name = userName.trimmed();
+    if(name.isEmpty()){
+        return false;
+    }
+
+    bool result = false;
+
+    DWORD dwLevel = 1;
+    PUSER_INFO_1 pUsr = NULL;
+    NET_API_STATUS netRet = 0;
+    DWORD dwParmError = 0;
+
+    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
+    if( netRet == NERR_Success )
+    {
+        DWORD flags = pUsr->usri1_flags;
+        if(enableAccount){
+            if(flags & UF_ACCOUNTDISABLE){
+                pUsr->usri1_flags = flags ^ UF_ACCOUNTDISABLE;
+            }
+        }else{
+            pUsr->usri1_flags = flags | UF_ACCOUNTDISABLE;
+        }
+
+        netRet = NetUserSetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE)pUsr, &dwParmError);
+
+        if( netRet == NERR_Success ){
+            //printf("Password has been changed for user %S\n", name.toStdWString().c_str());
+            result = true;
+
+        }else {
+            //printf("Error %d occurred.  Parm Error %d returned.\n", netRet, dwParmError);
+            qCritical()<<QString("ERROR! Error %1 occurred while setting up the account. Parm Error %2 returned.").arg(netRet).arg(dwParmError);
+            result = false;
+        }
+
+        NetApiBufferFree( pUsr);
+    }else{
+        //printf("NetUserGetInfo failed: %d\n",netRet);
+        qCritical()<<QString("An error occurred while setting up the account. NetUserGetInfo failed: %1").arg(netRet);
+        result = false;
+    }
+
+    if(errorCode){
+        *errorCode = netRet;
+    }
+
+    return result;
+}
+
+WinUtilities::UserAccountState WinUtilities::getUserAccountState(const QString &userName, DWORD *errorCode){
+    UserAccountState result = UAS_Unknown;
+
+    QString name = userName.trimmed();
+    if(name.isEmpty()){
+        return result;
+    }
+
+    DWORD dwLevel = 1;
+    PUSER_INFO_1 pUsr = NULL;
+    NET_API_STATUS netRet = 0;
+
+    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
+    if( netRet == NERR_Success )
+    {
+
+        DWORD flags = pUsr->usri1_flags;
+
+        if(flags & UF_ACCOUNTDISABLE){
+            result = UAS_Disabled;
+        }else{
+            result = UAS_Enabled;
+        }
+
+    }else{
+        //printf("NetUserGetInfo failed: %d\n",netRet);
+        qCritical()<<QString("NetUserGetInfo failed. Code: %1.").arg(netRet);
+    }
+
+    if(errorCode){
+        *errorCode = netRet;
+    }
+
+    return result;
+
+}
+
 QString WinUtilities::getUserNameOfCurrentThread(DWORD *errorCode) {
 
     DWORD size = MaxUserAccountNameLength + 1;
@@ -1142,12 +1394,10 @@ void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &server
                         qDebug()<<QString("An access violation has occurred\n");
                         break;
                     }
-                    //
+
                     // Print the user logged on to the workstation.
-                    //
-                    //wprintf(L"\t-- %s\n", pTmpBuf->wkui0_username);
                     QString wkui1_username = QString::fromWCharArray(pTmpBuf->wkui1_username).toLower();
-                    if(wkui1_username == computerName + "$"){continue;}
+                    //if(wkui1_username == computerName + "$"){continue;}
 
                     QString wkui1_logon_domain = QString::fromWCharArray(pTmpBuf->wkui1_logon_domain).toLower();
                     if(wkui1_logon_domain == computerName){
@@ -1164,16 +1414,13 @@ void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &server
             }
         }
         else{
-            //
+
             // Otherwise, indicate a system error.
-            //
-            //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
             qDebug()<<QString("A system error has occurred: %1\n").arg(nStatus);
         }
 
-        //
+
         // Free the allocated memory.
-        //
         if (pBuf != NULL)
         {
             NetApiBufferFree(pBuf);
@@ -1341,6 +1588,274 @@ QStringList WinUtilities::getMembersOfLocalGroup(const QString &groupName, const
     return users;
 
 }
+
+bool WinUtilities::getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName, DWORD *errorCode){
+
+    Q_ASSERT(groups);
+    if(!groups){
+        qCritical()<<("Invalid QStringList pointer!");
+        return false;
+    }
+
+    QString name = userName.trimmed();
+    if(name.isEmpty()){
+        name = getUserNameOfCurrentThread();
+    }
+
+    if(name.isEmpty()){
+        qCritical()<<("Invalid user name!");
+        return false;
+    }
+
+    LPLOCALGROUP_USERS_INFO_0 pBuf = NULL;
+    DWORD dwLevel = 0;
+    DWORD dwFlags = LG_INCLUDE_INDIRECT ;
+    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
+    DWORD dwEntriesRead = 0;
+    DWORD dwTotalEntries = 0;
+    NET_API_STATUS nStatus;
+
+    //
+    // Call the NetUserGetLocalGroups function
+    //  specifying information level 0.
+    //
+    //  The LG_INCLUDE_INDIRECT flag specifies that the
+    //   function should also return the names of the local
+    //   groups in which the user is indirectly a member.
+    //
+    nStatus = NetUserGetLocalGroups(NULL,
+                                    name.toStdWString().c_str(),
+                                    dwLevel,
+                                    dwFlags,
+                                    (LPBYTE *) &pBuf,
+                                    dwPrefMaxLen,
+                                    &dwEntriesRead,
+                                    &dwTotalEntries);
+
+    if (nStatus == NERR_Success)
+    {
+        LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
+        DWORD i;
+        DWORD dwTotalCount = 0;
+
+        if ((pTmpBuf = pBuf) != NULL)
+        {
+            //
+            // Loop through the entries and
+            //  print the names of the local groups
+            //  to which the user belongs.
+            //
+            for (i = 0; i < dwEntriesRead; i++)
+            {
+                Q_ASSERT(pTmpBuf != NULL);
+
+                if (pTmpBuf == NULL){break;}
+
+                groups->append(QString::fromWCharArray(pTmpBuf->lgrui0_name));
+
+                pTmpBuf++;
+                dwTotalCount++;
+            }
+        }
+        //
+        // If all available entries were
+        //  not enumerated, print the number actually
+        //  enumerated and the total number available.
+        //
+        if (dwEntriesRead < dwTotalEntries){
+            qDebug()<<"Total entries:"<<dwTotalEntries;
+        }
+
+
+    }else{
+        if(errorCode){
+            *errorCode = nStatus;
+        }
+    }
+
+    if (pBuf != NULL){
+        NetApiBufferFree(pBuf);
+    }
+
+    return (nStatus == NERR_Success);
+
+}
+
+bool WinUtilities::getGlobalGroupsTheUserBelongs(QStringList *groups, const QString &userName, const QString &serverName, DWORD *errorCode){
+
+    Q_ASSERT(groups);
+    if(!groups){
+        qCritical()<<"Invalid QStringList pointer!";
+        return false;
+    }
+
+    QString name = userName.trimmed();
+    if(name.isEmpty()){
+        name = getUserNameOfCurrentThread();
+    }
+    if(userName.isEmpty()){
+        qCritical()<<"Invalid user name!";
+        return false;
+    }
+
+    LPGROUP_USERS_INFO_0 pBuf = NULL;
+    DWORD dwLevel = 0;
+    DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
+    DWORD dwEntriesRead = 0;
+    DWORD dwTotalEntries = 0;
+    NET_API_STATUS nStatus;
+    LPCWSTR pszServerName = NULL; // The server is the default local computer.
+    if(!serverName.trimmed().isEmpty()){
+        pszServerName = serverName.toStdWString().c_str();
+    }
+
+    // Call the NetUserGetGroups function, specifying level 0.
+    nStatus = NetUserGetGroups(pszServerName,
+                               userName.toStdWString().c_str(),
+                               dwLevel,
+                               (LPBYTE*)&pBuf,
+                               dwPrefMaxLen,
+                               &dwEntriesRead,
+                               &dwTotalEntries);
+
+    // If the call succeeds,
+    if (nStatus == NERR_Success)
+    {
+        LPGROUP_USERS_INFO_0 pTmpBuf;
+        DWORD i;
+        DWORD dwTotalCount = 0;
+
+        if ((pTmpBuf = pBuf) != NULL)
+        {
+
+            // Loop through the entries;
+            //  print the name of the global groups
+            //  to which the user belongs.
+            for (i = 0; i < dwEntriesRead; i++)
+            {
+                Q_ASSERT(pTmpBuf != NULL);
+                if (pTmpBuf == NULL){break;}
+
+                groups->append(QString::fromWCharArray(pTmpBuf->grui0_name));
+
+                pTmpBuf++;
+                dwTotalCount++;
+            }
+        }
+
+    }else{
+
+        if(errorCode){
+            *errorCode = nStatus;
+        }
+    }
+
+    if (pBuf != NULL){
+        NetApiBufferFree(pBuf);
+    }
+
+    return (nStatus == NERR_Success);
+
+}
+
+
+bool WinUtilities::getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode){
+
+    if(!jsonArray){return false;}
+
+    QStringList users = localUsers();
+    QStringList loggedonUser;
+    getAllUsersLoggedOn(&loggedonUser);
+    loggedonUser.removeDuplicates();
+
+    users.append(loggedonUser);
+    users.removeDuplicates();
+
+    qDebug()<<"---------------loggedonUser:"<<loggedonUser;
+
+    LPUSER_INFO_4 pBuf = NULL;
+    DWORD dwLevel = 4;
+    NET_API_STATUS nStatus  = NERR_Success;
+
+    foreach (QString userName, users) {
+
+        QJsonArray array;
+        array.append(userName);
+
+        bool loggedon =  loggedonUser.contains(userName, Qt::CaseInsensitive);
+        array.append(QString::number(loggedon));
+
+        nStatus  = NetUserGetInfo( NULL, userName.toStdWString().c_str(), dwLevel, (LPBYTE *)&pBuf);
+        if( nStatus  == NERR_Success )
+        {
+            array.append(QString::fromWCharArray(pBuf->usri4_home_dir));
+            array.append(QString::fromWCharArray(pBuf->usri4_comment));
+
+            DWORD flags = pBuf->usri4_flags;
+            bool accountDisabled = flags & UF_ACCOUNTDISABLE;
+            bool cannotChangePassword = flags & UF_PASSWD_CANT_CHANGE;
+            bool cannotLocked = flags & UF_LOCKOUT;
+            bool passwordNotExpire = flags & UF_DONT_EXPIRE_PASSWD;
+            array.append(QString::number(accountDisabled));
+            array.append(QString::number(cannotChangePassword));
+            array.append(QString::number(cannotLocked));
+            array.append(QString::number(passwordNotExpire));
+
+            array.append(QString::fromWCharArray(pBuf->usri4_full_name));
+            //array.append(QString::fromWCharArray(pBuf->usri4_usr_comment));
+
+            DWORD lastlogon = pBuf->usri4_last_logon;
+            array.append(QString::number(lastlogon));
+            DWORD lastlogoff = pBuf->usri4_last_logoff;
+            array.append(QString::number(lastlogoff));
+
+            //array.append(QString::fromWCharArray(pBuf->usri4_logon_server));
+
+            PSID psid = pBuf->usri4_user_sid;
+            LPWSTR stringSid;
+            ConvertSidToStringSidW(psid, &stringSid);
+            array.append(QString::fromWCharArray(stringSid));
+            LocalFree(stringSid);
+
+            array.append(QString::fromWCharArray(pBuf->usri4_profile));
+
+            bool mustChangePassword = pBuf->usri4_password_expired;
+            array.append(QString::number(mustChangePassword));
+
+
+            QStringList groups;
+            getLocalGroupsTheUserBelongs(&groups, userName);
+            array.append(groups.join(";"));
+
+
+
+
+        }else{
+            qCritical()<<QString("NetUserGetInfo failed. Code: %1.").arg(nStatus );
+            if(errorCode){
+                *errorCode = nStatus;
+            }
+        }
+
+        if (pBuf != NULL){
+            NetApiBufferFree(pBuf);
+        }
+
+        jsonArray->append(array);
+
+    }
+
+
+    //    if (pBuf != NULL) {
+    //        NetApiBufferFree(pBuf);
+    //        pBuf = NULL;
+    //    }
+
+    return true;
+
+
+}
+
 
 
 bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode, DWORD dwDesiredAccess){
@@ -1694,7 +2209,7 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
     LocalFree(lpServiceConfig);
     LocalFree(lpsd);
 
-//cleanup:
+    //cleanup:
     //CloseServiceHandle(schService);
     //CloseServiceHandle(schSCManager);
 
@@ -2302,11 +2817,11 @@ bool WinUtilities::serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HAND
 
     // Pass a zero-length buffer to get the required buffer size.
     if ( EnumDependentServices( *schService, SERVICE_ACTIVE,
-         lpDependencies, 0, &dwBytesNeeded, &dwCount ) )
+                                lpDependencies, 0, &dwBytesNeeded, &dwCount ) )
     {
-         // If the Enum call succeeds, then there are no dependent
-         // services, so do nothing.
-         return TRUE;
+        // If the Enum call succeeds, then there are no dependent
+        // services, so do nothing.
+        return TRUE;
     }
     else
     {
@@ -2315,7 +2830,7 @@ bool WinUtilities::serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HAND
 
         // Allocate a buffer for the dependencies.
         lpDependencies = (LPENUM_SERVICE_STATUS) HeapAlloc(
-            GetProcessHeap(), HEAP_ZERO_MEMORY, dwBytesNeeded );
+                    GetProcessHeap(), HEAP_ZERO_MEMORY, dwBytesNeeded );
 
         if ( !lpDependencies )
             return FALSE;
@@ -2323,39 +2838,39 @@ bool WinUtilities::serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HAND
         __try {
             // Enumerate the dependencies.
             if ( !EnumDependentServices( *schService, SERVICE_ACTIVE,
-                lpDependencies, dwBytesNeeded, &dwBytesNeeded,
-                &dwCount ) )
-            return FALSE;
+                                         lpDependencies, dwBytesNeeded, &dwBytesNeeded,
+                                         &dwCount ) )
+                return FALSE;
 
             for ( i = 0; i < dwCount; i++ )
             {
                 ess = *(lpDependencies + i);
                 // Open the service.
                 hDepService = OpenService( *schSCManager,
-                   ess.lpServiceName,
-                   SERVICE_STOP | SERVICE_QUERY_STATUS );
+                                           ess.lpServiceName,
+                                           SERVICE_STOP | SERVICE_QUERY_STATUS );
 
                 if ( !hDepService )
-                   return FALSE;
+                    return FALSE;
 
                 __try {
                     // Send a stop code.
                     if ( !ControlService( hDepService,
-                            SERVICE_CONTROL_STOP,
-                            (LPSERVICE_STATUS) &ssp ) )
-                    return FALSE;
+                                          SERVICE_CONTROL_STOP,
+                                          (LPSERVICE_STATUS) &ssp ) )
+                        return FALSE;
 
                     // Wait for the service to stop.
                     while ( ssp.dwCurrentState != SERVICE_STOPPED )
                     {
                         Sleep( ssp.dwWaitHint );
                         if ( !QueryServiceStatusEx(
-                                hDepService,
-                                SC_STATUS_PROCESS_INFO,
-                                (LPBYTE)&ssp,
-                                sizeof(SERVICE_STATUS_PROCESS),
-                                &dwBytesNeeded ) )
-                        return FALSE;
+                                 hDepService,
+                                 SC_STATUS_PROCESS_INFO,
+                                 (LPBYTE)&ssp,
+                                 sizeof(SERVICE_STATUS_PROCESS),
+                                 &dwBytesNeeded ) )
+                            return FALSE;
 
                         if ( ssp.dwCurrentState == SERVICE_STOPPED )
                             break;
@@ -2443,11 +2958,11 @@ BOOL WinUtilities::Shutdown(const QString &machineName, const QString &message, 
 
     // Display the shutdown dialog box and start the countdown.
     BOOL fResult = InitiateSystemShutdownW(
-       lpMachineName,    // NULL:shut down local computer
-       lpMessage,   // message for user
-       timeout,      // time-out period, in seconds
-       forceAppsClosed,   // if ask user to close apps
-       rebootAfterShutdown);   // reboot after shutdown
+                lpMachineName,    // NULL:shut down local computer
+                lpMessage,   // message for user
+                timeout,      // time-out period, in seconds
+                forceAppsClosed,   // if ask user to close apps
+                rebootAfterShutdown);   // reboot after shutdown
 
     return fResult;
 }
@@ -2474,17 +2989,7 @@ BOOL WinUtilities::LockWindows(){
     return LockWorkStation();
 }
 
-bool WinUtilities::isNT6OS()
-{
-    OSVERSIONINFO  osvi;
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-    GetVersionEx (&osvi);
-    if(osvi.dwMajorVersion > 5){
-        return true;
-    }
 
-    return false;
-}
 
 //////////////////////////////////////////////////////
 
@@ -2497,14 +3002,14 @@ bool WinUtilities::runAs(const QString &userName, const QString &domainName, con
         return false;
     }
 
-//    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
-//    wcscpy(name, userName.toStdWString().c_str());
+    //    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+    //    wcscpy(name, userName.toStdWString().c_str());
 
-//    wchar_t domain[MaxGroupNameLength*sizeof(wchar_t)+1];
-//    wcscpy(domain, domainName.toStdWString().c_str());
+    //    wchar_t domain[MaxGroupNameLength*sizeof(wchar_t)+1];
+    //    wcscpy(domain, domainName.toStdWString().c_str());
 
-//    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
-//    wcscpy(pwd, password.toStdWString().c_str());
+    //    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+    //    wcscpy(pwd, password.toStdWString().c_str());
 
 
     //服务程序以"SYSTEM"身份运行，无法调用CreateProcessWithLogonW，必须用LogonUser和CreateProcessAsUser
@@ -2603,37 +3108,37 @@ bool WinUtilities::runAsForDesktopApplication(const QString &userName, const QSt
         si.wShowWindow = SW_HIDE;
     }
 
-//    HANDLE hToken = NULL;
-//    LPVOID lpvEnv = NULL;
-//    WCHAR szUserProfile[512] = L"";
-//    DWORD dwSize = sizeof(szUserProfile)/sizeof(WCHAR);
-//    wcscpy(szUserProfile, workingDir.toStdWString().c_str());
-//    if(LogonUserW(name, domain, pwd, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken)){
-//        if (!CreateEnvironmentBlock(&lpvEnv, hToken, TRUE)){
-//            dwRet = GetLastError();
-//            m_lastErrorString = tr("Can not create environment block! %1: %2").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
-//            //return false;
-//        }
-//        if (!GetUserProfileDirectoryW(hToken, szUserProfile, &dwSize)){
-//            dwRet = GetLastError();
-//            m_lastErrorString = tr("Can not get user profile directory! %1: %2").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
-//            //return false;
-//        }
-//    }else{
-//        m_lastErrorString = tr("Can not log user %1 on to this computer! Error code:%2").arg(userName).arg(GetLastError());
-//        return false;
-//    }
+    //    HANDLE hToken = NULL;
+    //    LPVOID lpvEnv = NULL;
+    //    WCHAR szUserProfile[512] = L"";
+    //    DWORD dwSize = sizeof(szUserProfile)/sizeof(WCHAR);
+    //    wcscpy(szUserProfile, workingDir.toStdWString().c_str());
+    //    if(LogonUserW(name, domain, pwd, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken)){
+    //        if (!CreateEnvironmentBlock(&lpvEnv, hToken, TRUE)){
+    //            dwRet = GetLastError();
+    //            m_lastErrorString = tr("Can not create environment block! %1: %2").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+    //            //return false;
+    //        }
+    //        if (!GetUserProfileDirectoryW(hToken, szUserProfile, &dwSize)){
+    //            dwRet = GetLastError();
+    //            m_lastErrorString = tr("Can not get user profile directory! %1: %2").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+    //            //return false;
+    //        }
+    //    }else{
+    //        m_lastErrorString = tr("Can not log user %1 on to this computer! Error code:%2").arg(userName).arg(GetLastError());
+    //        return false;
+    //    }
 
     DWORD dwCreationFlags = CREATE_UNICODE_ENVIRONMENT;
     //bool ok = CreateProcessWithLogonW(name, domain, pwd, LOGON_WITH_PROFILE, NULL, cmdLine, dwCreationFlags, lpvEnv, szUserProfile, &si, &pi);
     bool ok = CreateProcessWithLogonW(name, domain, pwd, LOGON_WITH_PROFILE, exeFilePath.toStdWString().c_str(), cmdLine, dwCreationFlags, NULL, currentDirectory, &si, &pi);
 
-//    if (!DestroyEnvironmentBlock(lpvEnv)){
-//        dwRet = GetLastError();
-//        m_lastErrorString = tr("Can not destroy environment block! %1:%2.").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
-//        qWarning()<<m_lastErrorString;
-//    }
-//    CloseHandle(hToken);
+    //    if (!DestroyEnvironmentBlock(lpvEnv)){
+    //        dwRet = GetLastError();
+    //        m_lastErrorString = tr("Can not destroy environment block! %1:%2.").arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+    //        qWarning()<<m_lastErrorString;
+    //    }
+    //    CloseHandle(hToken);
 
 
     if(!ok){

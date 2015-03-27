@@ -43,7 +43,6 @@
 #include "wmlib.h"
 
 
-
 namespace HEHUI {
 
 //class WM_LIB_API ServiceInfo : public QObject{
@@ -104,14 +103,66 @@ public:
 
     static bool is64BitApplication();
     static bool isWow64();
+    static bool isNT6OS();
 
     //Users
+    static bool createLocalUser(const QString &userName, const QString &userPassword, const QString &comment, DWORD *errorCode = 0);
+    static bool createLocalUser(LPWSTR userName, LPWSTR userPassword, LPWSTR comment, DWORD *errorCode = 0);
+    static bool deleteLocalUser(const QString &userName, DWORD *errorCode = 0);
+    static bool deleteLocalUser(LPWSTR userName, DWORD *errorCode = 0);
+    static bool updateUserPassword(const QString &userName = "", const QString &password = "", DWORD *errorCode = 0, bool activeIfAccountDisabled = false);
+
+    enum UserAccountState{UAS_Unknown, UAS_Disabled, UAS_Enabled};
+    static bool setupUserAccountState(const QString &userName,  bool enableAccount, DWORD *errorCode = 0);
+    static UserAccountState getUserAccountState(const QString &userName, DWORD *errorCode = 0);
+
     static QString getUserNameOfCurrentThread(DWORD *errorCode = 0);
     static bool getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer = 0, DWORD *apiStatus = 0);
     static void getAllUsersLoggedOn(QStringList *users, const QString &serverName = "", DWORD *apiStatus = 0);
     static QStringList localUsers(DWORD *apiStatus = 0) ;
     static QStringList localCreatedUsers() ;
     static QStringList getMembersOfLocalGroup(const QString &groupName, const QString &serverName = "");
+    static bool getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "", DWORD *errorCode = 0);
+    static bool getGlobalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "", const QString &serverName = "", DWORD *errorCode = 0);
+
+//    class WinUserInfo
+//    {
+//    public:
+//        WinUserInfo(){
+//            accountDisabled = false;
+//            cannotChangePassword = false;
+//            accountLocked = false;
+//            passwordNeverExpires = false;
+
+//            lastLogonTime_t = 0;
+//            lastLogoffTime_t = 0;
+
+//            mustChangePassword = false;
+//        }
+
+//        QString userName;
+//        QString homeDir;
+//        QString comment;
+
+//        bool accountDisabled;
+//        bool cannotChangePassword;
+//        bool accountLocked;
+//        bool passwordNeverExpires;
+
+//        QString fullName;
+
+//        unsigned int lastLogonTime_t;
+//        unsigned int lastLogoffTime_t;
+
+//        QString logonServer;
+//        QString sid;
+//        QString profile;
+//        bool mustChangePassword;
+
+//        QString groups;
+
+//    };
+    static bool getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode = 0);
 
 
     //Service
@@ -153,18 +204,18 @@ public:
     static BOOL Reboot(BOOL bForce);
     static BOOL LockWindows();
 
-    static bool isNT6OS();
+
     //////////////////////////////////////////////////////
     static bool runAs(const QString &userName, const QString &dowmainName, const QString &password,
-               const QString &exeFilePath, const QString &parameters = "", bool show = true,
-               const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
+                      const QString &exeFilePath, const QString &parameters = "", bool show = true,
+                      const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
 
     static bool runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password,
-                                    const QString &exeFilePath, const QString &parameters = "", bool show = true,
-                                    const QString &workingDir = "");
+                                           const QString &exeFilePath, const QString &parameters = "", bool show = true,
+                                           const QString &workingDir = "");
     static bool runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password,
-                                    const QString &exeFilePath, const QString &parameters = "", bool show = true,
-                                    const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
+                                           const QString &exeFilePath, const QString &parameters = "", bool show = true,
+                                           const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
     //////////////////////////////////////////////////////
 
 
