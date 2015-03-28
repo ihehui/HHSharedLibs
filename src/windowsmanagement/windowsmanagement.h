@@ -147,11 +147,12 @@ public:
 //    bool deleteUserFromLocalSystem(const QString &userName);
 //    bool deleteUserFromLocalSystem(LPWSTR userName);
 
-    bool addUserToLocalGroup(const QString &userName, const QString &groupName);
-    bool addUserToLocalGroup(LPWSTR userName, LPCWSTR groupName);
-    bool deleteUserFromLocalGroup(const QString &userName, const QString &groupName);
-    bool deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName);
-//    QStringList getMembersOfLocalGroup(const QString &groupName, const QString &serverName = "");
+//    bool addUserToLocalGroup(const QString &userName, const QString &groupName);
+//    bool addUserToLocalGroup(LPWSTR userName, LPCWSTR groupName);
+//    bool deleteUserFromLocalGroup(const QString &userName, const QString &groupName);
+//    bool deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName);
+
+    //    QStringList getMembersOfLocalGroup(const QString &groupName, const QString &serverName = "");
     QStringList localGroups();
 
     bool setComputerName(const QString &newComputerName);

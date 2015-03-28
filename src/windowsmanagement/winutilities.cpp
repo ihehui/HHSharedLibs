@@ -41,6 +41,9 @@
 #include <QFile>
 #include <QDir>
 #include <QCoreApplication>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 #include <windows.h>
 #include <gdiplus.h>
@@ -1070,7 +1073,6 @@ bool WinUtilities::deleteLocalUser(LPWSTR userName, DWORD *errorCode){
     NET_API_STATUS nStatus;
 
     nStatus = NetUserDel(NULL, userName);
-
     if (nStatus == NERR_Success) {
         qDebug()<<"User"<< userName<<" has been successfully deleted!";
         return true;
@@ -1758,6 +1760,83 @@ bool WinUtilities::getGlobalGroupsTheUserBelongs(QStringList *groups, const QStr
 
 }
 
+bool WinUtilities::addUserToLocalGroup(const QString &userName, const QString &groupName, DWORD *errorCode){
+
+    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
+    wcscpy(userNameArray, userName.toStdWString().c_str());
+
+    wchar_t groupNameArray[MaxGroupNameLength * sizeof(wchar_t) + 1];
+    wcscpy(groupNameArray, groupName.toStdWString().c_str());
+
+    return addUserToLocalGroup(userNameArray, groupNameArray, errorCode);
+
+}
+
+bool WinUtilities::addUserToLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWORD *errorCode){
+
+    LOCALGROUP_MEMBERS_INFO_3 localgroup_members;
+    NET_API_STATUS nStatus;
+
+    // Now add the user to the local group.
+    localgroup_members.lgrmi3_domainandname = userName;
+    nStatus = NetLocalGroupAddMembers(NULL,      //
+                                  groupName,             // Group name
+                                  3,                          // Name
+                                  (LPBYTE)&localgroup_members, // Buffer
+                                  1 );                        // Count
+
+
+    if(NERR_Success != nStatus){
+        if(errorCode){
+            *errorCode = nStatus;
+        }
+        qCritical()<<QString("ERROR! Failed to add user '%1' to local group '%2'.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName));
+        return false;
+    }
+
+    return true;
+
+}
+
+bool WinUtilities::deleteUserFromLocalGroup(const QString &userName, const QString &groupName, DWORD *errorCode){
+
+    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
+    wcscpy(userNameArray, userName.toStdWString().c_str());
+
+    wchar_t groupNameArray[MaxGroupNameLength * sizeof(wchar_t) + 1];
+    wcscpy(groupNameArray, groupName.toStdWString().c_str());
+
+    return deleteUserFromLocalGroup(userNameArray, groupNameArray, errorCode);
+
+}
+
+bool WinUtilities::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWORD *errorCode){
+
+    LOCALGROUP_MEMBERS_INFO_3 localgroup_members;
+    NET_API_STATUS nStatus;
+
+    // Now delete the user from the local group.
+    localgroup_members.lgrmi3_domainandname = userName;
+
+    nStatus = NetLocalGroupDelMembers(NULL,      //
+                                  groupName,             // Group name
+                                  3,                          // Name
+                                  (LPBYTE)&localgroup_members, // Buffer
+                                  1 );                        // Count
+
+    if(NERR_Success != nStatus){
+        if(errorCode){
+            *errorCode = nStatus;
+        }
+        qCritical()<<QString("ERROR! Failed to delete user '%1' from local group '%2'.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName));
+        return false;
+    }
+
+    return true;
+
+}
+
+
 
 bool WinUtilities::getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode){
 
@@ -1825,9 +1904,8 @@ bool WinUtilities::getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode){
 
             QStringList groups;
             getLocalGroupsTheUserBelongs(&groups, userName);
+            groups.sort(Qt::CaseInsensitive);
             array.append(groups.join(";"));
-
-
 
 
         }else{
@@ -1853,6 +1931,187 @@ bool WinUtilities::getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode){
 
     return true;
 
+
+}
+
+bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode){
+
+    if(!userObject){return false;}
+    QString userName = userObject->value("UserName").toString().trimmed();
+    if(userName.isEmpty()){
+        qCritical() << QString("Error! Failed to get user name. Invalid JSON object.");
+        return false;
+    }
+
+    NET_API_STATUS nStatus  = NERR_Success;
+
+    QStringList users = WinUtilities::localUsers(&nStatus);
+    if(users.isEmpty()){
+        qCritical() << QString("Error! Failed to get local users. Error code: %1").arg(nStatus);
+        if(errorCode){
+            *errorCode = nStatus;
+        }
+        return false;
+    }
+
+    bool ok = false;
+    nStatus  = NERR_Success;
+    if(!users.contains(userName, Qt::CaseInsensitive)){
+        ok = createLocalUser(userName, "", "", &nStatus);
+        if(!ok){
+            qCritical()<<QString("Error! Failed to create user '%1'. Error code: %2").arg(userName).arg(nStatus);
+            if(errorCode){
+                *errorCode = nStatus;
+            }
+            return false;
+        }
+        //addUserToLocalGroup(userName, "Users");
+    }
+
+
+    LPUSER_INFO_4 pBuf = NULL;
+    DWORD dwLevel = 4;
+    nStatus  = NERR_Success;
+
+    nStatus  = NetUserGetInfo( NULL, userName.toStdWString().c_str(), dwLevel, (LPBYTE *)&pBuf);
+    if( nStatus  == NERR_Success )
+    {
+
+        if(userObject->contains("Password")){
+            wchar_t strArray[MaxUserPasswordLength * sizeof(wchar_t) + 1];
+            wcscpy(strArray, userObject->value("Password").toString().toStdWString().c_str());
+
+            pBuf->usri4_password = strArray;
+        }
+        if(userObject->contains("HomeDir")){
+            wchar_t strArray[512];
+            wcscpy(strArray, userObject->value("HomeDir").toString().toStdWString().c_str());
+
+            pBuf->usri4_home_dir = strArray;
+        }
+        if(userObject->contains("Comment")){
+            wchar_t strArray[512];
+            wcscpy(strArray, userObject->value("Comment").toString().toStdWString().c_str());
+
+            pBuf->usri4_comment = strArray;
+        }
+
+        DWORD flags = pBuf->usri4_flags;
+
+        if(userObject->contains("UF_ACCOUNTDISABLE")){
+            bool accountDisabled  = userObject->value("UF_ACCOUNTDISABLE").toString().toInt();
+            if(accountDisabled){
+                flags = flags | UF_ACCOUNTDISABLE;
+            }else{
+                flags = flags ^ UF_ACCOUNTDISABLE;
+            }
+        }
+
+        if(userObject->contains("UF_PASSWD_CANT_CHANGE")){
+            bool cannotChangePassword = userObject->value("UF_PASSWD_CANT_CHANGE").toString().toInt();
+            if(cannotChangePassword){
+                flags = flags | UF_PASSWD_CANT_CHANGE;
+            }else{
+                flags = flags ^ UF_PASSWD_CANT_CHANGE;
+            }
+        }
+
+        if(userObject->contains("UF_LOCKOUT")){
+            bool accountLocked = userObject->value("UF_LOCKOUT").toString().toInt();
+            if(accountLocked){
+                flags = flags | UF_LOCKOUT;
+            }else{
+                flags = flags ^ UF_LOCKOUT;
+            }
+        }
+
+        if(userObject->contains("UF_DONT_EXPIRE_PASSWD")){
+            bool passwordNeverExpires = userObject->value("UF_DONT_EXPIRE_PASSWD").toString().toInt();
+            if(passwordNeverExpires){
+                flags = flags | UF_DONT_EXPIRE_PASSWD;
+            }else{
+                flags = flags ^ UF_DONT_EXPIRE_PASSWD;
+            }
+        }
+
+        pBuf->usri4_flags = flags;
+
+
+        if(userObject->contains("FullName")){
+            wchar_t strArray[512];
+            wcscpy(strArray, userObject->value("FullName").toString().toStdWString().c_str());
+
+            pBuf->usri4_full_name = strArray;
+        }
+        if(userObject->contains("Profile")){
+            wchar_t strArray[512];
+            wcscpy(strArray, userObject->value("Profile").toString().toStdWString().c_str());
+
+            pBuf->usri4_profile = strArray;
+        }
+
+        if(userObject->contains("MustChangePassword")){
+            pBuf->usri4_password_expired = userObject->value("MustChangePassword").toString().toInt();
+        }
+
+        DWORD dwParmError = 0;
+        nStatus = NetUserSetInfo( NULL, userName.toStdWString().c_str(), dwLevel, (LPBYTE)pBuf, &dwParmError);
+        if( nStatus != NERR_Success ){
+            if(errorCode){
+                *errorCode = nStatus;
+            }
+          qCritical()<<QString("ERROR! Can not update user info. Error code: %1").arg(nStatus);
+            return false;
+        }
+
+        if (pBuf != NULL){
+            NetApiBufferFree(pBuf);
+        }
+
+        if(userObject->contains("Groups")){
+            QStringList groups = userObject->value("Groups").toString().split(";");
+            groups.removeAll("");
+            groups.sort(Qt::CaseInsensitive);
+            QStringList curGroups;
+            nStatus  = NERR_Success;
+            ok = getLocalGroupsTheUserBelongs(&curGroups, userName, &nStatus);
+            if(!ok){
+                qCritical()<<QString("ERROR! Can not get groups the user belongs to. Error code:").arg(nStatus);
+                return false;
+            }
+
+            foreach (QString group, curGroups) {
+                if(!groups.contains(group, Qt::CaseInsensitive)){
+                    deleteUserFromLocalGroup(userName, group);
+                }
+            }
+
+            foreach (QString group, groups) {
+                addUserToLocalGroup(userName, group);
+            }
+            curGroups.clear();
+            getLocalGroupsTheUserBelongs(&curGroups, userName, &nStatus);
+            curGroups.sort(Qt::CaseInsensitive);
+            if(curGroups != groups){
+                qCritical()<<"ERROR! An error occured while adding user to local grous.";
+                return false;
+            }
+
+
+        }
+
+    }else{
+        qCritical()<<QString("NetUserGetInfo failed. Code: %1.").arg(nStatus );
+        if(errorCode){
+            *errorCode = nStatus;
+        }
+    }
+qDebug()<<"----------7";
+    if (pBuf != NULL){
+        NetApiBufferFree(pBuf);
+    }
+
+    return true;
 
 }
 

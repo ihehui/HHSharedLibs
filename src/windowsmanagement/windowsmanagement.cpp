@@ -137,11 +137,11 @@ bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, co
 
     emit signalProgressUpdate(QString(tr("Adding user %1 to local 'Administrators' group...").arg(userName)), 15);
     QCoreApplication::processEvents();
-    if(!addUserToLocalGroup(id, L"Administrators")){
+    if(!WinUtilities::addUserToLocalGroup(id, L"Administrators")){
         emit signalAddingUserJobDone(false);
         return false;
     }
-    addUserToLocalGroup(id, L"Users");
+    WinUtilities::addUserToLocalGroup(id, L"Users");
 
     emit signalProgressUpdate(QString(tr("Save settings...")), 30);
     QCoreApplication::processEvents();
@@ -572,14 +572,14 @@ bool WindowsManagement::initNewSitoyUser(){
 
     emit signalProgressUpdate(tr("Adding user to local 'Power Users' group..."), 40);
 
-    if (!addUserToLocalGroup(userNameArray, L"Power Users")) {
+    if (!WinUtilities::addUserToLocalGroup(userNameArray, L"Power Users")) {
         //m_outputMsgs.append(tr("Can not add user to local 'Power Users' group!"));
         m_outputMsgs.append(m_lastErrorString);
     }
 
     emit signalProgressUpdate(tr("Deleting user from local 'Administrators' group..."), 50);
 
-    if (!deleteUserFromLocalGroup(userNameArray, L"Administrators")) {
+    if (!WinUtilities::deleteUserFromLocalGroup(userNameArray, L"Administrators")) {
         //m_outputMsgs.append(tr("Can not delete user from local 'Administrators' group!"));
         m_outputMsgs.append(m_lastErrorString);
     }
@@ -1419,118 +1419,118 @@ QStringList WindowsManagement::localGroups() {
 
 //}
 
-bool WindowsManagement::addUserToLocalGroup(const QString &userName, const QString &groupName){
+//bool WindowsManagement::addUserToLocalGroup(const QString &userName, const QString &groupName){
 
-    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
-    wcscpy(userNameArray, userName.toStdWString().c_str());
+//    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
+//    wcscpy(userNameArray, userName.toStdWString().c_str());
 
-    wchar_t groupNameArray[MaxGroupNameLength * sizeof(wchar_t) + 1];
-    wcscpy(groupNameArray, groupName.toStdWString().c_str());
+//    wchar_t groupNameArray[MaxGroupNameLength * sizeof(wchar_t) + 1];
+//    wcscpy(groupNameArray, groupName.toStdWString().c_str());
 
-    return addUserToLocalGroup(userNameArray, groupNameArray);
+//    return addUserToLocalGroup(userNameArray, groupNameArray);
 
-}
+//}
 
-bool WindowsManagement::addUserToLocalGroup(LPWSTR userName,  LPCWSTR groupName){
+//bool WindowsManagement::addUserToLocalGroup(LPWSTR userName,  LPCWSTR groupName){
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    LOCALGROUP_MEMBERS_INFO_3 localgroup_members;
-    NET_API_STATUS err;
+//    LOCALGROUP_MEMBERS_INFO_3 localgroup_members;
+//    NET_API_STATUS err;
 
-    // Now add the user to the local group.
-    localgroup_members.lgrmi3_domainandname = userName;
-    err = NetLocalGroupAddMembers(NULL,      //
-                                  groupName,             // Group name
-                                  3,                          // Name
-                                  (LPBYTE)&localgroup_members, // Buffer
-                                  1 );                        // Count
+//    // Now add the user to the local group.
+//    localgroup_members.lgrmi3_domainandname = userName;
+//    err = NetLocalGroupAddMembers(NULL,      //
+//                                  groupName,             // Group name
+//                                  3,                          // Name
+//                                  (LPBYTE)&localgroup_members, // Buffer
+//                                  1 );                        // Count
 
-    switch ( err )
-    {
-    case NERR_Success:
-        qDebug()<<"User '"<<userName<<"' successfully added to Local "<<groupName<<" Group.\n";
-        //printf("User successfully added to Local Group.\n");
+//    switch ( err )
+//    {
+//    case NERR_Success:
+//        qDebug()<<"User '"<<userName<<"' successfully added to Local "<<groupName<<" Group.\n";
+//        //printf("User successfully added to Local Group.\n");
 
-        return true;
-        break;
-    case ERROR_MEMBER_IN_ALIAS:
-        //printf("User already in Local Group.\n");
-        m_lastErrorString = tr("User is already in Local '%1' Group").arg(QString::fromWCharArray(groupName));
-        qDebug()<< m_lastErrorString;
-        return false;
-        break;
-    default:
-        //printf("An error occured while adding User to Local Group '%s' Error code: %d\n", groupName, err);
-        m_lastErrorString = tr("An error occured while adding user '%1' to local group '%2'! %3:%4.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName)).arg(err).arg(WinUtilities::WinSysErrorMsg(err));
-        qDebug()<< m_lastErrorString;
+//        return true;
+//        break;
+//    case ERROR_MEMBER_IN_ALIAS:
+//        //printf("User already in Local Group.\n");
+//        m_lastErrorString = tr("User is already in Local '%1' Group").arg(QString::fromWCharArray(groupName));
+//        qDebug()<< m_lastErrorString;
+//        return false;
+//        break;
+//    default:
+//        //printf("An error occured while adding User to Local Group '%s' Error code: %d\n", groupName, err);
+//        m_lastErrorString = tr("An error occured while adding user '%1' to local group '%2'! %3:%4.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName)).arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+//        qDebug()<< m_lastErrorString;
 
-        return false;
-        break;
-    }
+//        return false;
+//        break;
+//    }
 
-    //    return( err );
-}
+//    //    return( err );
+//}
 
-bool WindowsManagement::deleteUserFromLocalGroup(const QString &userName, const QString &groupName){
+//bool WindowsManagement::deleteUserFromLocalGroup(const QString &userName, const QString &groupName){
 
-    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
-    wcscpy(userNameArray, userName.toStdWString().c_str());
+//    wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
+//    wcscpy(userNameArray, userName.toStdWString().c_str());
 
-    wchar_t groupNameArray[MaxGroupNameLength * sizeof(wchar_t) + 1];
-    wcscpy(groupNameArray, groupName.toStdWString().c_str());
+//    wchar_t groupNameArray[MaxGroupNameLength * sizeof(wchar_t) + 1];
+//    wcscpy(groupNameArray, groupName.toStdWString().c_str());
 
-    return deleteUserFromLocalGroup(userNameArray, groupNameArray);
+//    return deleteUserFromLocalGroup(userNameArray, groupNameArray);
 
-}
+//}
 
-bool WindowsManagement::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName){
+//bool WindowsManagement::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName){
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    LOCALGROUP_MEMBERS_INFO_3 localgroup_members;
-    NET_API_STATUS err;
+//    LOCALGROUP_MEMBERS_INFO_3 localgroup_members;
+//    NET_API_STATUS err;
 
-    // Now delete the user from the local group.
+//    // Now delete the user from the local group.
 
-    localgroup_members.lgrmi3_domainandname = userName;
+//    localgroup_members.lgrmi3_domainandname = userName;
 
-    err = NetLocalGroupDelMembers(NULL,      //
-                                  groupName,             // Group name
-                                  3,                          // Name
-                                  (LPBYTE)&localgroup_members, // Buffer
-                                  1 );                        // Count
+//    err = NetLocalGroupDelMembers(NULL,      //
+//                                  groupName,             // Group name
+//                                  3,                          // Name
+//                                  (LPBYTE)&localgroup_members, // Buffer
+//                                  1 );                        // Count
 
-    switch ( err )
-    {
-    case NERR_Success:
-        qDebug()<<"User '"<<userName<<"' successfully deleted from Local "<<groupName<<" Group.\n";
-        //printf("User successfully added to Local Group.\n");
-        return true;
-        break;
-    case ERROR_NO_SUCH_MEMBER:
+//    switch ( err )
+//    {
+//    case NERR_Success:
+//        qDebug()<<"User '"<<userName<<"' successfully deleted from Local "<<groupName<<" Group.\n";
+//        //printf("User successfully added to Local Group.\n");
+//        return true;
+//        break;
+//    case ERROR_NO_SUCH_MEMBER:
         
-        //qWarning()<<"User '"<<userName<<"' does not exist.";
-        //printf("User does not exist.\n");
-        m_lastErrorString = tr("User '%1' does not exist!").arg(QString::fromWCharArray(userName));
-        qDebug()<< m_lastErrorString;
+//        //qWarning()<<"User '"<<userName<<"' does not exist.";
+//        //printf("User does not exist.\n");
+//        m_lastErrorString = tr("User '%1' does not exist!").arg(QString::fromWCharArray(userName));
+//        qDebug()<< m_lastErrorString;
 
-        return false;
-        break;
-    default:
+//        return false;
+//        break;
+//    default:
 
-        //qWarning()<<"Error occured while deleting user '"<<userName<<"' from Local "<<groupName<<" Group.\n";
-        //printf("Error deleting User from Local Group: %d\n", err);
+//        //qWarning()<<"Error occured while deleting user '"<<userName<<"' from Local "<<groupName<<" Group.\n";
+//        //printf("Error deleting User from Local Group: %d\n", err);
 
-        m_lastErrorString = tr("An error occured while deleting user '%1' from local group '%2'! %3:%4.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName)).arg(err).arg(WinUtilities::WinSysErrorMsg(err));
-        qDebug()<< m_lastErrorString;
-        return false;
-        break;
-    }
+//        m_lastErrorString = tr("An error occured while deleting user '%1' from local group '%2'! %3:%4.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName)).arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+//        qDebug()<< m_lastErrorString;
+//        return false;
+//        break;
+//    }
 
-    //    return( err );
+//    //    return( err );
 
-}
+//}
 
 //QStringList WindowsManagement::getMembersOfLocalGroup(const QString &groupName, const QString &serverName){
 

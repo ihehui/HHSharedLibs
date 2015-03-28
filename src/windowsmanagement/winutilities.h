@@ -124,6 +124,10 @@ public:
     static QStringList getMembersOfLocalGroup(const QString &groupName, const QString &serverName = "");
     static bool getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "", DWORD *errorCode = 0);
     static bool getGlobalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "", const QString &serverName = "", DWORD *errorCode = 0);
+    static bool addUserToLocalGroup(const QString &userName, const QString &groupName, DWORD *errorCode = 0);
+    static bool addUserToLocalGroup(LPWSTR userName, LPCWSTR groupName, DWORD *errorCode = 0);
+    static bool deleteUserFromLocalGroup(const QString &userName, const QString &groupName, DWORD *errorCode = 0);
+    static bool deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWORD *errorCode = 0);
 
 //    class WinUserInfo
 //    {
@@ -163,6 +167,7 @@ public:
 
 //    };
     static bool getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode = 0);
+    static bool createOrModifyUser(QJsonObject *userObject, DWORD *errorCode = 0);
 
 
     //Service
