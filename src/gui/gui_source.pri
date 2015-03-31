@@ -1,3 +1,6 @@
+
+INCLUDEPATH += $$PWD
+
 HEADERS += screenshot/screenshot.h \
     screenshot/selecttargetimagewidget.h \
     dataexport/dataoutputdialog.h \
@@ -17,15 +20,11 @@ HEADERS += screenshot/screenshot.h \
     dataprint.h \
     widgetbase/mainwindowbase.h \
     widgetbase/widgetbase.h \
-    guilib.h
-FORMS += screenshot/screenshot.ui \
-    screenshot/selecttargetimagewidget.ui \
-    dataexport/dataoutputdialog.ui \
-    preference/preferenceswindow.ui \
-    plugin/pluginmanager/pluginmanagerwindow.ui \
-    progress/progressdlg.ui \
-    databaseconnecter/databaseconnecterdialog.ui \
-    login/logindlg.ui
+    guilib.h \
+    imageviewer/imageviewercontroler.h \
+    imageviewer/animationcontroler.h \
+    imageviewer/imageviewer.h
+
 SOURCES += screenshot/screenshot.cpp \
     screenshot/selecttargetimagewidget.cpp \
     dataexport/dataoutputdialog.cpp \
@@ -43,8 +42,27 @@ SOURCES += screenshot/screenshot.cpp \
     login/logindlg.cpp \
     dataprint.cpp \
     widgetbase/mainwindowbase.cpp \
-    widgetbase/widgetbase.cpp
+    widgetbase/widgetbase.cpp \
+    imageviewer/imageviewercontroler.cpp \
+    imageviewer/animationcontroler.cpp \
+    imageviewer/imageviewer.cpp
 
-INCLUDEPATH += $$PWD
+FORMS += screenshot/screenshot.ui \
+    screenshot/selecttargetimagewidget.ui \
+    dataexport/dataoutputdialog.ui \
+    preference/preferenceswindow.ui \
+    plugin/pluginmanager/pluginmanagerwindow.ui \
+    progress/progressdlg.ui \
+    databaseconnecter/databaseconnecterdialog.ui \
+    login/logindlg.ui \
+    imageviewer/imageviewercontroler.ui \
+    imageviewer/animationcontroler.ui
 
-RESOURCES += gui.qrc
+
+RESOURCES += gui.qrc \
+    imageviewer/resource.qrc
+
+include (./widgetbase/itembox/itembox.pri)
+
+
+#DEFINES += GUI_LIBRARY_EXPORT

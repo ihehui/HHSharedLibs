@@ -44,7 +44,6 @@ WidgetBase::WidgetBase(QWidget *parent, Qt::WindowFlags flags)
 {
     // TODO Auto-generated constructor stub
 
-
 }
 
 WidgetBase::~WidgetBase() {

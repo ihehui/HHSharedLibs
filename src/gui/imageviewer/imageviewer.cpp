@@ -46,6 +46,15 @@
 #include "imageviewercontroler.h"
 #include "animationcontroler.h"
 
+
+#ifndef QT_NO_PRINTER
+    #include <QPrinter>
+    #include <QPrintDialog>
+#endif
+
+
+
+
 namespace HEHUI {
 
 
@@ -172,6 +181,55 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
 ImageViewer::~ImageViewer(){
 
     tipTimer->stop();
+
+}
+
+void ImageViewer::setImage(const QImage &image){
+
+    //Resize
+    QDesktopWidget* desktop = QApplication::desktop();
+    QRect rect = desktop->availableGeometry(this);
+    int desktopWidth = rect.width();
+    int desktopHeight = rect.height();
+    //    int newWindowWidth = qMin(image.width(), desktopWidth-40);
+    //    int newWindowHeight = qMin(image.height(), desktopHeight-40);
+    QSize minSize = QSize(qMin(image.width(), desktopWidth-40), qMin(image.height(), desktopHeight-40));
+    QSize newSize = image.size().scaled(minSize, Qt::KeepAspectRatio);
+    resize(newSize);
+    move((desktopWidth - frameGeometry().width()) / 2, (desktopHeight - frameGeometry().height()) / 2);
+
+
+
+    updatePixmap(QPixmap());
+    imageLabel->resize(1,1);
+
+    scaleFactor = 1;
+    m_fitToWindow = true;
+    rotateAngle = 0;
+    flipHorizontally = false;
+    flipVertically = false;
+
+    imageControler->reset();
+
+    qApp->processEvents();
+
+    updatePixmap(QPixmap::fromImage(image));
+    orignalPixmap = curPixmap;
+
+
+    QSize viewportSize = scrollArea->viewport()->size();
+    if(image.width() > viewportSize.width() ||  image.height() > viewportSize.height()){
+        //zoomFitBest();
+        QTimer::singleShot(50, this, SLOT(zoomFitBest()));
+    }else{
+        //zoomOrignal();
+        QTimer::singleShot(50, this, SLOT(zoomOrignal()));
+    }
+
+
+
+
+    updateActions();
 
 }
 
@@ -470,55 +528,52 @@ void ImageViewer::openFile(const QString &fileName)
         return;
     }
 
-
-
-    //Resize
-    QDesktopWidget* desktop = QApplication::desktop();
-    QRect rect = desktop->availableGeometry(this);
-    int desktopWidth = rect.width();
-    int desktopHeight = rect.height();
-    //    int newWindowWidth = qMin(image.width(), desktopWidth-40);
-    //    int newWindowHeight = qMin(image.height(), desktopHeight-40);
-    QSize minSize = QSize(qMin(image.width(), desktopWidth-40), qMin(image.height(), desktopHeight-40));
-    QSize newSize = image.size().scaled(minSize, Qt::KeepAspectRatio);
-    resize(newSize);
-    move((desktopWidth - frameGeometry().width()) / 2, (desktopHeight - frameGeometry().height()) / 2);
-
-
-
-    updatePixmap(QPixmap());
-    imageLabel->resize(1,1);
-
-    scaleFactor = 1;
-    m_fitToWindow = true;
-    rotateAngle = 0;
-    flipHorizontally = false;
-    flipVertically = false;
-
-    imageControler->reset();
-
-    qApp->processEvents();
-
-    updatePixmap(QPixmap::fromImage(image));
-    orignalPixmap = curPixmap;
-
-
-    QSize viewportSize = scrollArea->viewport()->size();
-    if(image.width() > viewportSize.width() ||  image.height() > viewportSize.height()){
-        //zoomFitBest();
-        QTimer::singleShot(50, this, SLOT(zoomFitBest()));
-    }else{
-        //zoomOrignal();
-        QTimer::singleShot(50, this, SLOT(zoomOrignal()));
-    }
-
-
     runningValidMovie = animationControler->setFileName(fileName);
+    setImage(image);
 
 
-    updateActions();
 
 
+//    //Resize
+//    QDesktopWidget* desktop = QApplication::desktop();
+//    QRect rect = desktop->availableGeometry(this);
+//    int desktopWidth = rect.width();
+//    int desktopHeight = rect.height();
+//    //    int newWindowWidth = qMin(image.width(), desktopWidth-40);
+//    //    int newWindowHeight = qMin(image.height(), desktopHeight-40);
+//    QSize minSize = QSize(qMin(image.width(), desktopWidth-40), qMin(image.height(), desktopHeight-40));
+//    QSize newSize = image.size().scaled(minSize, Qt::KeepAspectRatio);
+//    resize(newSize);
+//    move((desktopWidth - frameGeometry().width()) / 2, (desktopHeight - frameGeometry().height()) / 2);
+
+//    updatePixmap(QPixmap());
+//    imageLabel->resize(1,1);
+
+//    scaleFactor = 1;
+//    m_fitToWindow = true;
+//    rotateAngle = 0;
+//    flipHorizontally = false;
+//    flipVertically = false;
+
+//    imageControler->reset();
+
+//    qApp->processEvents();
+
+//    updatePixmap(QPixmap::fromImage(image));
+//    orignalPixmap = curPixmap;
+
+//    QSize viewportSize = scrollArea->viewport()->size();
+//    if(image.width() > viewportSize.width() ||  image.height() > viewportSize.height()){
+//        //zoomFitBest();
+//        QTimer::singleShot(50, this, SLOT(zoomFitBest()));
+//    }else{
+//        //zoomOrignal();
+//        QTimer::singleShot(50, this, SLOT(zoomOrignal()));
+//    }
+
+//    runningValidMovie = animationControler->setFileName(fileName);
+
+//    updateActions();
 
 
 }
@@ -555,6 +610,28 @@ void ImageViewer::updateAnimationFrame(const QPixmap &pixmap){
     matrix.rotate(rotateAngle);
 
     updatePixmap( QPixmap::fromImage(curPixmap.toImage().mirrored(flipHorizontally, flipVertically)).transformed(matrix,Qt::SmoothTransformation) );
+
+    if(m_fitToWindow){
+        zoomFitBest();
+    }else{
+        scaleImage(1);
+    }
+
+    tipScaleFactor = true;
+
+}
+
+void ImageViewer::updateAnimationFrame(const QImage &image){
+
+    updatePixmap(QPixmap::fromImage(image));
+    orignalPixmap = curPixmap;
+
+    tipScaleFactor = false;
+
+    QMatrix matrix;
+    matrix.rotate(rotateAngle);
+
+    updatePixmap( QPixmap::fromImage(image.mirrored(flipHorizontally, flipVertically)).transformed(matrix,Qt::SmoothTransformation) );
 
     if(m_fitToWindow){
         zoomFitBest();
@@ -754,6 +831,7 @@ void ImageViewer::print()
     if(!pixmap){return;}
 
 #if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
+    QPrinter printer(QPrinter::HighResolution);
     QPrintDialog dialog(&printer, this);
     if (dialog.exec()) {
         QPainter painter(&printer);
@@ -765,6 +843,7 @@ void ImageViewer::print()
         painter.drawPixmap(0, 0, *pixmap);
     }
 #endif
+
 }
 
 

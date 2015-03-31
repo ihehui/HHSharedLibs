@@ -82,35 +82,35 @@ namespace HEHUI {
 
 QIcon createIconSet(const QString &iconFileName, const QString &defaultIconName,  QIcon::Mode mode){
 
-	QString file;
-	if(QFile::exists(iconFileName)){
-		file = iconFileName;
-	}else if(QFile::exists(defaultIconName)){
-		file = defaultIconName;
-	}else{
-		file = QString(":/resources/images/emptyicon.png");
-	}
+    QString file;
+    if(QFile::exists(iconFileName)){
+        file = iconFileName;
+    }else if(QFile::exists(defaultIconName)){
+        file = defaultIconName;
+    }else{
+        file = QString(":/resources/images/emptyicon.png");
+    }
 
 
 
-	if(mode == QIcon::Disabled){
-		QIcon icon;
-		QSize size = QImage(file).size();
-		QPixmap pixmap = QIcon(file).pixmap(size, mode);
-		icon.addPixmap(pixmap);
-		return icon;
-	}
+    if(mode == QIcon::Disabled){
+        QIcon icon;
+        QSize size = QImage(file).size();
+        QPixmap pixmap = QIcon(file).pixmap(size, mode);
+        icon.addPixmap(pixmap);
+        return icon;
+    }
 
 
 
-//	QImage image(file);
-//	if(!image.isNull()){
-//		icon.addPixmap(QPixmap::fromImage(image), QIcon::Disabled, QIcon::Off);
-//	}
+    //	QImage image(file);
+    //	if(!image.isNull()){
+    //		icon.addPixmap(QPixmap::fromImage(image), QIcon::Disabled, QIcon::Off);
+    //	}
 
 
 
-	return QIcon(file);
+    return QIcon(file);
 
 }
 

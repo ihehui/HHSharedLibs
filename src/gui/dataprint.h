@@ -34,35 +34,38 @@
 #define DATAPRINT_H_
 
 #include <QObject>
-#include <QPrinter>
 #include <QTextDocument>
 
 #include "guilib.h"
 
+
+class QPrinter;
+
+
 namespace HEHUI{
 
 class GUI_LIB_API DataPrint : public QObject{
-Q_OBJECT
+    Q_OBJECT
 public:
-	DataPrint(const QString &fileName, bool preview, QObject *parent = 0);
+    DataPrint(const QString &fileName, bool preview, QObject *parent = 0);
 
-	DataPrint(const QString &string, bool isRichText, bool preview, QObject *parent = 0);
-	virtual ~DataPrint();
+    DataPrint(const QString &string, bool isRichText, bool preview, QObject *parent = 0);
+    virtual ~DataPrint();
 
 private:
-        bool loadFile(const QString &fileName);
+    bool loadFile(const QString &fileName);
 
 
 public slots:
-	void slotDataPrint();
-	void slotDataPrintPreview();
-	void slotFilePrintPdf();
+    void slotDataPrint();
+    void slotDataPrintPreview();
+    void slotFilePrintPdf();
 
 private slots:
-	void slotPrintPreview(QPrinter *printer);
+    void slotPrintPreview(QPrinter *printer);
 
 private:
-	QTextDocument *document;
+    QTextDocument *document;
 
 
 };

@@ -34,11 +34,13 @@ include(../core/core_lib.pri)
 
 # include source 
 include(gui_source.pri)
-include (./widgetbase/itembox/itembox.pri)
-include (./imageviewer/imageviewer.pri)
+#include (./widgetbase/itembox/itembox.pri)
+#include (./imageviewer/imageviewer.pri)
 
 
 DEFINES += GUI_LIBRARY_EXPORT
+DEFINES += ITEMBOX_LIBRARY_EXPORT
+DEFINES += IMAGEVIEWER_LIBRARY_EXPORT
 
 # DEPENDPATH += . \
 # UI_DIR \

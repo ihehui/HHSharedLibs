@@ -44,13 +44,13 @@ void LoginDlg::keyPressEvent(QKeyEvent *e) {
         break;
     case Qt::Key_Return:
     case Qt::Key_Enter:
-//        if (ui->userIDComboBox->hasFocus()) {
-//            ui->passwordLineEdit->setFocus();
-//        } else if (ui->passwordLineEdit->hasFocus()) {
-//            ui->lineEditAuthenticode->setFocus();
-//        }else{
-//            ui->pushButtonLogin->click();
-//        }
+        //        if (ui->userIDComboBox->hasFocus()) {
+        //            ui->passwordLineEdit->setFocus();
+        //        } else if (ui->passwordLineEdit->hasFocus()) {
+        //            ui->lineEditAuthenticode->setFocus();
+        //        }else{
+        //            ui->pushButtonLogin->click();
+        //        }
         focusNextChild();
         break;
     case Qt::Key_R:
@@ -123,15 +123,15 @@ void LoginDlg::on_pushButtonLogin_clicked() {
         return;
 
     }
-//    else if(ui->lineEditAuthenticode->text() != QDateTime::currentDateTime().toString("HHmm")){
-//        qDebug()<<"Authentic code:"<<QDateTime::currentDateTime().toString("HHmm");
-//        QMessageBox::critical(this, tr("Authentication Failed"), tr(
-//                                  "<b>Incorrect Authenticode!</b>"));
-//        ui->lineEditAuthenticode->clear();
-//        ui->lineEditAuthenticode->setFocus();
-//        return;
+    //    else if(ui->lineEditAuthenticode->text() != QDateTime::currentDateTime().toString("HHmm")){
+    //        qDebug()<<"Authentic code:"<<QDateTime::currentDateTime().toString("HHmm");
+    //        QMessageBox::critical(this, tr("Authentication Failed"), tr(
+    //                                  "<b>Incorrect Authenticode!</b>"));
+    //        ui->lineEditAuthenticode->clear();
+    //        ui->lineEditAuthenticode->setFocus();
+    //        return;
 
-//    }
+    //    }
     else{
         user->setUserID(uid);
 
@@ -142,8 +142,8 @@ void LoginDlg::on_pushButtonLogin_clicked() {
 
         user->setPassword(password);
 
-//        qWarning()<<"~~ password:"<<ui->passwordLineEdit->text();
-//        qWarning()<<"~~ password.toBase64():"<<password.toBase64();
+        //        qWarning()<<"~~ password:"<<ui->passwordLineEdit->text();
+        //        qWarning()<<"~~ password.toBase64():"<<password.toBase64();
 
         ui->passwordLineEdit->clear();
         accept();

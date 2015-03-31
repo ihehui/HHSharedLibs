@@ -52,18 +52,12 @@ class QScrollBar;
 class QToolButton;
 QT_END_NAMESPACE
 
-#ifndef QT_NO_PRINTER
-    #include <QPrinter>
-    #include <QPrintDialog>
-#endif
 
 #if defined(IMAGEVIEWER_LIBRARY_EXPORT)
 #  define IMAGEVIEWER_LIB_API Q_DECL_EXPORT
 #else
 #  define IMAGEVIEWER_LIB_API Q_DECL_IMPORT
 #endif
-
-
 
 
 namespace HEHUI {
@@ -82,6 +76,7 @@ public:
     ImageViewer(QWidget *parent = 0, Qt::WindowFlags fl = Qt::FramelessWindowHint);
     ~ImageViewer();
 
+    void setImage(const QImage &image);
     void setImages(const QStringList &images, unsigned int initIndex = 0);
 
 
@@ -103,12 +98,12 @@ public slots:
 
     void setCloseButtonVisible(bool visible = true);
 
+    void openFile(const QString &fileName);
+    void openFile(int imageIndex);
+    void updateAnimationFrame(const QImage &image);
 
 private slots:
     void open();
-    void openFile(const QString &fileName);
-    void openFile(int imageIndex);
-
 
     void updatePixmap(const QPixmap &pixmap);
 
@@ -193,12 +188,6 @@ private:
 
     QPoint dragPosition;
 
-
-
-
-#ifndef QT_NO_PRINTER
-    QPrinter printer;
-#endif
 
 
 

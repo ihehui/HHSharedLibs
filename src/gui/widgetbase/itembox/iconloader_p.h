@@ -39,16 +39,7 @@
 **
 ****************************************************************************/
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists for the convenience
-// of Qt Designer.  This header
-// file may change from version to version without notice, or even be removed.
-//
-// We mean it.
-//
+
 
 #ifndef ICONLOADER_H
 #define ICONLOADER_H
@@ -65,8 +56,8 @@ namespace HEHUI {
 // QIcon createIconSet(const QString &name);
 // QIcon emptyIcon();
 
-	 QIcon createIconSet(const QString &iconFileName, const QString &defaultIconName = "", QIcon::Mode mode = QIcon::Disabled);
-	 QIcon emptyIcon();
+QIcon createIconSet(const QString &iconFileName, const QString &defaultIconName = "", QIcon::Mode mode = QIcon::Disabled);
+QIcon emptyIcon();
 
 
 } // namespace HEHUI

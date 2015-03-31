@@ -53,8 +53,7 @@ TrayIconData::TrayIconData(QObject *parent)
     trayIconType = TRAYICON_Normal;
     
     iconList.clear();
-    
-    
+        
 }
 
 TrayIconData::TrayIconData(int dataType, const QString &id, const QString &owner,
