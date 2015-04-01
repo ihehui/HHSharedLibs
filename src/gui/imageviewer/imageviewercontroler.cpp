@@ -26,9 +26,9 @@ ImageViewerControler::~ImageViewerControler()
 
 void ImageViewerControler::reset(){
     ui->dial->setValue(180);
-    setScaleButtonsVisible(true);
-    setRotateButtonsVisible(true);
-    setFlipButtonsVisible(true);
+//    setScaleButtonsVisible(true);
+//    setRotateButtonsVisible(true);
+//    setFlipButtonsVisible(true);
 }
 
 void ImageViewerControler::setScaleButtonsVisible(bool visible){

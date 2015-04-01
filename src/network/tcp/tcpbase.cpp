@@ -435,7 +435,7 @@ void TCPBase::slotProcessSocketReadyRead() {
 }
 
 void TCPBase::readSocketdData(SOCKETID socketID, QTcpSocket *socket){
-    qDebug()<<"--TCPBase::readSocketdData(...) "<<" socketID:"<<socketID<<" peerAddress:"<<socket->peerAddress().toString();
+    //qDebug()<<"--TCPBase::readSocketdData(...) "<<" socketID:"<<socketID<<" peerAddress:"<<socket->peerAddress().toString();
 
     Q_ASSERT(socketID > 0);
     Q_ASSERT(socket);

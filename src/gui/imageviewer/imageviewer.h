@@ -95,12 +95,15 @@ public slots:
     void setScaleButtonsVisible(bool visible = true);
     void setRotateButtonsVisible(bool visible = true);
     void setFlipButtonsVisible(bool visible = true);
-
     void setCloseButtonVisible(bool visible = true);
+    void setDragable(bool dragable);
 
     void openFile(const QString &fileName);
     void openFile(int imageIndex);
     void updateAnimationFrame(const QImage &image);
+    void setText(const QString &text);
+
+    void setDefaultSavePath(const QString &path);
 
 private slots:
     void open();
@@ -109,6 +112,7 @@ private slots:
 
     void updateAnimationFrame(const QPixmap &pixmap);
 
+    virtual void save();
     void saveAs();
     void print();
 
@@ -122,7 +126,7 @@ private slots:
 
     void reset();
 
-    void showContextMenu(const QPoint &pos);
+    virtual void showContextMenu(const QPoint &pos);
 
     void showScaleFactor();
     void showImageInfo();
@@ -187,6 +191,9 @@ private:
 
 
     QPoint dragPosition;
+    bool m_dragable;
+
+    QString m_defaultSavePath;
 
 
 

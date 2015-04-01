@@ -34,6 +34,7 @@ signals:
     void signalZoomFitBest();
     void signalZoomOrignal();
 
+    void signalSave();
     void signalSaveAs();
 
 public slots:
@@ -56,6 +57,7 @@ private slots:
     void on_toolButtonZoomFitBest_clicked(){emit signalZoomFitBest();}
     void on_toolButtonZoomOriginal_clicked(){emit signalZoomOrignal();}
 
+    void on_toolButtonSave_clicked(){emit signalSave();}
     void on_toolButtonSaveAs_clicked(){emit signalSaveAs();}
 
 

@@ -63,7 +63,7 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
     : QWidget(parent, fl)
 {
 
-    setWindowOpacity(0.85);
+    //setWindowOpacity(0.85);
 
     currentImageDirectory = QDir::homePath();
     curImageIndex = 0;
@@ -109,6 +109,8 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
     connect(imageControler, SIGNAL(signalZoomOut()), this, SLOT(zoomOut()));
     connect(imageControler, SIGNAL(signalZoomFitBest()), this, SLOT(zoomFitBest()));
     connect(imageControler, SIGNAL(signalZoomOrignal()), this, SLOT(zoomOrignal()));
+
+    connect(imageControler, SIGNAL(signalSave()), this, SLOT(save()));
     connect(imageControler, SIGNAL(signalSaveAs()), this, SLOT(saveAs()));
 
 
@@ -151,6 +153,8 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
     flipVertically = false;
 
     dragPosition = QPoint(0, 0);
+    m_dragable = true;
+    m_defaultSavePath = "./";
 
     imageLabel->setMouseTracking(true);
     scrollArea->setMouseTracking(true);
@@ -379,7 +383,9 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
 
     case QEvent::MouseButtonPress:
     {
-        //        qDebug()<<"----QEvent::MouseButtonPress"<<" "<<this;
+        if(!m_dragable){
+            return QObject::eventFilter(obj, event);
+        }
 
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *> (event);
         if(!mouseEvent){return false;}
@@ -392,12 +398,14 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
 
     case QEvent::MouseMove:
     {
-        //        qDebug()<<"----QEvent::MouseMove";
 
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *> (event);
         if(!mouseEvent){return false;}
 
         if (mouseEvent->buttons() & Qt::LeftButton) {
+            if(!m_dragable){
+                return QObject::eventFilter(obj, event);
+            }
             move(mouseEvent->globalPos() - dragPosition);
             //return true;
         }
@@ -501,6 +509,10 @@ void ImageViewer::setFlipButtonsVisible(bool visible){
 
 void ImageViewer::setCloseButtonVisible(bool visible){
     toolButtonClose->setVisible(visible);
+}
+
+void ImageViewer::setDragable(bool dragable){
+    m_dragable = dragable;
 }
 
 void ImageViewer::open()
@@ -641,6 +653,14 @@ void ImageViewer::updateAnimationFrame(const QImage &image){
 
     tipScaleFactor = true;
 
+}
+
+void ImageViewer::setText(const QString &text){
+    imageLabel->setText(text);
+}
+
+void ImageViewer::setDefaultSavePath(const QString &path){
+    m_defaultSavePath = path;
 }
 
 void ImageViewer::rotate(int angle){
@@ -788,6 +808,21 @@ void ImageViewer::zoomOrignal()
 
 }
 
+void ImageViewer::save(){
+
+    QString path = m_defaultSavePath + QString("/%1.jpg").arg(QDateTime::currentDateTime().toString("yyyyMMddhhmmss"));
+
+    const QPixmap *pixmap = imageLabel->pixmap();
+    Q_ASSERT(pixmap);
+    if(!pixmap){return;}
+
+    if(!pixmap->save(path)){
+        QMessageBox::critical(this, tr("Error"), tr("Can not save image as:<p>%1</p>").arg(path));
+    }
+
+
+}
+
 void ImageViewer::saveAs(){
 
     QStringList filters;
@@ -802,7 +837,7 @@ void ImageViewer::saveAs(){
 
     QFileDialog dlg;
     QString selectedFilter;
-    QString path = dlg.getSaveFileName(this, tr("Save Image As:"), QDir::homePath(), filters.join(";;"), &selectedFilter);
+    QString path = dlg.getSaveFileName(this, tr("Save Image As:"), m_defaultSavePath, filters.join(";;"), &selectedFilter);
     if(path.isEmpty()){return;}
     QFileInfo info(path);
     QString sufffix = info.suffix().trimmed();
