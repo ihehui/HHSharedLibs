@@ -153,6 +153,56 @@ QImage ImageResourceBase::WinHBITMAPToImage(HBITMAP bitmap, bool noAlpha)
     return image;
 }
 
+//HBITMAP ImageResourceBase::PixmapToWinHBITMAP(const QImage &image, bool noAlpha)
+//{
+//    if (image.isNull())
+//        return 0;
+
+//    HBITMAP bitmap = 0;
+//    const int w = image.width();
+//    const int h = image.height();
+
+//    HDC display_dc = GetDC(0);
+
+//    // Define the header
+//    BITMAPINFO bmi;
+//    memset(&bmi, 0, sizeof(bmi));
+//    bmi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
+//    bmi.bmiHeader.biWidth       = w;
+//    bmi.bmiHeader.biHeight      = -h;
+//    bmi.bmiHeader.biPlanes      = 1;
+//    bmi.bmiHeader.biBitCount    = 32;
+//    bmi.bmiHeader.biCompression = BI_RGB;
+//    bmi.bmiHeader.biSizeImage   = w * h * 4;
+
+//    // Create the pixmap
+//    uchar *pixels = 0;
+//    bitmap = CreateDIBSection(display_dc, &bmi, DIB_RGB_COLORS, (void **) &pixels, 0, 0);
+//    ReleaseDC(0, display_dc);
+//    if (!bitmap) {
+//        qErrnoWarning("%s, failed to create dibsection", __FUNCTION__);
+//        return 0;
+//    }
+//    if (!pixels) {
+//        qErrnoWarning("%s, did not allocate pixel data", __FUNCTION__);
+//        return 0;
+//    }
+
+//    // Copy over the data
+//    QImage::Format imageFormat = QImage::Format_ARGB32;
+//    if (noAlpha)
+//        imageFormat = QImage::Format_RGB32;
+//    else
+//        imageFormat = QImage::Format_ARGB32_Premultiplied;
+
+//    const QImage image2 = image.convertToFormat(imageFormat);
+//    const int bytes_per_line = w * 4;
+//    for (int y=0; y < h; ++y)
+//        memcpy(pixels + y * bytes_per_line, image2.scanLine(y), bytes_per_line);
+
+//    return bitmap;
+//}
+
 HBITMAP ImageResourceBase::GetScreenshotBmp(){
 
     HDC     hDC;

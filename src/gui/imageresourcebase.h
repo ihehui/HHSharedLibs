@@ -56,6 +56,8 @@ public:
 #ifdef Q_OS_WIN32
 
     static QImage WinHBITMAPToImage(HBITMAP bitmap, bool noAlpha = true);
+//    static HBITMAP PixmapToWinHBITMAP(const QImage &image, bool noAlpha = true);
+
     static HBITMAP GetScreenshotBmp();
     static QImage screenshot();
 

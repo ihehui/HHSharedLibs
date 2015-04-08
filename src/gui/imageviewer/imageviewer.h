@@ -103,7 +103,8 @@ public slots:
     void updateAnimationFrame(const QImage &image);
     void setText(const QString &text);
 
-    void setDefaultSavePath(const QString &path);
+    bool setDefaultSavePath(const QString &path);
+    QString defaultSavePath();
 
 private slots:
     void open();

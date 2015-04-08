@@ -1,7 +1,7 @@
 /****************************************************************************
 * winutilities.h
 *
-* Created on: 2009-11-9
+* Created on: 2015-1-9
 *     Author: 贺辉
 *    License: LGPL
 *    Comment:
@@ -21,7 +21,7 @@
 
 /*
   ***************************************************************************
-  * Last Modified on: 2010-08-19
+  * Last Modified on: 2015-04-7
   * Last Modified by: 贺辉
   ***************************************************************************
 */
@@ -73,6 +73,14 @@ public:
 
     static QString WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId = 0);
     static void freeMemory();
+
+    ////The following are predefined version information Unicode strings.
+    ////   Comments InternalName ProductName
+    ////   CompanyName LegalCopyright ProductVersion
+    ////   FileDescription LegalTrademarks PrivateBuild
+    ////   FileVersion OriginalFilename SpecialBuild
+    static bool getFileVersion(const QString &fileName, QStringList *predefinedVersionInfo, DWORD *errorCode = 0);
+
 
     //Computer
     static QString getComputerName(DWORD *errorCode = 0);
@@ -229,6 +237,8 @@ public:
     static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid);
     static QByteArray ConvertHBITMAPToJpeg(HBITMAP hbitmap);
     //static QPixmap WinHBITMAPToPixmap(HBITMAP bitmap, bool noAlpha = true);
+    //HBITMAP PixmapToWinHBITMAP(const QImage &image, bool noAlpha = true);
+
     static HBITMAP GetScreenshotBmp();
     static HBITMAP GetScreenshotBmp1();
 

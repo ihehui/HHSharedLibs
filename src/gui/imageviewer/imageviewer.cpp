@@ -659,8 +659,27 @@ void ImageViewer::setText(const QString &text){
     imageLabel->setText(text);
 }
 
-void ImageViewer::setDefaultSavePath(const QString &path){
+bool ImageViewer::setDefaultSavePath(const QString &path){
+
+    QDir dir;
+    if(!dir.mkpath(path)){
+        QMessageBox::critical(this, tr("Error"), tr("Can not create path:<p>%1</p>").arg(path));
+        return false;
+    }
+
     m_defaultSavePath = path;
+
+    return false;
+
+}
+
+QString ImageViewer::defaultSavePath() {
+
+    if(m_defaultSavePath.trimmed().isEmpty()){
+        m_defaultSavePath = "./";
+    }
+
+    return m_defaultSavePath;
 }
 
 void ImageViewer::rotate(int angle){

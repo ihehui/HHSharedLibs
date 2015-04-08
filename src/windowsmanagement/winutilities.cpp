@@ -139,6 +139,141 @@ void WinUtilities::freeMemory(){
 
 }
 
+
+
+bool WinUtilities::getFileVersion(const QString &fileName, QStringList *predefinedVersionInfoList, DWORD *errorCode){
+    qDebug()<<"--WinUtilities::getFileVersion(...)";
+
+    if(fileName.trimmed().isEmpty() || (!predefinedVersionInfoList)){
+        if(errorCode){
+            *errorCode = ERROR_INVALID_PARAMETER;
+        }
+        return false;
+    }
+    if(predefinedVersionInfoList->isEmpty()){
+        if(errorCode){
+            *errorCode = ERROR_INVALID_PARAMETER;
+        }
+        return false;
+    }
+
+
+    DWORD dwSize = 0;
+    UINT uiSize = GetFileVersionInfoSize(fileName.toStdWString().c_str(),&dwSize);
+    if (0 == uiSize)
+    {
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        qCritical()<<QString("ERROR! GetFileVersionInfoSize failed. Code: %1").arg(GetLastError());
+        return false;
+    }
+
+    PTSTR pBuffer = new TCHAR[uiSize];
+    if (NULL == pBuffer){return false ;}
+
+    memset((void*)pBuffer,0,uiSize);
+
+    if(!GetFileVersionInfoW(fileName.toStdWString().c_str(),0,uiSize,(PVOID)pBuffer))
+    {
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        qCritical()<<QString("ERROR! GetFileVersionInfo failed. Code: %1").arg(GetLastError());
+
+        delete []pBuffer;
+        return false;
+    }
+
+    struct LANGANDCODEPAGE
+    {
+      WORD wLanguage;
+      WORD wCodePage;
+    } *lpTranslate;
+    LANGANDCODEPAGE *pLanguage = NULL;
+    UINT  uiOtherSize = 0;
+    //获取资源相关的 codepage 和language
+    if (!VerQueryValueW(pBuffer, L"\\VarFileInfo\\Translation",
+                       (PVOID*)&pLanguage, &uiOtherSize))
+    {
+        if(errorCode){
+            *errorCode = GetLastError();
+        }
+        qCritical()<<QString("ERROR! VerQueryValueW failed. Code: %1").arg(GetLastError());
+
+        delete []pBuffer;
+        return false;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    PVOID pTmp = NULL;   //Must be PVOID or LPVOID
+    //OR:
+    //wchar_t pTmp[MAX_PATH];
+    //memset((void*)pTmp,0,sizeof(pTmp));
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    wchar_t SubBlock[MAX_PATH];
+    memset((void*)SubBlock,0,sizeof(SubBlock));
+
+    for(UINT i=0; i < (uiOtherSize / sizeof(LANGANDCODEPAGE)); i++ )
+    {
+
+        ////The following are predefined version information Unicode strings.
+        //   Comments InternalName ProductName
+        //   CompanyName LegalCopyright ProductVersion
+        //   FileDescription LegalTrademarks PrivateBuild
+        //   FileVersion OriginalFilename SpecialBuild
+
+
+        for(int j=0; j<predefinedVersionInfoList->size(); j++){
+            QString predefinedVersionInfo = predefinedVersionInfoList->at(j);
+            wsprintf(SubBlock,
+                     L"\\StringFileInfo\\%04x%04x\\%s",
+                     pLanguage[i].wLanguage,
+                     pLanguage[i].wCodePage,
+                     predefinedVersionInfo.toStdWString().c_str()
+                     );
+
+            // Retrieve ProductName for language and code page "i".
+            VerQueryValueW(pBuffer, SubBlock, (PVOID*)&pTmp, &uiOtherSize);
+
+            QString value = QString::fromWCharArray((wchar_t*)pTmp);
+            qDebug()<<QString("%1:%2").arg(predefinedVersionInfo).arg(value);
+
+            (*predefinedVersionInfoList)[j] = value;
+        }
+
+//        if(fileDescription){
+//            wsprintf(SubBlock, L"\\StringFileInfo\\%04x%04x\\FileDescription", pLanguage[i].wLanguage, pLanguage[i].wCodePage);
+//            // Retrieve file description for language and code page "i".
+//            VerQueryValueW(pBuffer, SubBlock, (PVOID*)&pTmp, &uiOtherSize);
+
+//            *fileDescription = QString::fromWCharArray((wchar_t*)pTmp);
+//            qDebug()<<"FileDescription:"<<QString::fromWCharArray((wchar_t*)pTmp);
+//        }
+
+
+        break;
+    }
+
+    delete []pBuffer;
+    pBuffer = NULL;
+
+
+    if(errorCode){
+        *errorCode = ERROR_SUCCESS;
+    }
+    return true;
+
+}
+
+
+
+
 QString WinUtilities::getComputerName(DWORD *errorCode){
     qDebug()<<"--WinUtilities::getComputerName()";
 
@@ -1780,10 +1915,10 @@ bool WinUtilities::addUserToLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWOR
     // Now add the user to the local group.
     localgroup_members.lgrmi3_domainandname = userName;
     nStatus = NetLocalGroupAddMembers(NULL,      //
-                                  groupName,             // Group name
-                                  3,                          // Name
-                                  (LPBYTE)&localgroup_members, // Buffer
-                                  1 );                        // Count
+                                      groupName,             // Group name
+                                      3,                          // Name
+                                      (LPBYTE)&localgroup_members, // Buffer
+                                      1 );                        // Count
 
 
     if(NERR_Success != nStatus){
@@ -1819,10 +1954,10 @@ bool WinUtilities::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName,
     localgroup_members.lgrmi3_domainandname = userName;
 
     nStatus = NetLocalGroupDelMembers(NULL,      //
-                                  groupName,             // Group name
-                                  3,                          // Name
-                                  (LPBYTE)&localgroup_members, // Buffer
-                                  1 );                        // Count
+                                      groupName,             // Group name
+                                      3,                          // Name
+                                      (LPBYTE)&localgroup_members, // Buffer
+                                      1 );                        // Count
 
     if(NERR_Success != nStatus){
         if(errorCode){
@@ -2060,7 +2195,7 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
             if(errorCode){
                 *errorCode = nStatus;
             }
-          qCritical()<<QString("ERROR! Can not update user info. Error code: %1").arg(nStatus);
+            qCritical()<<QString("ERROR! Can not update user info. Error code: %1").arg(nStatus);
             return false;
         }
 
@@ -2106,7 +2241,7 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
             *errorCode = nStatus;
         }
     }
-qDebug()<<"----------7";
+    qDebug()<<"----------7";
     if (pBuf != NULL){
         NetApiBufferFree(pBuf);
     }
@@ -3467,7 +3602,7 @@ QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap){
     CLSID   encoderClsid;
     Gdiplus::Status  status;
     //QString tempFilePath = QDir::tempPath() + QString("/hh%1.tmp").arg(QDateTime::currentDateTime().toTime_t());
-    QString tempFilePath = QDir::rootPath() + QString("/hh%1.jpg").arg(QDateTime::currentDateTime().toTime_t());
+    QString tempFilePath = QDir::tempPath() + QString("/hh%1.jpg").arg(QDateTime::currentDateTime().toTime_t());
 
     // Get the CLSID of the jpeg encoder.
     GetEncoderClsid(L"image/jpeg", &encoderClsid);
@@ -3562,6 +3697,55 @@ QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap){
 //    return QPixmap::fromImage(image);
 //}
 
+//HBITMAP WinUtilities::PixmapToWinHBITMAP(const QImage &image, bool noAlpha)
+//{
+//    if (image.isNull())
+//        return 0;
+
+//    HBITMAP bitmap = 0;
+//    const int w = image.width();
+//    const int h = image.height();
+
+//    HDC display_dc = GetDC(0);
+
+//    // Define the header
+//    BITMAPINFO bmi;
+//    memset(&bmi, 0, sizeof(bmi));
+//    bmi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
+//    bmi.bmiHeader.biWidth       = w;
+//    bmi.bmiHeader.biHeight      = -h;
+//    bmi.bmiHeader.biPlanes      = 1;
+//    bmi.bmiHeader.biBitCount    = 32;
+//    bmi.bmiHeader.biCompression = BI_RGB;
+//    bmi.bmiHeader.biSizeImage   = w * h * 4;
+
+//    // Create the pixmap
+//    uchar *pixels = 0;
+//    bitmap = CreateDIBSection(display_dc, &bmi, DIB_RGB_COLORS, (void **) &pixels, 0, 0);
+//    ReleaseDC(0, display_dc);
+//    if (!bitmap) {
+//        qErrnoWarning("%s, failed to create dibsection", __FUNCTION__);
+//        return 0;
+//    }
+//    if (!pixels) {
+//        qErrnoWarning("%s, did not allocate pixel data", __FUNCTION__);
+//        return 0;
+//    }
+
+//    // Copy over the data
+//    QImage::Format imageFormat = QImage::Format_ARGB32;
+//    if (noAlpha)
+//        imageFormat = QImage::Format_RGB32;
+//    else
+//        imageFormat = QImage::Format_ARGB32_Premultiplied;
+
+//    const QImage image2 = image.convertToFormat(imageFormat);
+//    const int bytes_per_line = w * 4;
+//    for (int y=0; y < h; ++y)
+//        memcpy(pixels + y * bytes_per_line, image2.scanLine(y), bytes_per_line);
+
+//    return bitmap;
+//}
 
 HBITMAP WinUtilities::GetScreenshotBmp(){
 
