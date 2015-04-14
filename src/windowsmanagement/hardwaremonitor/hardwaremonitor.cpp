@@ -548,7 +548,7 @@ bool HardwareMonitor::getOSInfo(QJsonObject *object){
     object->insert("OS", caption + " " + csdVersion + " " + osArchitecture + " " + muiLanguages);
 
     QDate date = QDate::fromString(variantList.at(4).toString().left(8), "yyyyMMdd");
-    object->insert("InstallDate", date.toString("yyyy.MM.dd"));
+    object->insert("InstallDate", date.toString("yyyy-MM-dd"));
 
     object->insert("Key", WinOSProductKey());
 

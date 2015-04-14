@@ -21,7 +21,7 @@
  */
 
 
- /*
+/*
  ***************************************************************************
  * Last Modified on: 2010-05-07
  * Last Modified by: 贺辉
@@ -44,31 +44,24 @@ namespace HEHUI {
 
 
 
-SettingsCore::SettingsCore( const QString& pName, const QString& pVersion, const QString fileBaseName, const QString fileDirPath, QObject* parent )
-            //: QSettings( QDir::convertSeparators( QString( "%1/.%2/%3.ini" ).arg( QDir::homePath(), pName, pName ) ), QSettings::IniFormat, parent )
-            : QSettings( QDir::toNativeSeparators( QString( "%1/%2.ini" ).arg( fileDirPath, fileBaseName) ), QSettings::IniFormat, parent )
+SettingsCore::SettingsCore(const QString fileBaseName, const QString fileDirPath, QObject* parent )
+    : QSettings( QDir::toNativeSeparators( QString( "%1/%2.ini" ).arg( fileDirPath, fileBaseName) ), QSettings::IniFormat, parent )
 
 {
 
-    mProgramName = pName;
-    mProgramVersion = pVersion;
-    //beginGroup( mProgramVersion );
+
+}
+
+SettingsCore::SettingsCore(const QString fileName, Format format, QObject* parent )
+    : QSettings( fileName, format, parent )
+{
+
 
 }
 
 SettingsCore::~SettingsCore()
 {
     //endGroup();
-}
-
-QString SettingsCore::programName() const
-{
-    return mProgramName;
-}
-
-QString SettingsCore::programVersion() const
-{
-    return mProgramVersion;
 }
 
 void SettingsCore::setLanguage(const QString &language)
@@ -89,7 +82,7 @@ void SettingsCore::setValueWithEncryption(const QString &settingsKey, const QVar
     setValue(settingsKey, QVariant(destination));
 }
 
-QVariant SettingsCore::getValueWithDecryption(const QString &settingsKey, const QByteArray &encryptionKey, const QVariant &defaultValue, bool *ok){
+QVariant SettingsCore::getValueWithDecryption(const QString &settingsKey, const QByteArray &encryptionKey, const QVariant &defaultValue, bool *ok) const{
     if(!contains(settingsKey)){
         if(ok){
             *ok = false;
@@ -103,6 +96,9 @@ QVariant SettingsCore::getValueWithDecryption(const QString &settingsKey, const 
     int ret = cryptography.teaCrypto(&destination, array, encryptionKey, false);
     if(ok){
         *ok = ret;
+    }
+    if(!ret){
+        return defaultValue;
     }
     return QVariant(destination);
 }

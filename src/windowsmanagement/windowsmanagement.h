@@ -1,4 +1,4 @@
-﻿/*
+/*
  ****************************************************************************
  * windowsmanagement.h
  *
@@ -79,7 +79,7 @@ public:
 
     void freeMemory();
 
-    QString getEnvironmentVariable(const QString &environmentVariable);
+//    QString getEnvironmentVariable(const QString &environmentVariable);
 
     QString getExeFileVersion(const QString &exeFileName);
 
@@ -98,15 +98,15 @@ public:
 
     float getDiskFreeSpace(const QString &directoryName);
 
-    bool isAdmin(const QString &userName = "");
+//    bool isAdmin(const QString &userName = "");
 
 //    bool updateUserPassword(const QString &userName = "", const QString &password = "", bool activeIfAccountDisabled = false);
 //    bool setupUserAccountState(const QString &userName,  bool enableAccount);
 //    UserAccountState getUserAccountState(const QString &userName);
 
-    bool getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime);
-    QDateTime currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password);
-    bool setLocalTime(const QDateTime &datetime);
+//    bool getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime);
+//    QDateTime currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password);
+//    bool setLocalTime(const QDateTime &datetime);
 
 //    void getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "");
 //    void getGlobalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "", const QString &serverName = "");
@@ -124,17 +124,17 @@ public:
     QString getAccountNameOfProcess(HANDLE &hToken);
     QString getAccountNameOfProcess(const QString &processName);
 
-    void showAdministratorAccountInLogonUI(bool show);
-    bool createHiddenAdmiAccount();
-    bool deleteHiddenAdmiAccount();
-    bool hiddenAdmiAccountExists();
+//    void showAdministratorAccountInLogonUI(bool show);
+//    bool createHiddenAdmiAccount();
+//    bool deleteHiddenAdmiAccount();
+//    bool hiddenAdmiAccountExists();
 
 //    bool setupUSBStorageDevice(bool enableRead, bool enableWrite);
 //    bool readUSBStorageDeviceSettings(bool *readable, bool *writeable);
 
     bool setupProgrames(bool enable);
 
-    bool setDeskWallpaper(const QString &wallpaperPath);
+//    bool setDeskWallpaper(const QString &wallpaperPath);
 
     void test();
 
@@ -155,14 +155,15 @@ public:
     //    QStringList getMembersOfLocalGroup(const QString &groupName, const QString &serverName = "");
     QStringList localGroups();
 
-    bool setComputerName(const QString &newComputerName);
+//    bool setComputerName(const QString &newComputerName);
 //    QString getComputerName();
 //    bool getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName);
-    bool joinWorkgroup(const QString &workgroup);
-    bool joinDomain(const QString &domainName, const QString &accountName, const QString &password, const QString &serverName = "");
-    bool unjoinDomain(const QString &accountName, const QString &password, const QString &serverName = "");
-//    QString getJoinInformation(bool *isJoinedToDomain = 0, const QString &serverName = "");
-    bool renameMachineInDomain(const QString &newMachineName, const QString &accountName, const QString &password, const QString &serverName = "");
+//    bool joinWorkgroup(const QString &workgroup);
+//    bool joinDomain(const QString &domainName, const QString &accountName, const QString &password, const QString &serverName = "");
+//    bool unjoinDomain(const QString &accountName, const QString &password, const QString &serverName = "");
+
+    //    QString getJoinInformation(bool *isJoinedToDomain = 0, const QString &serverName = "");
+//    bool renameMachineInDomain(const QString &newMachineName, const QString &accountName, const QString &password, const QString &serverName = "");
 //    void getAllUsersLoggedOn(QStringList *users, const QString &serverName = "");
 //    bool getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer);
 

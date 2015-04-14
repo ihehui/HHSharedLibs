@@ -230,9 +230,7 @@ QSqlDatabase DatabaseConnecter::getDatabase2(const QString &connectionName,
                         (HEHUI::DatabaseType) parameters.at(7).toUInt());
 
             m_dbOptionsModified = true;
-            qDebug()<<"------------------1--------------------";
         }
-        qDebug()<<"------------------2--------------------";
 
         db = QSqlDatabase::database(connectionName);
         //emit signalNewDatabaseConnected(connectionName);

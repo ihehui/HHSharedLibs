@@ -49,7 +49,7 @@ class  GUI_LIB_API SettingsBase : public SettingsCore
 {
     Q_OBJECT
 public:
-    SettingsBase( const QString &appName, const QString &appVersion, const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject* parent= 0 );
+    SettingsBase( const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject* parent= 0 );
     ~SettingsBase();
 
 

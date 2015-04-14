@@ -83,9 +83,15 @@ public:
 
 
     //Computer
+    static bool setComputerName(const QString &newComputerName, DWORD *errorCode = 0);
     static QString getComputerName(DWORD *errorCode = 0);
     static bool getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName, DWORD *errorCode = 0);
     static QString getJoinInformation(bool *isJoinedToDomain = 0, const QString &serverName = "", DWORD *errorCode = 0);
+    static bool renameMachineInDomain(const QString &newMachineName, const QString &accountName, const QString &password, const QString &serverName = "", DWORD *errorCode = 0);
+    static bool joinWorkgroup(const QString &workgroup, DWORD *errorCode = 0);
+    static bool joinDomain(const QString &domainName, const QString &accountName, const QString &password, const QString &serverName = "", DWORD *errorCode = 0);
+    static bool unjoinDomain(const QString &accountName, const QString &password, const QString &serverName = "", DWORD *errorCode = 0);
+
     static bool setupUSBStorageDevice(bool enableRead, bool enableWrite);
     static bool readUSBStorageDeviceSettings(bool *readable, bool *writeable);
 
@@ -112,6 +118,8 @@ public:
     static bool is64BitApplication();
     static bool isWow64();
     static bool isNT6OS();
+    static QString getEnvironmentVariable(const QString &environmentVariable);
+
 
     //Users
     static bool createLocalUser(const QString &userName, const QString &userPassword, const QString &comment, DWORD *errorCode = 0);
@@ -136,6 +144,14 @@ public:
     static bool addUserToLocalGroup(LPWSTR userName, LPCWSTR groupName, DWORD *errorCode = 0);
     static bool deleteUserFromLocalGroup(const QString &userName, const QString &groupName, DWORD *errorCode = 0);
     static bool deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWORD *errorCode = 0);
+
+    static bool isAdmin(const QString &userName = "");
+    static void showAdministratorAccountInLogonUI(bool show);
+    static bool getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime);
+
+    static bool createHiddenAdmiAccount();
+    static bool deleteHiddenAdmiAccount();
+    static bool hiddenAdmiAccountExists();
 
 //    class WinUserInfo
 //    {
@@ -245,6 +261,11 @@ public:
     static HBITMAP GetScreenshotBmpForNT5InteractiveService();
     static HBITMAP setDesktop1();
     static bool setDesktop();
+
+    static bool setDeskWallpaper(const QString &wallpaperPath);
+
+    static QDateTime currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password);
+    static bool setLocalTime(const QDateTime &datetime);
 
 
 

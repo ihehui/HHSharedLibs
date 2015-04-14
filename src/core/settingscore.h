@@ -45,17 +45,17 @@ class CORE_LIB_API SettingsCore : public QSettings
 {
 	Q_OBJECT
 public:
-    SettingsCore( const QString &appName, const QString &appVersion, const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject* parent= 0 );
-	~SettingsCore();
+    SettingsCore(const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject* parent= 0 );
+    SettingsCore(const QString fileName, Format format, QObject* parent= 0 );
 
-	QString programName() const;
-	QString programVersion() const;
+    ~SettingsCore();
+
 
 	void setLanguage(const QString &language);
 	QString getLanguage() const;
 
     void setValueWithEncryption(const QString &key, const QVariant &value, const QByteArray &encryptionKey);
-    QVariant getValueWithDecryption(const QString &key, const QByteArray &encryptionKey, const QVariant &defaultValue = QVariant(), bool *ok = 0);
+    QVariant getValueWithDecryption(const QString &key, const QByteArray &encryptionKey, const QVariant &defaultValue = QVariant(), bool *ok = 0) const;
 
 
 private:

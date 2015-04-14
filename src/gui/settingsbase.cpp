@@ -40,16 +40,15 @@
 
 namespace HEHUI {
 
-SettingsBase::SettingsBase( const QString& pName,  const QString &appVersion, const QString fileBaseName, const QString fileDirPath, QObject* parent )
-    : SettingsCore(pName, appVersion, fileBaseName, fileDirPath, parent )
+SettingsBase::SettingsBase(const QString fileBaseName, const QString fileDirPath, QObject* parent )
+    : SettingsCore(fileBaseName, fileDirPath, parent )
 {
 
-    //beginGroup( mProgramVersion );
+
 }
 
 SettingsBase::~SettingsBase()
 {
-    //endGroup();
 
 }
 

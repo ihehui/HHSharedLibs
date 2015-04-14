@@ -1,4 +1,4 @@
-﻿/*
+/*
  ****************************************************************************
  * windowsmanagement.cpp
  *
@@ -85,7 +85,7 @@ WindowsManagement::WindowsManagement(QObject *parent) :
 
     m_lastErrorString = "";
     runningNT6OS = isNT6OS();
-    m_isAdmin = isAdmin();
+    m_isAdmin = WinUtilities::isAdmin();
 
     location = No1_Branch_Factory;
     //    m_newComputerNameToBeUsed = "";
@@ -178,7 +178,7 @@ bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, co
 
     emit signalProgressUpdate(QString(tr("Join workgroup ...")), 70);
     QCoreApplication::processEvents();
-    ok = joinWorkgroup(dept);
+    ok = WinUtilities::joinWorkgroup(dept);
     if(!ok){
         m_outputMsgs.append(m_lastErrorString);
     }
@@ -280,26 +280,26 @@ void WindowsManagement::freeMemory(){
 
 }
 
-QString WindowsManagement::getEnvironmentVariable(const QString &environmentVariable){
+//QString WindowsManagement::getEnvironmentVariable(const QString &environmentVariable){
 
-    QString variableValueString = "";
+//    QString variableValueString = "";
 
-    DWORD nSize = 512;
-    LPWSTR variableValueArray = new wchar_t[nSize];
+//    DWORD nSize = 512;
+//    LPWSTR variableValueArray = new wchar_t[nSize];
 
-    int result = GetEnvironmentVariableW (environmentVariable.toStdWString().c_str(), variableValueArray, nSize);
-    if(result == 0){
-        return variableValueString;
-    }
+//    int result = GetEnvironmentVariableW (environmentVariable.toStdWString().c_str(), variableValueArray, nSize);
+//    if(result == 0){
+//        return variableValueString;
+//    }
 
-    variableValueString = QString::fromWCharArray(variableValueArray);
-    //qDebug("WindowsManagement::userInfoFilePath(): %s:", qPrintable(path));
+//    variableValueString = QString::fromWCharArray(variableValueArray);
+//    //qDebug("WindowsManagement::userInfoFilePath(): %s:", qPrintable(path));
 
-    delete [] variableValueArray;
+//    delete [] variableValueArray;
 
-    return variableValueString;
+//    return variableValueString;
 
-}
+//}
 
 
 QString WindowsManagement::getExeFileVersion(const QString &exeFileName){
@@ -655,36 +655,36 @@ QString WindowsManagement::lastError() const{
     return m_lastErrorString;
 }
 
-bool WindowsManagement::isAdmin(const QString &userName){
-    QString name = userName.trimmed();
-    if(name.isEmpty()){
-        name = m_currentUserName;
-    }
+//bool WindowsManagement::isAdmin(const QString &userName){
+//    QString name = userName.trimmed();
+//    if(name.isEmpty()){
+//        name = m_currentUserName;
+//    }
 
-    if(name.isEmpty()){
-        m_lastErrorString = tr("Invalid user name!");
-        return false;
-    }
+//    if(name.isEmpty()){
+//        m_lastErrorString = tr("Invalid user name!");
+//        return false;
+//    }
 
-    if(name.toLower() == "system"){
-        return true;
-    }
+//    if(name.toLower() == "system"){
+//        return true;
+//    }
 
-    if(!WinUtilities::localUsers().contains(name, Qt::CaseInsensitive)){
-        m_lastErrorString = tr("User '%1' does not exist!").arg(name);
-        return false;
-    }
+//    if(!WinUtilities::localUsers().contains(name, Qt::CaseInsensitive)){
+//        m_lastErrorString = tr("User '%1' does not exist!").arg(name);
+//        return false;
+//    }
 
-    QStringList groups;
-    WinUtilities::getLocalGroupsTheUserBelongs(&groups, userName);
-    //qWarning()<<QString("User:%1 Groups:%2").arg(userName).arg(groups.join(","));
+//    QStringList groups;
+//    WinUtilities::getLocalGroupsTheUserBelongs(&groups, userName);
+//    //qWarning()<<QString("User:%1 Groups:%2").arg(userName).arg(groups.join(","));
     
-    bool userIsAdmin = groups.contains("Administrators", Qt::CaseInsensitive);
-    //qWarning()<<QString(" %1 is admin? %2").arg(name).arg(userIsAdmin);
+//    bool userIsAdmin = groups.contains("Administrators", Qt::CaseInsensitive);
+//    //qWarning()<<QString(" %1 is admin? %2").arg(name).arg(userIsAdmin);
     
-    return userIsAdmin;
+//    return userIsAdmin;
 
-}
+//}
 
 //bool WindowsManagement::updateUserPassword(const QString &userName, const QString &password, bool activeIfAccountDisabled){
 //    qDebug()<<"--WindowsManagement::updateUserPassword(...) "<<"userName:"<<userName;
@@ -859,142 +859,142 @@ bool WindowsManagement::isAdmin(const QString &userName){
 
 //}
 
-bool WindowsManagement::getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime){
+//bool WindowsManagement::getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime){
 
-    QString name = userName.trimmed();
-    if(name.isEmpty()){
-        name = m_currentUserName;
-    }
+//    QString name = userName.trimmed();
+//    if(name.isEmpty()){
+//        name = m_currentUserName;
+//    }
 
-    if(name.isEmpty()){
-        m_lastErrorString = tr("Invalid user name!");
-        return false;
-    }
+//    if(name.isEmpty()){
+//        m_lastErrorString = tr("Invalid user name!");
+//        return false;
+//    }
 
-    DWORD dwLevel = 2;
-    PUSER_INFO_2 pUsr = NULL;
-    NET_API_STATUS netRet = 0;
-    //DWORD dwParmError = 0;
+//    DWORD dwLevel = 2;
+//    PUSER_INFO_2 pUsr = NULL;
+//    NET_API_STATUS netRet = 0;
+//    //DWORD dwParmError = 0;
 
-    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
-    if( netRet == NERR_Success )
-    {
-        DWORD lastLogon = 0, lastLogoff = 0;
-        lastLogon = pUsr->usri2_last_logon;
-        lastLogoff = pUsr->usri2_last_logoff;
-        //qWarning()<<"On:"<<lastLogon<<" Off:"<<lastLogoff;
-
-
-        if(lastLogon && lastLogonTime){
-            *lastLogonTime = QDateTime::fromTime_t(lastLogon);
-        }
-        if(lastLogoff && lastLogoffTime){
-            *lastLogoffTime = QDateTime::fromTime_t(lastLogoff);
-        }
-
-        //qWarning()<<"On:"<<lastLogonTime.toString("yyyy.MM.dd hh:mm:ss")<<" Off:"<<lastLogoffTime.toString("yyyy.MM.dd hh:mm:ss");
-
-        NetApiBufferFree( pUsr);
-
-        return true;
-
-    }else{
-        //printf("NetUserGetInfo failed: %d\n",netRet);
-        m_lastErrorString = tr("An error occurred while getting the last logon/logoff time. NetUserGetInfo failed! %1:%2.").arg(netRet).arg(WinUtilities::WinSysErrorMsg(netRet));
-        qDebug()<<m_lastErrorString;
-
-        return false;
-    }
-
-}
-
-QDateTime WindowsManagement::currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password){
-    m_lastErrorString = "";
-
-    QDateTime dateTime;
+//    netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
+//    if( netRet == NERR_Success )
+//    {
+//        DWORD lastLogon = 0, lastLogoff = 0;
+//        lastLogon = pUsr->usri2_last_logon;
+//        lastLogoff = pUsr->usri2_last_logoff;
+//        //qWarning()<<"On:"<<lastLogon<<" Off:"<<lastLogoff;
 
 
-    ///////////////  建立IPC$    ////////////////////
-    wchar_t timeServer[256];
-    wcscpy(timeServer, server.toStdWString().c_str());
+//        if(lastLogon && lastLogonTime){
+//            *lastLogonTime = QDateTime::fromTime_t(lastLogon);
+//        }
+//        if(lastLogoff && lastLogoffTime){
+//            *lastLogoffTime = QDateTime::fromTime_t(lastLogoff);
+//        }
 
-    WNetCancelConnection2W(timeServer, 0, false);
+//        //qWarning()<<"On:"<<lastLogonTime.toString("yyyy.MM.dd hh:mm:ss")<<" Off:"<<lastLogoffTime.toString("yyyy.MM.dd hh:mm:ss");
 
-    NETRESOURCEW res;
-    res.dwType = RESOURCETYPE_ANY;
-    res.lpLocalName = NULL;
-    res.lpRemoteName = timeServer;
-    res.lpProvider = NULL;
+//        NetApiBufferFree( pUsr);
 
-    DWORD err;
-    err = WNetAddConnection2W(&res, password.toStdWString().c_str(), userName.toStdWString().c_str(), CONNECT_INTERACTIVE);
-    if(err !=  NO_ERROR){
-        m_lastErrorString = tr("Can not connect to '%1'! %2:%3.").arg(server).arg(err).arg(WinUtilities::WinSysErrorMsg(err));
-        return dateTime;
-    }
-    //////////////////////////////////////////
+//        return true;
 
+//    }else{
+//        //printf("NetUserGetInfo failed: %d\n",netRet);
+//        m_lastErrorString = tr("An error occurred while getting the last logon/logoff time. NetUserGetInfo failed! %1:%2.").arg(netRet).arg(WinUtilities::WinSysErrorMsg(netRet));
+//        qDebug()<<m_lastErrorString;
 
-    LPTIME_OF_DAY_INFO pBuf = NULL;
-    NET_API_STATUS nStatus;
+//        return false;
+//    }
 
-    nStatus = NetRemoteTOD(timeServer, (LPBYTE *)&pBuf);
+//}
 
-    if (nStatus == NERR_Success)
-    {
-        if (pBuf != NULL)
-        {
+//QDateTime WindowsManagement::currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password){
+//    m_lastErrorString = "";
 
-            dateTime = QDateTime::fromTime_t( pBuf->tod_elapsedt);
-
-            //            fprintf(stderr, "\nThe current date is: %d/%d/%d\n",
-            //                    pBuf->tod_month, pBuf->tod_day, pBuf->tod_year);
-            //            fprintf(stderr, "The current time is: %d:%d:%d\n",
-            //                    pBuf->tod_hours, pBuf->tod_mins, pBuf->tod_secs);
-        }
+//    QDateTime dateTime;
 
 
-    }else{
-        m_lastErrorString = tr("Can not get current time from server '%1'! %2:%3.").arg(server).arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
-    }
+//    ///////////////  建立IPC$    ////////////////////
+//    wchar_t timeServer[256];
+//    wcscpy(timeServer, server.toStdWString().c_str());
 
-    if (pBuf != NULL) {
-        NetApiBufferFree(pBuf);
-    }
+//    WNetCancelConnection2W(timeServer, 0, false);
 
-    return dateTime;
-}
+//    NETRESOURCEW res;
+//    res.dwType = RESOURCETYPE_ANY;
+//    res.lpLocalName = NULL;
+//    res.lpRemoteName = timeServer;
+//    res.lpProvider = NULL;
 
-bool WindowsManagement::setLocalTime(const QDateTime &datetime){
+//    DWORD err;
+//    err = WNetAddConnection2W(&res, password.toStdWString().c_str(), userName.toStdWString().c_str(), CONNECT_INTERACTIVE);
+//    if(err !=  NO_ERROR){
+//        m_lastErrorString = tr("Can not connect to '%1'! %2:%3.").arg(server).arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+//        return dateTime;
+//    }
+//    //////////////////////////////////////////
 
 
-    m_lastErrorString = "";
+//    LPTIME_OF_DAY_INFO pBuf = NULL;
+//    NET_API_STATUS nStatus;
 
-    if(!datetime.isValid()){
-        m_lastErrorString = tr("Invalid Time!");
-        return false;
-    }
+//    nStatus = NetRemoteTOD(timeServer, (LPBYTE *)&pBuf);
 
-    SYSTEMTIME systemtime;
-    QDate date = datetime.date();
-    QTime time = datetime.time();
-    systemtime.wYear = date.year();
-    systemtime.wMonth = date.month();
-    systemtime.wDayOfWeek = date.dayOfWeek();
-    systemtime.wDay = date.day();
-    systemtime.wHour = time.hour();
-    systemtime.wMinute = time.minute();
-    systemtime.wSecond = time.second();
-    systemtime.wMilliseconds = time.msec();
+//    if (nStatus == NERR_Success)
+//    {
+//        if (pBuf != NULL)
+//        {
 
-    if(!SetLocalTime(&systemtime)){
-        DWORD err = GetLastError();
-        m_lastErrorString = tr("Can not set system time! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
-        return false;
-    }
+//            dateTime = QDateTime::fromTime_t( pBuf->tod_elapsedt);
 
-    return true;
-}
+//            //            fprintf(stderr, "\nThe current date is: %d/%d/%d\n",
+//            //                    pBuf->tod_month, pBuf->tod_day, pBuf->tod_year);
+//            //            fprintf(stderr, "The current time is: %d:%d:%d\n",
+//            //                    pBuf->tod_hours, pBuf->tod_mins, pBuf->tod_secs);
+//        }
+
+
+//    }else{
+//        m_lastErrorString = tr("Can not get current time from server '%1'! %2:%3.").arg(server).arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
+//    }
+
+//    if (pBuf != NULL) {
+//        NetApiBufferFree(pBuf);
+//    }
+
+//    return dateTime;
+//}
+
+//bool WindowsManagement::setLocalTime(const QDateTime &datetime){
+
+
+//    m_lastErrorString = "";
+
+//    if(!datetime.isValid()){
+//        m_lastErrorString = tr("Invalid Time!");
+//        return false;
+//    }
+
+//    SYSTEMTIME systemtime;
+//    QDate date = datetime.date();
+//    QTime time = datetime.time();
+//    systemtime.wYear = date.year();
+//    systemtime.wMonth = date.month();
+//    systemtime.wDayOfWeek = date.dayOfWeek();
+//    systemtime.wDay = date.day();
+//    systemtime.wHour = time.hour();
+//    systemtime.wMinute = time.minute();
+//    systemtime.wSecond = time.second();
+//    systemtime.wMilliseconds = time.msec();
+
+//    if(!SetLocalTime(&systemtime)){
+//        DWORD err = GetLastError();
+//        m_lastErrorString = tr("Can not set system time! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+//        return false;
+//    }
+
+//    return true;
+//}
 
 //void WindowsManagement::getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName){
 
@@ -1598,28 +1598,28 @@ QStringList WindowsManagement::localGroups() {
 
 //}
 
-bool WindowsManagement::setComputerName(const QString &newComputerName) {
+//bool WindowsManagement::setComputerName(const QString &newComputerName) {
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    if(newComputerName.trimmed().isEmpty()){
-        m_lastErrorString = tr("Invalid computer name!");
-        return false;
-    }
+//    if(newComputerName.trimmed().isEmpty()){
+//        m_lastErrorString = tr("Invalid computer name!");
+//        return false;
+//    }
 
-    WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters", "NV Hostname", newComputerName, REG_SZ, true);
+//    WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters", "NV Hostname", newComputerName, REG_SZ, true);
 
-    //if (SetComputerNameExW(ComputerNamePhysicalDnsHostname, computerName)){
-    if (SetComputerNameW(newComputerName.toStdWString().c_str())){
-        m_lastErrorString = "";
-        return true;
-    }else{
-        qCritical()<< "Can not set computer name to " << newComputerName;
-        m_lastErrorString = tr("Can not set computer name to '%1'").arg(newComputerName);
-        return false;
-    }
+//    //if (SetComputerNameExW(ComputerNamePhysicalDnsHostname, computerName)){
+//    if (SetComputerNameW(newComputerName.toStdWString().c_str())){
+//        m_lastErrorString = "";
+//        return true;
+//    }else{
+//        qCritical()<< "Can not set computer name to " << newComputerName;
+//        m_lastErrorString = tr("Can not set computer name to '%1'").arg(newComputerName);
+//        return false;
+//    }
 
-}
+//}
 
 //QString WindowsManagement::getComputerName(){
 //    qDebug()<<"--WindowsManagement::getComputerName()";
@@ -1688,112 +1688,112 @@ bool WindowsManagement::setComputerName(const QString &newComputerName) {
 //    return ok;
 //}
 
-bool WindowsManagement::joinWorkgroup(const QString &workgroup){
+//bool WindowsManagement::joinWorkgroup(const QString &workgroup){
 
 
-    NET_API_STATUS err;
-    err = NetJoinDomain(NULL, workgroup.toStdWString().c_str(), NULL, NULL, NULL, 0);
+//    NET_API_STATUS err;
+//    err = NetJoinDomain(NULL, workgroup.toStdWString().c_str(), NULL, NULL, NULL, 0);
 
-    switch ( err )
-    {
-    case NERR_Success:
-        qDebug()<<"' Successfully join the workgroup '"<<workgroup<<"' .\n";
-        //printf("Successfully join the workgroup.\n");
+//    switch ( err )
+//    {
+//    case NERR_Success:
+//        qDebug()<<"' Successfully join the workgroup '"<<workgroup<<"' .\n";
+//        //printf("Successfully join the workgroup.\n");
 
-        m_lastErrorString = "";
-        return true;
-        break;
-    case NERR_InvalidWorkgroupName:
-        qDebug()<<"Invalid Workgroup Name!";
-        //printf("Invalid Workgroup Name!\n");
-        err = 0;
+//        m_lastErrorString = "";
+//        return true;
+//        break;
+//    case NERR_InvalidWorkgroupName:
+//        qDebug()<<"Invalid Workgroup Name!";
+//        //printf("Invalid Workgroup Name!\n");
+//        err = 0;
 
-        m_lastErrorString = tr("Invalid Workgroup Name '%1'!").arg(workgroup);
-        return false;
-        break;
-    default:
-        qDebug()<<"An error occured while trying to join the workgroup '"<<workgroup<<"' .\n";
-        //printf("Error occured while trying to join the workgroup: %d\n", err);
+//        m_lastErrorString = tr("Invalid Workgroup Name '%1'!").arg(workgroup);
+//        return false;
+//        break;
+//    default:
+//        qDebug()<<"An error occured while trying to join the workgroup '"<<workgroup<<"' .\n";
+//        //printf("Error occured while trying to join the workgroup: %d\n", err);
 
-        m_lastErrorString = tr("An error occured while trying to join the workgroup '%1'! %2:%3. ").arg(workgroup).arg(err).arg(WinUtilities::WinSysErrorMsg(err));
-        return false;
-        break;
-    }
+//        m_lastErrorString = tr("An error occured while trying to join the workgroup '%1'! %2:%3. ").arg(workgroup).arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+//        return false;
+//        break;
+//    }
 
-    return( err );
+//    return( err );
 
-}
+//}
 
-bool WindowsManagement::joinDomain(const QString &domainName, const QString &accountName, const QString &password, const QString &serverName){
-    qDebug()<<"--WindowsManagement::joinDomain(...) "<<"domainName:"<<domainName<<" accountName:"<<accountName<<" password:"<<password;
+//bool WindowsManagement::joinDomain(const QString &domainName, const QString &accountName, const QString &password, const QString &serverName){
+//    qDebug()<<"--WindowsManagement::joinDomain(...) "<<"domainName:"<<domainName<<" accountName:"<<accountName<<" password:"<<password;
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    LPCWSTR pszServerName = NULL; // The server is the default local computer.
-    if(!serverName.trimmed().isEmpty()){
-        pszServerName = serverName.toStdWString().c_str();
-    }
-    //LPCWSTR lpAccount = QString(accountName + "@" + domainName).toStdWString().c_str();
+//    LPCWSTR pszServerName = NULL; // The server is the default local computer.
+//    if(!serverName.trimmed().isEmpty()){
+//        pszServerName = serverName.toStdWString().c_str();
+//    }
+//    //LPCWSTR lpAccount = QString(accountName + "@" + domainName).toStdWString().c_str();
 
-    NET_API_STATUS err = NetJoinDomain(pszServerName, domainName.toStdWString().c_str(), NULL, accountName.toStdWString().c_str(), password.toStdWString().c_str(), NETSETUP_JOIN_DOMAIN | NETSETUP_ACCT_CREATE);
-    switch(err){
-    case NERR_Success:
-        return true;
-        break;
-    case ERROR_INVALID_PARAMETER:
-        m_lastErrorString = tr("Invalid parameter!");
-        break;
-    case ERROR_NO_SUCH_DOMAIN:
-        m_lastErrorString = tr("No such domain!");
-        break;
-    case NERR_SetupAlreadyJoined:
-        m_lastErrorString = tr("The computer is already joined to a domain!");
-        break;
-    case NERR_InvalidWorkgroupName:
-        m_lastErrorString = tr("The specified workgroup name is not valid!");
-        break;
-    default:
-        m_lastErrorString = tr("Failed to join a domain! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
-        break;
+//    NET_API_STATUS err = NetJoinDomain(pszServerName, domainName.toStdWString().c_str(), NULL, accountName.toStdWString().c_str(), password.toStdWString().c_str(), NETSETUP_JOIN_DOMAIN | NETSETUP_ACCT_CREATE);
+//    switch(err){
+//    case NERR_Success:
+//        return true;
+//        break;
+//    case ERROR_INVALID_PARAMETER:
+//        m_lastErrorString = tr("Invalid parameter!");
+//        break;
+//    case ERROR_NO_SUCH_DOMAIN:
+//        m_lastErrorString = tr("No such domain!");
+//        break;
+//    case NERR_SetupAlreadyJoined:
+//        m_lastErrorString = tr("The computer is already joined to a domain!");
+//        break;
+//    case NERR_InvalidWorkgroupName:
+//        m_lastErrorString = tr("The specified workgroup name is not valid!");
+//        break;
+//    default:
+//        m_lastErrorString = tr("Failed to join a domain! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+//        break;
 
-    }
+//    }
 
-    return false;
+//    return false;
 
-}
+//}
 
-bool WindowsManagement::unjoinDomain(const QString &accountName, const QString &password, const QString &serverName){
+//bool WindowsManagement::unjoinDomain(const QString &accountName, const QString &password, const QString &serverName){
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    LPCWSTR pszServerName = NULL; // The server is the default local computer.
-    if(!serverName.trimmed().isEmpty()){
-        pszServerName = serverName.toStdWString().c_str();
-    }
+//    LPCWSTR pszServerName = NULL; // The server is the default local computer.
+//    if(!serverName.trimmed().isEmpty()){
+//        pszServerName = serverName.toStdWString().c_str();
+//    }
 
-    NET_API_STATUS err = NetUnjoinDomain(pszServerName, accountName.toStdWString().c_str(), password.toStdWString().c_str(), NETSETUP_ACCT_DELETE);
-    switch(err){
-    case NERR_Success:
-        return true;
-        break;
-    case ERROR_INVALID_PARAMETER:
-        m_lastErrorString = tr("A parameter is incorrect.");
-        break;
-    case NERR_SetupNotJoined:
-        m_lastErrorString = tr("The computer is not currently joined to a domain.");
-        break;
-    case NERR_SetupDomainController:
-        m_lastErrorString = tr("This computer is a domain controller and cannot be unjoined from a domain.");
-        break;
-    default:
-        m_lastErrorString = tr("Failed to unjoin machine from the domain! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
-        break;
-    }
+//    NET_API_STATUS err = NetUnjoinDomain(pszServerName, accountName.toStdWString().c_str(), password.toStdWString().c_str(), NETSETUP_ACCT_DELETE);
+//    switch(err){
+//    case NERR_Success:
+//        return true;
+//        break;
+//    case ERROR_INVALID_PARAMETER:
+//        m_lastErrorString = tr("A parameter is incorrect.");
+//        break;
+//    case NERR_SetupNotJoined:
+//        m_lastErrorString = tr("The computer is not currently joined to a domain.");
+//        break;
+//    case NERR_SetupDomainController:
+//        m_lastErrorString = tr("This computer is a domain controller and cannot be unjoined from a domain.");
+//        break;
+//    default:
+//        m_lastErrorString = tr("Failed to unjoin machine from the domain! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+//        break;
+//    }
 
-    return false;
+//    return false;
 
 
-}
+//}
 
 //QString WindowsManagement::getJoinInformation(bool *isJoinedToDomain, const QString &serverName){
 //    qDebug()<<"--WindowsManagement::getJoinInformation()";
@@ -1844,37 +1844,37 @@ bool WindowsManagement::unjoinDomain(const QString &accountName, const QString &
 
 //}
 
-bool WindowsManagement::renameMachineInDomain(const QString &newMachineName, const QString &accountName, const QString &password, const QString &serverName){
+//bool WindowsManagement::renameMachineInDomain(const QString &newMachineName, const QString &accountName, const QString &password, const QString &serverName){
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    LPCWSTR pszServerName = NULL; // The server is the default local computer.
-    if(!serverName.trimmed().isEmpty()){
-        pszServerName = serverName.toStdWString().c_str();
-    }
+//    LPCWSTR pszServerName = NULL; // The server is the default local computer.
+//    if(!serverName.trimmed().isEmpty()){
+//        pszServerName = serverName.toStdWString().c_str();
+//    }
 
-    NET_API_STATUS err = NetRenameMachineInDomain(pszServerName, newMachineName.toStdWString().c_str(), accountName.toStdWString().c_str(), password.toStdWString().c_str(), NETSETUP_JOIN_DOMAIN | NETSETUP_ACCT_CREATE | NETSETUP_JOIN_WITH_NEW_NAME);
-    switch(err){
-    case NERR_Success:
-        return true;
-        break;
-    case ERROR_INVALID_PARAMETER:
-        m_lastErrorString = tr("A parameter is incorrect.");
-        break;
-    case NERR_SetupNotJoined:
-        m_lastErrorString = tr("The computer is not currently joined to a domain.");
-        break;
-    case NERR_SetupDomainController:
-        m_lastErrorString = tr("This computer is a domain controller and cannot be unjoined from a domain.");
-        break;
-    default:
-        m_lastErrorString = tr("Failed to rename machine in domain! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
-        break;
-    }
+//    NET_API_STATUS err = NetRenameMachineInDomain(pszServerName, newMachineName.toStdWString().c_str(), accountName.toStdWString().c_str(), password.toStdWString().c_str(), NETSETUP_JOIN_DOMAIN | NETSETUP_ACCT_CREATE | NETSETUP_JOIN_WITH_NEW_NAME);
+//    switch(err){
+//    case NERR_Success:
+//        return true;
+//        break;
+//    case ERROR_INVALID_PARAMETER:
+//        m_lastErrorString = tr("A parameter is incorrect.");
+//        break;
+//    case NERR_SetupNotJoined:
+//        m_lastErrorString = tr("The computer is not currently joined to a domain.");
+//        break;
+//    case NERR_SetupDomainController:
+//        m_lastErrorString = tr("This computer is a domain controller and cannot be unjoined from a domain.");
+//        break;
+//    default:
+//        m_lastErrorString = tr("Failed to rename machine in domain! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+//        break;
+//    }
 
-    return false;
+//    return false;
 
-}
+//}
 
 //void WindowsManagement::getAllUsersLoggedOn(QStringList *users, const QString &serverName){
 
@@ -2928,153 +2928,153 @@ QString WindowsManagement::getAccountNameOfProcess(const QString &processName){
     
 }
 
-void WindowsManagement::showAdministratorAccountInLogonUI(bool show){
+//void WindowsManagement::showAdministratorAccountInLogonUI(bool show){
 
-    if(runningNT6OS){
-        if(show){
-            WinUtilities::regDeleteValue("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", "UserDontShowInLogonUI");
-        }else{
-            WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", "UserDontShowInLogonUI", "0x01000000", REG_BINARY);
-        }
+//    if(runningNT6OS){
+//        if(show){
+//            WinUtilities::regDeleteValue("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", "UserDontShowInLogonUI");
+//        }else{
+//            WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", "UserDontShowInLogonUI", "0x01000000", REG_BINARY);
+//        }
 
-    }else if(QSysInfo::windowsVersion()  == QSysInfo::WV_XP){
-        if(show){
-            WinUtilities::regDeleteValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList", "Administrator");
-        }else{
-            WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList", "Administrator", "0", REG_DWORD);
-        }
-    }
+//    }else if(QSysInfo::windowsVersion()  == QSysInfo::WV_XP){
+//        if(show){
+//            WinUtilities::regDeleteValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList", "Administrator");
+//        }else{
+//            WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList", "Administrator", "0", REG_DWORD);
+//        }
+//    }
 
-}
+//}
 
-bool WindowsManagement::createHiddenAdmiAccount(){
+//bool WindowsManagement::createHiddenAdmiAccount(){
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    QString userName = "System$";
-    //int size = 1024;
+//    QString userName = "System$";
+//    //int size = 1024;
 
-    deleteHiddenAdmiAccount();
+//    deleteHiddenAdmiAccount();
 
-    QStringList usersKeys;
-    QString usersKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users";
-    WinUtilities::regEnumKey(usersKey, &usersKeys);
+//    QStringList usersKeys;
+//    QString usersKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users";
+//    WinUtilities::regEnumKey(usersKey, &usersKeys);
 
-    QString password = "systemadmin";
-    QString comment = "Built-in account for administering the local system";
-    bool ok = false;
-    ok = WinUtilities::createLocalUser(userName, password, comment);
-    if(!ok){
-        return false;
-    }
+//    QString password = "systemadmin";
+//    QString comment = "Built-in account for administering the local system";
+//    bool ok = false;
+//    ok = WinUtilities::createLocalUser(userName, password, comment);
+//    if(!ok){
+//        return false;
+//    }
 
-    QStringList newUsersKeys;
-    WinUtilities::regEnumKey(usersKey, &newUsersKeys);
-    QString systemAccountKey = "";
-    foreach (QString id, newUsersKeys) {
-        if(!usersKeys.contains(id)){
-            systemAccountKey = id;
-            break;
-        }
-    }
+//    QStringList newUsersKeys;
+//    WinUtilities::regEnumKey(usersKey, &newUsersKeys);
+//    QString systemAccountKey = "";
+//    foreach (QString id, newUsersKeys) {
+//        if(!usersKeys.contains(id)){
+//            systemAccountKey = id;
+//            break;
+//        }
+//    }
 
-    if(systemAccountKey.isEmpty()){
-        m_lastErrorString = tr("Can not find the user key of %1!").arg(userName);
-        return false;
-    }
-    //qWarning()<<"Key Of System$:"<<systemAccountKey;
+//    if(systemAccountKey.isEmpty()){
+//        m_lastErrorString = tr("Can not find the user key of %1!").arg(userName);
+//        return false;
+//    }
+//    //qWarning()<<"Key Of System$:"<<systemAccountKey;
 
-    QString adminKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4";
-    QString valueFName = "F";
-    QString adminFValue = "";
-    WinUtilities::regRead(adminKey, valueFName, &adminFValue);
-    if(adminFValue.isEmpty()){
-        m_lastErrorString = tr("Can not read the value of 'F' from key '000001F4'!");
-        return false;
-    }
-    WinUtilities::regSetValue(QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\%1").arg(systemAccountKey), valueFName, adminFValue, REG_BINARY);
-    WinUtilities::regSetValue(QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$"), "Key", systemAccountKey, REG_SZ);
+//    QString adminKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4";
+//    QString valueFName = "F";
+//    QString adminFValue = "";
+//    WinUtilities::regRead(adminKey, valueFName, &adminFValue);
+//    if(adminFValue.isEmpty()){
+//        m_lastErrorString = tr("Can not read the value of 'F' from key '000001F4'!");
+//        return false;
+//    }
+//    WinUtilities::regSetValue(QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\%1").arg(systemAccountKey), valueFName, adminFValue, REG_BINARY);
+//    WinUtilities::regSetValue(QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$"), "Key", systemAccountKey, REG_SZ);
 
-    QProcess process(this);
-    QString applicationDirPath = QCoreApplication::applicationDirPath();
-    QString systemFileName = applicationDirPath + "\\System";
-    QString systemKeyFileName = applicationDirPath + "\\SystemKey";
-    QDir dir(applicationDirPath);
-    dir.remove(systemFileName);
-    dir.remove(systemKeyFileName);
-    process.start(QString("reg export HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$ %1").arg(systemFileName));
-    process.waitForFinished();
-    process.start(QString("reg export HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\%1 %2").arg(systemAccountKey).arg(systemKeyFileName));
-    process.waitForFinished();
+//    QProcess process(this);
+//    QString applicationDirPath = QCoreApplication::applicationDirPath();
+//    QString systemFileName = applicationDirPath + "\\System";
+//    QString systemKeyFileName = applicationDirPath + "\\SystemKey";
+//    QDir dir(applicationDirPath);
+//    dir.remove(systemFileName);
+//    dir.remove(systemKeyFileName);
+//    process.start(QString("reg export HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$ %1").arg(systemFileName));
+//    process.waitForFinished();
+//    process.start(QString("reg export HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\%1 %2").arg(systemAccountKey).arg(systemKeyFileName));
+//    process.waitForFinished();
 
-    WinUtilities::deleteLocalUser(userName);
-    process.start(QString("reg import  %1").arg(systemFileName));
-    process.waitForFinished();
-    process.close();
-    process.start(QString("reg import  %1").arg(systemKeyFileName));
-    process.waitForFinished();
-    process.close();
-    dir.remove(systemFileName);
-    dir.remove(systemKeyFileName);
+//    WinUtilities::deleteLocalUser(userName);
+//    process.start(QString("reg import  %1").arg(systemFileName));
+//    process.waitForFinished();
+//    process.close();
+//    process.start(QString("reg import  %1").arg(systemKeyFileName));
+//    process.waitForFinished();
+//    process.close();
+//    dir.remove(systemFileName);
+//    dir.remove(systemKeyFileName);
 
-    //    if(!runAs(userName, password, "reg.exe /?")){
-    //        process.close();
-    //        return false;
-    //    }
+//    //    if(!runAs(userName, password, "reg.exe /?")){
+//    //        process.close();
+//    //        return false;
+//    //    }
 
 
-    return true;
+//    return true;
 
-}
+//}
 
-bool WindowsManagement::deleteHiddenAdmiAccount(){
+//bool WindowsManagement::deleteHiddenAdmiAccount(){
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    //QString userName = "System$";
+//    //QString userName = "System$";
 
-    QString adminNameKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$";
-    QString adminKeyValue = "";
-    WinUtilities::regRead(adminNameKey, "Key", &adminKeyValue);
-    if(adminKeyValue.isEmpty()){
-        m_lastErrorString = tr("Can not read System$ key!");
-        return false;
-    }
+//    QString adminNameKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$";
+//    QString adminKeyValue = "";
+//    WinUtilities::regRead(adminNameKey, "Key", &adminKeyValue);
+//    if(adminKeyValue.isEmpty()){
+//        m_lastErrorString = tr("Can not read System$ key!");
+//        return false;
+//    }
 
-    bool ok = WinUtilities::regDeleteKey(adminNameKey);
-    if(!ok){
-        m_lastErrorString = tr("Can not delete key 'System$'!");
-        return false;
-    }
+//    bool ok = WinUtilities::regDeleteKey(adminNameKey);
+//    if(!ok){
+//        m_lastErrorString = tr("Can not delete key 'System$'!");
+//        return false;
+//    }
 
-    QString adminKeyString = QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\") + adminKeyValue;
-    ok = WinUtilities::regDeleteKey(adminKeyString);
-    return ok;
-}
+//    QString adminKeyString = QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\") + adminKeyValue;
+//    ok = WinUtilities::regDeleteKey(adminKeyString);
+//    return ok;
+//}
 
-bool WindowsManagement::hiddenAdmiAccountExists(){
+//bool WindowsManagement::hiddenAdmiAccountExists(){
 
-    m_lastErrorString = "";
-    //QString userName = "System$";
+//    m_lastErrorString = "";
+//    //QString userName = "System$";
 
-    QString adminNameKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$";
-    QString adminKeyValue = "";
-    WinUtilities::regRead(adminNameKey, "Key", &adminKeyValue);
-    if(adminKeyValue.isEmpty()){
-        m_lastErrorString = tr("Can not read System$ key!");
-        return false;
-    }
+//    QString adminNameKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$";
+//    QString adminKeyValue = "";
+//    WinUtilities::regRead(adminNameKey, "Key", &adminKeyValue);
+//    if(adminKeyValue.isEmpty()){
+//        m_lastErrorString = tr("Can not read System$ key!");
+//        return false;
+//    }
 
-    QString adminKeyString = QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\") + adminKeyValue;
-    QString adminKeyFValue = "";
-    WinUtilities::regRead(adminKeyString, "F", &adminKeyFValue);
-    if(adminKeyFValue.isEmpty()){
-        m_lastErrorString = tr("Can not read key '%1' related to System$!").arg(adminKeyFValue);
-        return false;
-    }
+//    QString adminKeyString = QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\") + adminKeyValue;
+//    QString adminKeyFValue = "";
+//    WinUtilities::regRead(adminKeyString, "F", &adminKeyFValue);
+//    if(adminKeyFValue.isEmpty()){
+//        m_lastErrorString = tr("Can not read key '%1' related to System$!").arg(adminKeyFValue);
+//        return false;
+//    }
 
-    return true;
-}
+//    return true;
+//}
 
 //bool WindowsManagement::setupUSBStorageDevice(bool enableRead, bool enableWrite){
 
@@ -3226,58 +3226,58 @@ bool WindowsManagement::setupProgrames(bool enable){
 
 }
 
-bool WindowsManagement::setDeskWallpaper(const QString &wallpaperPath){
+//bool WindowsManagement::setDeskWallpaper(const QString &wallpaperPath){
 
-    m_lastErrorString = "";
+//    m_lastErrorString = "";
 
-    QString targetBMPFilePath = wallpaperPath;
+//    QString targetBMPFilePath = wallpaperPath;
 
-    QFileInfo fi(targetBMPFilePath);
-    if(!fi.exists()){
-        m_lastErrorString = tr("Can not set wallpaper! File '%1' does not exist!").arg(targetBMPFilePath);
-        return false;
-    }
+//    QFileInfo fi(targetBMPFilePath);
+//    if(!fi.exists()){
+//        m_lastErrorString = tr("Can not set wallpaper! File '%1' does not exist!").arg(targetBMPFilePath);
+//        return false;
+//    }
 
-    //    DWORD nSize = 256;
-    //    LPWSTR windowsDir = new wchar_t[nSize];
-    //    int result = GetEnvironmentVariableW (L"WINDIR", windowsDir, nSize);
-    //    if(result == 0){
-    //        QString(QDir::rootPath() + "windows").toWCharArray(windowsDir);
-    //    }
-    //    QString targetDirPath = QString::fromWCharArray(windowsDir) ;
-    QString targetDirPath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
-    if(!QDir(targetDirPath).exists()){
-        targetDirPath = QDir::homePath();
-    }
+//    //    DWORD nSize = 256;
+//    //    LPWSTR windowsDir = new wchar_t[nSize];
+//    //    int result = GetEnvironmentVariableW (L"WINDIR", windowsDir, nSize);
+//    //    if(result == 0){
+//    //        QString(QDir::rootPath() + "windows").toWCharArray(windowsDir);
+//    //    }
+//    //    QString targetDirPath = QString::fromWCharArray(windowsDir) ;
+//    QString targetDirPath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+//    if(!QDir(targetDirPath).exists()){
+//        targetDirPath = QDir::homePath();
+//    }
 
-    //if(wallpaperPath.startsWith(":/") || fi.suffix().toLower() != ".bmp"){
-    targetBMPFilePath = targetDirPath + QDir::separator() + fi.baseName() + ".bmp";
-    QImage image(wallpaperPath);
-    if(image.isNull()){
-        m_lastErrorString = tr("Can not read image '%1' ! ").arg(wallpaperPath);
-        return false;
-    }
+//    //if(wallpaperPath.startsWith(":/") || fi.suffix().toLower() != ".bmp"){
+//    targetBMPFilePath = targetDirPath + QDir::separator() + fi.baseName() + ".bmp";
+//    QImage image(wallpaperPath);
+//    if(image.isNull()){
+//        m_lastErrorString = tr("Can not read image '%1' ! ").arg(wallpaperPath);
+//        return false;
+//    }
 
-    if(!image.save(targetBMPFilePath, "BMP")){
-        m_lastErrorString = tr("Can not set wallpaper! Can not save file '%1'k!").arg(targetBMPFilePath);
-        return false;
-    }
+//    if(!image.save(targetBMPFilePath, "BMP")){
+//        m_lastErrorString = tr("Can not set wallpaper! Can not save file '%1'k!").arg(targetBMPFilePath);
+//        return false;
+//    }
 
-    //}
+//    //}
 
 
-    wchar_t pathArray[MAX_PATH * sizeof(wchar_t) + 1];
-    wcscpy(pathArray, targetBMPFilePath.toStdWString().c_str());
+//    wchar_t pathArray[MAX_PATH * sizeof(wchar_t) + 1];
+//    wcscpy(pathArray, targetBMPFilePath.toStdWString().c_str());
 
-    bool ok = SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, pathArray, SPIF_SENDWININICHANGE| SPIF_UPDATEINIFILE);
-    if(!ok){
-        DWORD err = GetLastError();
-        m_lastErrorString = QString("Can not set wallpaper! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
-    }
+//    bool ok = SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, pathArray, SPIF_SENDWININICHANGE| SPIF_UPDATEINIFILE);
+//    if(!ok){
+//        DWORD err = GetLastError();
+//        m_lastErrorString = QString("Can not set wallpaper! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+//    }
 
-    return ok;
+//    return ok;
 
-}
+//}
 
 
 
