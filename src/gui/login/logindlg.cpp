@@ -5,6 +5,8 @@
 #include <QInputDialog>
 
 #include "logindlg.h"
+#include "ui_logindlg.h"
+
 //#include "../../shared/core/settings.h"
 
 namespace HEHUI {
@@ -32,6 +34,11 @@ LoginDlg::LoginDlg(User *user, const QString &windowTitle, QWidget *parent) :
 
 LoginDlg::~LoginDlg() {
     delete ui;
+}
+
+void LoginDlg::closeEvent(QCloseEvent * event){
+    emit abort();
+    event->accept();
 }
 
 void LoginDlg::keyPressEvent(QKeyEvent *e) {
@@ -86,6 +93,11 @@ void LoginDlg::languageChange() {
 
 void LoginDlg::setUser(User *user){
     this->user = user;
+}
+
+void LoginDlg::setErrorMessage(const QString &message){
+    ui->labelBottom->setText(message);
+    ui->pushButtonAbort->setText(tr("OK"));
 }
 
 inline QString LoginDlg::userID() const {
@@ -146,13 +158,24 @@ void LoginDlg::on_pushButtonLogin_clicked() {
         //        qWarning()<<"~~ password.toBase64():"<<password.toBase64();
 
         ui->passwordLineEdit->clear();
-        accept();
+        //accept();
     }
+
+    emit signalLogin();
+
+    ui->labelBottom->setText(tr("Logging in...."));
+    ui->stackedWidget->setCurrentWidget(ui->pageLoggingIn);
+
 }
 
 void LoginDlg::on_pushButtonCancel_clicked() {
     ui->passwordLineEdit->clear();
     reject();
+}
+
+void LoginDlg::on_pushButtonAbort_clicked(){
+    emit signalAbort();
+    ui->stackedWidget->setCurrentWidget(ui->pageUserInfo);
 }
 
 

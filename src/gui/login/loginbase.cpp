@@ -406,6 +406,7 @@ bool LoginBase::getUserInfo(){
     //            connect(loginDlg, SIGNAL(signalKeyButtonClicked()), this, SLOT(slotProcessUserButtonClickedSignal()));
     //        }
     connect(&dlg, SIGNAL(signalModifySettings()), this, SLOT(modifySettings()));
+    connect(&dlg, SIGNAL(signalLogin()), &dlg, SLOT(accept()));
 
     if (dlg.exec() != QDialog::Accepted) {
         return false;

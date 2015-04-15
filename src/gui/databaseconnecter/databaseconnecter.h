@@ -52,7 +52,18 @@ public:
 
     bool connectToNewDatabase(QString *connectionName = NULL);
 
-    bool isDBOptionsModified();
+
+    QString dbConnectionName() const;
+    QString dbDriver() const;
+    QString dbServerHost() const;
+    quint16 dbServerPort() const;
+    QString dbUser() const;
+    QString dbPasswd() const;
+    QString dbName() const;
+    HEHUI::DatabaseType dbType() const;
+    bool settingsModified() const;
+    bool saveSettings() const;
+
 
 private:
     QSqlDatabase getDatabase(const QString &connectionName,
@@ -74,7 +85,20 @@ private slots:
 
 private:
     QWidget *parentWidget;
-    bool m_dbOptionsModified;
+
+    QString m_connectionName;
+    QString m_driver;
+    QString m_host;
+    quint16 m_port;
+    QString m_user;
+    QString m_passwd;
+    QString m_databaseName;
+    HEHUI::DatabaseType m_databaseType;
+
+    bool m_settingsModified;
+    bool m_saveSettings;
+
+
 
 };
 
