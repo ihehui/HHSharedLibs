@@ -43,6 +43,7 @@
 #include "loginbase.h"
 #include "logindlg.h"
 #include "../databaseconnecter/databaseconnecter.h"
+#include "../databaseconnecter/databaseconnecterdialog.h"
 
 
 

@@ -1,4 +1,4 @@
-﻿/*
+/*
  ****************************************************************************
  * userbase.h
  *
@@ -48,61 +48,23 @@ public:
 
     virtual ~UserBase();
 
+    void setUserID(const QString &id);
+    QString getUserID() const;
 
+    void setUserName(const QString &userName);
+    QString getUserName() const;
 
+    void setPassword(const QString &pwd);
+    QString getPassword() const;
 
+    QString getAuthenticode() const;
+    void setAuthenticode(const QString &authenticode);
 
-    void setUserID(const QString &id) {
-        this->userID = id;
-    }
+    void setVerified(bool v) ;
+    bool isVerified();
 
-    QString getUserID() const {
-        return this->userID;
-    }
+    QByteArray encryptedPassword() const;
 
-    void setUserName(const QString &userName){
-        this->userName = userName;
-    }
-
-    QString getUserName() const {
-        return this->userName;
-    }
-
-    void setPassword(const QString &pwd) {
-        this->password = pwd;
-    }
-
-    QString getPassword() const {
-        return this->password;
-    }
-
-    QString getAuthenticode() const {
-        return this->authenticode;
-    }
-
-    void setAuthenticode(const QString &authenticode){
-        this->authenticode = authenticode;
-    }
-
-
-    void setVerified(bool v) {
-        this->isVerified = v;
-    }
-
-    bool verified() {
-        return this->isVerified;
-    }
-
-
-    //TODO:更名
-    //设置是否允许帐户重复登陆
-    //	void setSingleUserMode(bool isSingleUserMode) {
-    //		this->singleUserMode = isSingleUserMode;
-    //	}
-    //	;
-    //	bool isSingleUserMode() {
-    //		return this->singleUserMode;
-    //	}
 
 private:
 
@@ -111,10 +73,8 @@ private:
     QString password;
     QString authenticode;
 
-    bool isVerified;
+    bool m_isVerified;
 
-    //单用户模式//Single User Mode
-    //	bool singleUserMode;
 
 };
 

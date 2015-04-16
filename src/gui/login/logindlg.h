@@ -1,13 +1,10 @@
-#ifndef LOGIN_H
-#define LOGIN_H
+#ifndef LOGINDLG_H
+#define LOGINDLG_H
 
-#include <QSqlError>
 #include <QDialog>
-#include <QMessageBox>
 
-#include "../databaseconnecter/databaseconnecterdialog.h"
-#include "../../core/singleton.h"
-#include "../../core/user.h"
+//#include "../../core/singleton.h"
+#include "../../core/userbase.h"
 #include "../guilib.h"
 
 
@@ -23,11 +20,11 @@ class GUI_LIB_API LoginDlg : public QDialog /*, public Singleton<LoginDlg>*/
     //friend class Singleton<LoginDlg>;
 
 public:
-    LoginDlg(User *user, const QString &windowTitle = "", QWidget *parent = 0);
+    LoginDlg(UserBase *user, const QString &windowTitle = "", bool hashPassword = true, QWidget *parent = 0);
     ~LoginDlg();
 
 
-    void setUser(User *user);
+    //void setUser(UserBase *user);
     void setErrorMessage(const QString &message);
 
 private:
@@ -55,14 +52,15 @@ private slots:
     void on_pushButtonAbort_clicked();
 
 
-
 private:
     Ui::LoginDlgUI *ui;
 
-    User *user;
+    UserBase *user;
+    bool hashPassword;
 
-    inline QString userID() const;
-    inline QString passWord() const;
+
+
+
 
 };
 

@@ -32,6 +32,9 @@
 
 #include "userbase.h"
 
+#include "cryptography/cryptography.h"
+
+
 namespace HEHUI {
 
 UserBase::UserBase(const QString &userID, const QString &userName, const QString &password, QObject *parent)
@@ -39,12 +42,58 @@ UserBase::UserBase(const QString &userID, const QString &userName, const QString
 {
 
     authenticode = "";
-    isVerified = false;
+    m_isVerified = false;
 
 }
 
 UserBase::~UserBase() {
 	// TODO Auto-generated destructor stub
+}
+
+
+void UserBase::setUserID(const QString &id) {
+    this->userID = id;
+}
+
+QString UserBase::getUserID() const {
+    return this->userID;
+}
+
+void UserBase::setUserName(const QString &userName){
+    this->userName = userName;
+}
+
+QString UserBase::getUserName() const {
+    return this->userName;
+}
+
+void UserBase::setPassword(const QString &pwd) {
+    this->password = pwd;
+}
+
+QString UserBase::getPassword() const {
+    return this->password;
+}
+
+QString UserBase::getAuthenticode() const {
+    return this->authenticode;
+}
+
+void UserBase::setAuthenticode(const QString &authenticode){
+    this->authenticode = authenticode;
+}
+
+
+void UserBase::setVerified(bool v) {
+    this->m_isVerified = v;
+}
+
+bool UserBase::isVerified() {
+    return this->m_isVerified;
+}
+
+QByteArray UserBase::encryptedPassword() const{
+    return Cryptography::MD5(Cryptography::SHA1(password.toLatin1()).toHex()).toHex();
 }
 
 

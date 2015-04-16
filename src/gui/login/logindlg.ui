@@ -259,6 +259,9 @@
              <property name="text">
               <string>&amp;Settings</string>
              </property>
+             <property name="autoDefault">
+              <bool>false</bool>
+             </property>
             </widget>
            </item>
            <item>
@@ -386,6 +389,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>userIDComboBox</tabstop>
+  <tabstop>passwordLineEdit</tabstop>
+  <tabstop>lineEditAuthenticode</tabstop>
+  <tabstop>pushButtonLogin</tabstop>
+  <tabstop>pushButtonCancel</tabstop>
+  <tabstop>toolButtonUser</tabstop>
+  <tabstop>toolButtonKey</tabstop>
+  <tabstop>pushButtonSettings</tabstop>
+  <tabstop>pushButtonAbort</tabstop>
+ </tabstops>
  <resources>
   <include location="../gui.qrc"/>
   <include location="../gui.qrc"/>

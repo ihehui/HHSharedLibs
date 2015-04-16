@@ -1,19 +1,19 @@
 #include <QtGui>
-#include <QtSql>
-#include <QSqlQueryModel>
-#include <QFileInfo>
 #include <QInputDialog>
+#include <QMessageBox>
+
 
 #include "logindlg.h"
 #include "ui_logindlg.h"
 
-//#include "../../shared/core/settings.h"
 
 namespace HEHUI {
 
-LoginDlg::LoginDlg(User *user, const QString &windowTitle, QWidget *parent) :
+LoginDlg::LoginDlg(UserBase *user, const QString &windowTitle, bool hashPassword, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::LoginDlgUI)
+    ui(new Ui::LoginDlgUI),
+    user(user),
+    hashPassword(hashPassword)
 {
 
     qDebug("----LoginDlg::LoginDlg(User *user, QWidget *parent)");
@@ -25,7 +25,6 @@ LoginDlg::LoginDlg(User *user, const QString &windowTitle, QWidget *parent) :
         setWindowTitle(windowTitle);
     }
 
-    setUser(user);
 
     ui->userIDComboBox->setEditText(user->getUserID());
     //ui.passwordLineEdit->setText(user->getPassword());
@@ -37,8 +36,8 @@ LoginDlg::~LoginDlg() {
 }
 
 void LoginDlg::closeEvent(QCloseEvent * event){
-    emit abort();
     event->accept();
+    emit signalAbort();
 }
 
 void LoginDlg::keyPressEvent(QKeyEvent *e) {
@@ -72,7 +71,7 @@ void LoginDlg::keyPressEvent(QKeyEvent *e) {
                 QString accessCodeString = "iamhehui";
                 accessCodeString.append(QTime::currentTime().toString("hhmm"));
                 if(text.toLower() == accessCodeString){
-                    user->setRootMode(true);
+                    //user->setRootMode(true);
                     accept();
                 }else{
                     ui->userIDComboBox->setFocus();
@@ -91,21 +90,13 @@ void LoginDlg::languageChange() {
     ui->retranslateUi(this);
 }
 
-void LoginDlg::setUser(User *user){
-    this->user = user;
-}
+//void LoginDlg::setUser(UserBase *user){
+//    this->user = user;
+//}
 
 void LoginDlg::setErrorMessage(const QString &message){
     ui->labelBottom->setText(message);
     ui->pushButtonAbort->setText(tr("OK"));
-}
-
-inline QString LoginDlg::userID() const {
-    return ui->userIDComboBox->currentText().trimmed();
-}
-
-inline QString LoginDlg::passWord() const {
-    return ui->passwordLineEdit->text();
 }
 
 void LoginDlg::on_toolButtonUser_clicked(){
@@ -122,14 +113,15 @@ void LoginDlg::on_pushButtonSettings_clicked(){
 
 void LoginDlg::on_pushButtonLogin_clicked() {
 
-    QString uid = userID();
+    QString uid = ui->userIDComboBox->currentText().trimmed();
+    QString password = ui->passwordLineEdit->text();
 
     if (uid.isEmpty()) {
         QMessageBox::critical(this, tr("Authentication Failed"), tr("Authentication failed! Invalid user ID!"));
         ui->userIDComboBox->setFocus();
         return;
 
-    } else if (passWord().isEmpty()) {
+    } else if (password.isEmpty()) {
         QMessageBox::critical(this, tr("Authentication Failed"), tr("Authentication failed! Password required!"));
         ui->passwordLineEdit->setFocus();
         return;
@@ -147,24 +139,20 @@ void LoginDlg::on_pushButtonLogin_clicked() {
     else{
         user->setUserID(uid);
 
-        //从密码输入框取回明文密码,将其进行SHA-1加密
-        //Fetch the password from the 'ui.passwordLineEdit' and  encrypt it with SHA-1h
-        QByteArray password(ui->passwordLineEdit->text().toUtf8());
-        password = QCryptographicHash::hash (password, QCryptographicHash::Sha1);
-
+        if(hashPassword){
+            QByteArray pswd = QCryptographicHash::hash(password.toLatin1(), QCryptographicHash::Md5).toHex();
+            pswd = QCryptographicHash::hash(pswd, QCryptographicHash::Md5).toHex();
+            password = QString(pswd);
+        }
         user->setPassword(password);
-
-        //        qWarning()<<"~~ password:"<<ui->passwordLineEdit->text();
-        //        qWarning()<<"~~ password.toBase64():"<<password.toBase64();
-
         ui->passwordLineEdit->clear();
-        //accept();
     }
-
-    emit signalLogin();
 
     ui->labelBottom->setText(tr("Logging in...."));
     ui->stackedWidget->setCurrentWidget(ui->pageLoggingIn);
+    qApp->processEvents();
+
+    emit signalLogin();
 
 }
 
@@ -174,8 +162,8 @@ void LoginDlg::on_pushButtonCancel_clicked() {
 }
 
 void LoginDlg::on_pushButtonAbort_clicked(){
-    emit signalAbort();
     ui->stackedWidget->setCurrentWidget(ui->pageUserInfo);
+    emit signalAbort();
 }
 
 
