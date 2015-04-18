@@ -1635,7 +1635,7 @@ void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &server
 
                     // Print the user logged on to the workstation.
                     QString wkui1_username = QString::fromWCharArray(pTmpBuf->wkui1_username).toLower();
-                    //if(wkui1_username == computerName + "$"){continue;}
+                    if(wkui1_username == computerName + "$"){continue;}
 
                     QString wkui1_logon_domain = QString::fromWCharArray(pTmpBuf->wkui1_logon_domain).toLower();
                     if(wkui1_logon_domain == computerName){
