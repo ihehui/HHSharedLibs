@@ -20,7 +20,7 @@ class GUI_LIB_API LoginDlg : public QDialog /*, public Singleton<LoginDlg>*/
     //friend class Singleton<LoginDlg>;
 
 public:
-    LoginDlg(UserBase *user, const QString &windowTitle = "", bool hashPassword = true, QWidget *parent = 0);
+    LoginDlg(UserBase *user, const QString &windowTitle = "", bool hashThePassword = true, QWidget *parent = 0);
     ~LoginDlg();
 
 
@@ -56,7 +56,7 @@ private:
     Ui::LoginDlgUI *ui;
 
     UserBase *user;
-    bool hashPassword;
+    bool hashThePassword;
 
 
 

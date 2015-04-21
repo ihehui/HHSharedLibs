@@ -67,8 +67,14 @@ QString UserBase::getUserName() const {
     return this->userName;
 }
 
-void UserBase::setPassword(const QString &pwd) {
-    this->password = pwd;
+void UserBase::setPassword(const QString &pwd, bool hashThePassword) {
+    if(hashThePassword){
+        QByteArray pswd = QCryptographicHash::hash(pwd.toLatin1(), QCryptographicHash::Md5).toHex();
+        pswd = QCryptographicHash::hash(pswd, QCryptographicHash::Md5).toHex();
+        this->password = QString(pswd);
+    }else{
+        this->password = pwd;
+    }
 }
 
 QString UserBase::getPassword() const {

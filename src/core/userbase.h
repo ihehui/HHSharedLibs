@@ -54,7 +54,7 @@ public:
     void setUserName(const QString &userName);
     QString getUserName() const;
 
-    void setPassword(const QString &pwd);
+    void setPassword(const QString &pwd, bool hashThePassword = false);
     QString getPassword() const;
 
     QString getAuthenticode() const;

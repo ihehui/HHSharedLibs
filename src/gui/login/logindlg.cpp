@@ -13,7 +13,7 @@ LoginDlg::LoginDlg(UserBase *user, const QString &windowTitle, bool hashPassword
     QDialog(parent),
     ui(new Ui::LoginDlgUI),
     user(user),
-    hashPassword(hashPassword)
+    hashThePassword(hashPassword)
 {
 
     qDebug("----LoginDlg::LoginDlg(User *user, QWidget *parent)");
@@ -138,13 +138,7 @@ void LoginDlg::on_pushButtonLogin_clicked() {
     //    }
     else{
         user->setUserID(uid);
-
-        if(hashPassword){
-            QByteArray pswd = QCryptographicHash::hash(password.toLatin1(), QCryptographicHash::Md5).toHex();
-            pswd = QCryptographicHash::hash(pswd, QCryptographicHash::Md5).toHex();
-            password = QString(pswd);
-        }
-        user->setPassword(password);
+        user->setPassword(password, hashThePassword);
         ui->passwordLineEdit->clear();
     }
 
@@ -163,6 +157,7 @@ void LoginDlg::on_pushButtonCancel_clicked() {
 
 void LoginDlg::on_pushButtonAbort_clicked(){
     ui->stackedWidget->setCurrentWidget(ui->pageUserInfo);
+    ui->userIDComboBox->setFocus();
     emit signalAbort();
 }
 
