@@ -1,4 +1,4 @@
-﻿/*
+/*
  * udtprotocolbase.cpp
  *
  *  Created on: 2010-12-15
@@ -279,19 +279,33 @@ void UDTProtocolBase::close(){
 }
 
 void UDTProtocolBase::startWaitingForNewConnectionInOneThread(int msecWaitForNewConnectionTimeout){
+    QThreadPool * pool = QThreadPool::globalInstance();
+    int maxThreadCount = pool->maxThreadCount();
+    if(pool->activeThreadCount() == pool->maxThreadCount()){
+        pool->setMaxThreadCount(++maxThreadCount);
+    }
     QtConcurrent::run(this, &UDTProtocolBase::waitingForNewConnection, msecWaitForNewConnectionTimeout);
 }
 
 void UDTProtocolBase::startWaitingForIOInSeparateThread(int msecWaitForInputTimeout, int msecWaitForOutputTimeout){
     qDebug()<<"--UDTProtocolBase::startWaitingForIOInSeparateThread(...) "<<" msecWaitForInputTimeout:"<<msecWaitForInputTimeout<<" msecWaitForOutputTimeout:"<<msecWaitForOutputTimeout;
 
+    QThreadPool * pool = QThreadPool::globalInstance();
+    int maxThreadCount = pool->maxThreadCount();
+    if(pool->activeThreadCount() == pool->maxThreadCount()){
+        pool->setMaxThreadCount(maxThreadCount + 2);
+    }
     QtConcurrent::run(this, &UDTProtocolBase::waitForReading, msecWaitForInputTimeout);
     QtConcurrent::run(this, &UDTProtocolBase::waitForWriting, msecWaitForOutputTimeout);
 
 }
 
 void UDTProtocolBase::startWaitingForIOInOneThread(int msecWaitForIOTimeout){
-
+    QThreadPool * pool = QThreadPool::globalInstance();
+    int maxThreadCount = pool->maxThreadCount();
+    if(pool->activeThreadCount() == pool->maxThreadCount()){
+        pool->setMaxThreadCount(++maxThreadCount);
+    }
     QtConcurrent::run(this, &UDTProtocolBase::waitForIO, msecWaitForIOTimeout);
 
 }

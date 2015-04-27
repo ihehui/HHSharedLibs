@@ -9,10 +9,11 @@ SUBDIRS += core \
            udt \
             enet \
            gui \
-           service
+           service \
+           systemutilities
 
-win32{
-	SUBDIRS += windowsmanagement
-}
+#win32{
+#	SUBDIRS += systemutilities
+#}
 
 

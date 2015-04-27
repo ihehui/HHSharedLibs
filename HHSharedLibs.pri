@@ -19,7 +19,7 @@ isEmpty(HHSharedLibs){
 
     #HHSharedLibs += HHSharedCore HHSharedGUI HHSharedNetwork HHSharedService
     #win32{
-    #    HHSharedLibs += HHSharedWindowsManagement
+    #    HHSharedLibs += HHSharedSystemUtilities
     #}
 
 }
@@ -67,8 +67,8 @@ contains(HHSharedLibs, HHSharedENET){
 }
 
 win32{
-    contains(HHSharedLibs, HHSharedWindowsManagement){
-        include(src/windowsmanagement/windowsmanagement_lib.pri)
+    contains(HHSharedLibs, HHSharedSysUtilities){
+        include(src/systemutilities/systemutilities_lib.pri)
 #        INCLUDEPATH += src/windowsmanagement
 #        DEPENDPATH += src/windowsmanagement
     }

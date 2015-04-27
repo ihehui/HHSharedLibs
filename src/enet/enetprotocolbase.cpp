@@ -206,6 +206,11 @@ void ENETProtocolBasePrivate::close(){
 }
 
 void ENETProtocolBasePrivate::startWaitingForIOInAnotherThread(unsigned int msecWaitForIOTimeout){
+    QThreadPool * pool = QThreadPool::globalInstance();
+    int maxThreadCount = pool->maxThreadCount();
+    if(pool->activeThreadCount() == pool->maxThreadCount()){
+        pool->setMaxThreadCount(++maxThreadCount);
+    }
     QtConcurrent::run(this, &ENETProtocolBasePrivate::waitForIO, msecWaitForIOTimeout);
 }
 
