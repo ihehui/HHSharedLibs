@@ -98,7 +98,7 @@ bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage){
     if(!process.waitForReadyRead()){
             return false;
     }
-    QString memString = QString::fromLocal8Bit(process->readAllStandardOutput());
+    QString memString = QString::fromLocal8Bit(process.readAllStandardOutput());
     if(!memString.startsWith("Mem:")){
         return false;
     }
@@ -124,6 +124,96 @@ bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage){
 #endif
 
     return true;
+
+}
+
+bool SystemUtilities::getDiskPartionStatus(const QString &partionRootPath, float *totalBytes, float *freeBytes){
+
+#ifdef Q_OS_WIN32
+
+    return WinUtilities::getDiskPartionStatus(partionRootPath, totalBytes, freeBytes);
+
+#else
+    QProcess process;
+    //QString cmdString = QString("df -l | grep %1 | cut -d " " -f 2-30");
+    //QString cmdString = QString("cat /proc/meminfo | grep Mem");
+    QString cmdString = QString("df -l | grep %1 | cut -d " " -f 2-30").arg(partionRootPath);
+
+    process.start(cmdString);
+    if(!process.waitForFinished()){
+        return false;
+    }
+    if(!process.waitForReadyRead()){
+            return false;
+    }
+
+    QString diskString = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
+    QStringList list = diskString.split(" ");
+    list = list.removeAll(" ");
+    if(list.size() != 5){return false;}
+    unsigned int total = list.at(0).toUInt();
+    unsigned int free = list.at(2).toUInt();
+    if(!total){
+        return false;
+    }
+
+    if(totalBytes){
+        *totalBytes = total*1024;
+    }
+
+    if(freeBytes){
+        *freeBytes = free*1024;
+    }
+
+#endif
+
+    return true;
+
+}
+
+QString SystemUtilities::getDisksInfo(){
+
+    QString disksInfo = "";
+#ifdef Q_OS_WIN32
+
+    disksInfo = QObject::tr("Partion\tType\tSize\tAvailable\tUsage(%)\n");
+    QStringList drives = WinUtilities::getLogicalDrives();
+    foreach (QString drive, drives) {
+        float totalBytes = 0, freeBytes = 0;
+        WinUtilities::getDiskPartionStatus(drive, &totalBytes, &freeBytes);
+        disksInfo += drive;
+        disksInfo += "\t" + WinUtilities::getFileSystemName(drive);
+
+        float total = ((float)( (int)(100*(totalBytes/(1024*1024*1024))) )) /100;
+        float free = ((float)( (int) (100*(freeBytes/(1024*1024*1024))) )) /100;
+        float usage = ((float)( (int) (100*(100*(totalBytes-freeBytes)/totalBytes)) )) /100;
+
+        disksInfo += "\t" + QString::number(total) + (total?"GB":"");
+        disksInfo += "\t" + QString::number(free) + (free?"GB":"");
+        disksInfo += "\t" + (total?QString::number(usage):"0");
+        disksInfo += "\n";
+    }
+
+
+#else
+    QProcess process;
+    //QString cmdString = QString("df -l | grep %1 | cut -d " " -f 2-30");
+    QString cmdString = QString("df -lhT");
+
+    process.start(cmdString);
+    if(!process.waitForFinished()){
+        return false;
+    }
+    if(!process.waitForReadyRead()){
+            return false;
+    }
+
+    disksInfo = QString::fromLocal8Bit(process.readAllStandardOutput());
+    disksInfo = disksInfo.replace("Mounted on", "Mounted");
+
+#endif
+
+    return disksInfo;
 
 }
 

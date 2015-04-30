@@ -28,15 +28,18 @@ TCPBase::TCPBase(QObject *parent) :
 }
 
 TCPBase::~TCPBase(){
+    qDebug()<<"--TCPBase::~TCPBase()";
 
     if(m_tcpServer->isListening()){
         m_tcpServer->close();
     }
+    m_tcpServer->disconnect();
     m_tcpServer->deleteLater();
 
     QMutexLocker locker(&mutex);
     foreach (QTcpSocket *socket, m_socketsHash.values()) {
         if(!socket){continue;}
+        socket->disconnect();
         socket->close();
         socket->deleteLater();
     }
@@ -44,7 +47,6 @@ TCPBase::~TCPBase(){
 
     m_socketBlockSizeInfoHash.clear();
     m_busySockets.clear();
-
 }
 
 bool TCPBase::listen ( const QHostAddress & address, quint16 port ){
@@ -298,7 +300,7 @@ QString	TCPBase::socketErrorString (SOCKETID socketID){
 }
 
 bool TCPBase::sendData(SOCKETID socketID, const QByteArray *byteArray){
-    qDebug()<<"--TCPBase::sendData(...) "<<"socketID:"<< "byteArray->size():"<<byteArray->size();
+    //qDebug()<<"--TCPBase::sendData(...) "<<"socketID:"<< "byteArray->size():"<<byteArray->size();
 
     QTcpSocket *socket = 0;
     {
@@ -306,7 +308,7 @@ bool TCPBase::sendData(SOCKETID socketID, const QByteArray *byteArray){
         socket = m_socketsHash.value(socketID);
     }
     if(!socket){return false;}
-    qDebug()<<"peerAddress:"<<socket->peerAddress()<<":"<<socket->peerPort();
+    //qDebug()<<"peerAddress:"<<socket->peerAddress()<<":"<<socket->peerPort();
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);

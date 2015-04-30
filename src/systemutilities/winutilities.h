@@ -79,6 +79,10 @@ public:
     //Period: 1S
     static int getCPULoad();
     static bool getMemoryStatus(quint64 *totalBytes, int *loadPercentage);
+    static bool getDiskPartionStatus(const QString &partionRootPath, float *totalBytes, float *freeBytes);
+    static QString getFileSystemName(const QString &filePath);
+    static QStringList getLogicalDrives();
+
 
     static QString getCPUName();
     static QString getCPUSerialNumber();

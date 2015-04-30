@@ -178,14 +178,14 @@ int WinUtilities::getCPULoad(){
     int kernel = CompareFileTime( prekernelTime, kernelTime);
     int user = CompareFileTime(preuserTime, userTime);
 
-    qDebug()<<"kernel:"<<kernel<<" user:"<<user<<" idle:"<<idle;
+    //qDebug()<<"kernel:"<<kernel<<" user:"<<user<<" idle:"<<idle;
 
     if((kernel + user) == 0){return 0;}
 
     int cpu = (kernel +user - idle) *100/(kernel+user);
-    int cpuidle = ( idle) *100/(kernel+user);
+    //int cpuidle = ( idle) *100/(kernel+user);
     //cout << "CPU Load:" << cpu << "%" << "      CPU Idle:" <<cpuidle << "%" <<endl;
-    qDebug()<<QString("CPU Load: %1%").arg(cpu);
+    //qDebug()<<QString("CPU Load: %1%").arg(cpu);
 
     return cpu;
 
@@ -238,6 +238,76 @@ bool WinUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage){
     //              WIDTH, statex.ullAvailExtendedVirtual/DIV);
 
     return true;
+}
+
+bool WinUtilities::getDiskPartionStatus(const QString &partionRootPath, float *totalBytes, float *freeBytes){
+
+    ULARGE_INTEGER freeBytesAvailableToUser, ulTotalBytes, totalFreeBytes;
+    if(!GetDiskFreeSpaceExW(partionRootPath.toStdWString().c_str(), &freeBytesAvailableToUser, &ulTotalBytes, &totalFreeBytes))
+    {
+        return false;
+    }
+
+    if(freeBytes){
+        *freeBytes = (float)freeBytesAvailableToUser.QuadPart;
+    }
+    if(totalBytes){
+        *totalBytes = (float)ulTotalBytes.QuadPart;
+    }
+
+    return true;
+}
+
+QString WinUtilities::getFileSystemName(const QString &filePath){
+
+    QString path = "";
+    QRegExp rxp;
+    rxp.setCaseSensitivity(Qt::CaseInsensitive);
+    if(filePath.startsWith("\\\\")){
+        rxp.setPattern("^\\\\\\\\([a-zA-Z0-9.]+\\\\{1}){2}");
+    }else{
+        rxp.setPattern("^[a-zA-Z]:(\\\\|/)");
+    }
+    if(rxp.indexIn(filePath) != -1){
+        path = rxp.cap(0);
+    }else{
+        qCritical()<<QString("Invalid Root Path '%1' !").arg(filePath)<<" "<<rxp.errorString();
+        return "";
+    }
+
+
+    DWORD size = 256;
+    wchar_t * fileSystemNameBuffer = new wchar_t[size];
+
+    bool ok = GetVolumeInformationW(path.toStdWString().c_str(), NULL, 0, NULL, NULL, NULL, fileSystemNameBuffer, size);
+    if(!ok){
+        qDebug()<<"Failed to get volume information! Error Code:"<<GetLastError();
+        return "";
+    }
+
+    QString fileSystemName = QString::fromWCharArray(fileSystemNameBuffer);
+    delete [] fileSystemNameBuffer;
+
+    qDebug()<<QString("File System Name Of '%1': %2").arg(path).arg(fileSystemName);
+
+    return fileSystemName;
+
+}
+
+QStringList WinUtilities::getLogicalDrives(){
+
+    DWORD bufferSize = 96;
+    QByteArray drives;
+    drives.resize(bufferSize);
+    drives.fill(0);
+
+    DWORD length = GetLogicalDriveStringsA(bufferSize, drives.data());
+    drives.resize(length-1);
+
+    drives.replace('\0', ',');
+    drives.append('\0');
+    return QString(drives).split(",");
+
 }
 
 QString WinUtilities::getCPUName(){

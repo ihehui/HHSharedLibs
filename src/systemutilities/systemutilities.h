@@ -20,9 +20,12 @@ public:
     static int getCPULoad();
     static QString getCPUName();
     static QString getCPUSerialNumber();
+
     static QString getHardDriveSerialNumber(unsigned int driveIndex = 0);
 
     static bool getMemoryStatus(quint64 *totalBytes, int *loadPercentage);
+    static bool getDiskPartionStatus(const QString &partionRootPath, float *totalBytes, float *freeBytes);
+    static QString getDisksInfo();
 
     static QString getOSVersionInfo();
 
