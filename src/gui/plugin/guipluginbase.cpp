@@ -43,7 +43,7 @@ GUIPluginBase::GUIPluginBase()
 }
 
 GUIPluginBase::~GUIPluginBase() {
-    qDebug("----GUIPluginBase::~GUIPluginBase()");
+    qDebug("--GUIPluginBase::~GUIPluginBase()");
 
     //unload();
 

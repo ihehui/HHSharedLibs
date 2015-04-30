@@ -182,7 +182,7 @@ void ENETProtocolBasePrivate::close(){
     while (m_threadCount) {
         //wait for other threads!
         QCoreApplication::processEvents();
-        //qDebug()<<"Waiting for threads to quit ...";
+        qDebug()<<"Waiting for ENET threads to quit ...";
         msleep(10);
     }
 
