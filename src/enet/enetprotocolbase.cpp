@@ -293,7 +293,7 @@ void ENETProtocolBasePrivate::waitForIO(int msecTimeout){
         }
         case ENET_EVENT_TYPE_RECEIVE:
         {
-            qDebug()<<"-----ENET_EVENT_TYPE_RECEIVE-----"<<"  Time:"<<enet_time_get();
+            //qDebug()<<"-----ENET_EVENT_TYPE_RECEIVE-----"<<"  Time:"<<enet_time_get();
 
             QByteArray byteArray(reinterpret_cast<const char *>(event.packet->data), event.packet->dataLength);
             emit dataReceived(event.peer->connectID, byteArray);

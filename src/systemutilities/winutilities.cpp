@@ -1976,10 +1976,7 @@ bool WinUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain,
 void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &serverName, DWORD *apiStatus){
 
     Q_ASSERT(users);
-
-    if(!users){
-        return;
-    }
+    if(!users){return;}
 
     LPWKSTA_USER_INFO_1 pBuf = NULL;
     LPWKSTA_USER_INFO_1 pTmpBuf;
