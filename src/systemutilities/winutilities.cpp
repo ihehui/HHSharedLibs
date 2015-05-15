@@ -288,7 +288,7 @@ QString WinUtilities::getFileSystemName(const QString &filePath){
     QString fileSystemName = QString::fromWCharArray(fileSystemNameBuffer);
     delete [] fileSystemNameBuffer;
 
-    qDebug()<<QString("File System Name Of '%1': %2").arg(path).arg(fileSystemName);
+    //qDebug()<<QString("File System Name Of '%1': %2").arg(path).arg(fileSystemName);
 
     return fileSystemName;
 
