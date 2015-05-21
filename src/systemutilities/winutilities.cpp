@@ -51,8 +51,9 @@
 #include <Userenv.h>
 #include <Sddl.h>
 #include <gdiplus.h>
-#pragma comment(lib,"gdiplus")
 
+#pragma comment(lib,"gdiplus")
+#pragma comment(lib, "netapi32.lib")
 
 const int MaxUserAccountNameLength = 20;
 const int MaxUserPasswordLength = LM20_PWLEN;
@@ -1925,7 +1926,7 @@ bool WinUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain,
     // Call the NetWkstaUserGetInfo function;
     //  specify level 1.
     //
-    nStatus = NetWkstaUserGetInfo(NULL, dwLevel,(LPBYTE *)&pBuf);
+    nStatus = NetWkstaUserGetInfo(NULL, dwLevel, (LPBYTE *)&pBuf);
     //
     // If the call succeeds, print the information
     //  about the logged-on user.
@@ -1957,6 +1958,7 @@ bool WinUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain,
         //
         //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
         qCritical()<<QString("A system error has occurred: %1").arg(nStatus);
+        ok = false;
     }
 
     if(apiStatus){
