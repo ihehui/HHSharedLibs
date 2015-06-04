@@ -1,0 +1,21 @@
+<RCC>
+  <qresource prefix="/richtexteditor">
+    <file>resources/images/format.png</file>
+    <file>resources/images/html.png</file>
+    <file>resources/images/simplifyrichtext.png</file>
+    <file>resources/images/insertimage.png</file>
+    <file>resources/images/righttoleft.png</file>
+    <file>resources/images/text_strike.png</file>
+    <file>resources/images/textanchor.png</file>
+    <file>resources/images/textbold.png</file>
+    <file>resources/images/textcenter.png</file>
+    <file>resources/images/textitalic.png</file>
+    <file>resources/images/textjustify.png.png</file>
+    <file>resources/images/textleft.png</file>
+    <file>resources/images/textright.png</file>
+    <file>resources/images/textsubscript.png</file>
+    <file>resources/images/textsuperscript.png</file>
+    <file>resources/images/textunder.png</file>
+    <file>resources/images/web.png</file>
+  </qresource>
+</RCC>

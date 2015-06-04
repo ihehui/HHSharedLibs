@@ -23,7 +23,9 @@ HEADERS += screenshot/screenshot.h \
     guilib.h \
     imageviewer/imageviewercontroler.h \
     imageviewer/animationcontroler.h \
-    imageviewer/imageviewer.h
+    imageviewer/imageviewer.h \
+    richtexteditor/htmlhighlighter_p.h \
+    richtexteditor/richtexteditorwidget.h
 
 SOURCES += screenshot/screenshot.cpp \
     screenshot/selecttargetimagewidget.cpp \
@@ -45,7 +47,9 @@ SOURCES += screenshot/screenshot.cpp \
     widgetbase/widgetbase.cpp \
     imageviewer/imageviewercontroler.cpp \
     imageviewer/animationcontroler.cpp \
-    imageviewer/imageviewer.cpp
+    imageviewer/imageviewer.cpp \
+    richtexteditor/htmlhighlighter.cpp \
+    richtexteditor/richtexteditorwidget.cpp
 
 FORMS += screenshot/screenshot.ui \
     screenshot/selecttargetimagewidget.ui \
@@ -60,7 +64,8 @@ FORMS += screenshot/screenshot.ui \
 
 
 RESOURCES += gui.qrc \
-    imageviewer/resource.qrc
+    imageviewer/resource.qrc \
+    richtexteditor/richtexteditor.qrc
 
 include (./widgetbase/itembox/itembox.pri)
 
