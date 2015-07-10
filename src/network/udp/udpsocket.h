@@ -1,4 +1,4 @@
-﻿/*
+/*
  ****************************************************************************
  * udpsocket.h
  *
@@ -66,7 +66,8 @@ public:
 
 
 signals:
-    void signalNewUDPPacketReceived(Packet *packet);
+//    void signalNewUDPPacketReceived(PacketBase *packet);
+    void packetReceived(const PacketBase &packet);
 
 private slots:
     virtual void readPendingDatagrams();

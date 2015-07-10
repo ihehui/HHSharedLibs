@@ -37,15 +37,15 @@
 
 
 #include <QDataStream>
-#include "packet.h"
+#include "packetbase.h"
 #include "../global_network.h"
 
 #include "../networklib.h"
 
 ////////////////////////////////  重载操作符  //////////////////////////////////////////////////////
 
-NETWORK_LIB_API QDataStream &operator<<(QDataStream &out, const HEHUI::Packet &packet);
-NETWORK_LIB_API QDataStream &operator>>(QDataStream &in, HEHUI::Packet &packet);
+NETWORK_LIB_API QDataStream &operator<<(QDataStream &out, const HEHUI::PacketBase &packet);
+NETWORK_LIB_API QDataStream &operator>>(QDataStream &in, HEHUI::PacketBase &packet);
 
 
 

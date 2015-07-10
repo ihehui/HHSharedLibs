@@ -33,7 +33,7 @@
 #include <QObject>
 #include <QMutex>
 
-#include "packet.h"
+#include "packetbase.h"
 
 //#include "../networklib.h"
 
@@ -51,12 +51,12 @@ public:
     
     
     
-    void appendIncomingPacket(Packet *packet);
-    Packet * takeIncomingPacket();
+    void appendIncomingPacket(PacketBase *packet);
+    PacketBase * takeIncomingPacket();
     int incomingPacketsCount();
     
-    void appendOutgoingPacket(Packet *packet);
-    Packet * takeOutgoingPacket();
+    void appendOutgoingPacket(PacketBase *packet);
+    PacketBase * takeOutgoingPacket();
     int outgoingPacketsCount();
     
 //    void appendWaitingForReplyPacket(Packet *packet);
@@ -66,11 +66,10 @@ public:
 //    void removeWaitingForReplyPacket(quint16 packetSerialNumber1, quint16 packetSerialNumber2);
 //    bool hasWaitingForReplyPackets();
     
-    static Packet * getPacket(SOCKETID socketID = 0);
-    static Packet * getPacket(const QHostAddress &peerAddress, quint16 peerPort, const QHostAddress &localAddress = QHostAddress::Null, quint16 localPort = 0, TransmissionProtocol transmissionProtocol = TP_UDP);
+    static PacketBase * getPacket();
 
 //    static UDPPacket *getUDPPacket(const QHostAddress &peerAddress, quint16 peerPort, const QHostAddress &localAddress, quint16 localPort);
-    static void recylePacket(Packet *packet);
+    static void recylePacket(PacketBase *packet);
     static int recyledPacketsCount();
     static void clean();
 
@@ -79,10 +78,10 @@ private:
 
 private:
 
-    QList<Packet *> *incomingPackets;
+    QList<PacketBase *> *incomingPackets;
     QMutex incomingPacketsMutex;
 
-    QList<Packet *> *outgoingPackets;
+    QList<PacketBase *> *outgoingPackets;
     QMutex outgoingPacketsMutex;
 
     //QHash<quint16, Packet *> *waitingForReplyPackets;
@@ -90,7 +89,7 @@ private:
 
 
 
-    static QList<Packet *> *unusedPackets;
+    static QList<PacketBase *> *unusedPackets;
     static QMutex *unusedPacketsMutex;
 
 

@@ -36,50 +36,25 @@
 
 //重载操作符“<<”
 //Write data to stream
-QDataStream &operator<<(QDataStream &out, const HEHUI::Packet &packet){
+QDataStream &operator<<(QDataStream &out, const HEHUI::PacketBase &packet){
     quint8 packetType = packet.getPacketType();
     QByteArray packetData = packet.getPacketData();
 
-    out << packetType;
-    //    if(packetType == quint8(HEHUI::HeartbeatPacket)){
-    out << packetData;
-    //    }else{
-    //        quint16 packetSerialNumber = packet.getPacketSerialNumber();
-    //        if(packetSerialNumber == 0){
-    //            packetSerialNumber = packet.createSerialNumber();
-    //        }
-    //        out << packetSerialNumber << packetData;
-    //    }
-
-    //qDebug()<<"operator<<-packetType:"<<packetType<<"   packetSerialNumber:"<<packetSerialNumber;
-    //qDebug()<<"~~Out---Size:"<<" quint8:"<<sizeof(quint8)<<" quint16"<<sizeof(quint16)<<" packetData.size()"<<packetData.size();
-
+    out << packetType << packetData;
 
     return out;
-
 }
 
 //重载操作符“>>”
 //Read data from stream
-QDataStream &operator>>(QDataStream &in, HEHUI::Packet &packet){
+QDataStream &operator>>(QDataStream &in, HEHUI::PacketBase &packet){
     quint8 packetType = 0;
-    //    quint16 packetSerialNumber = 0;
     QByteArray packetData;
 
-    in >> packetType;
-    //    if(packetType == quint8(HEHUI::HeartbeatPacket)){
-    in >> packetData;
-    //    }else{
-    //        in >> packetSerialNumber >> packetData;
-    //    }
+    in >> packetType >> packetData;
 
     packet.setPacketType(packetType);
-    //    packet.setPacketSerialNumber(packetSerialNumber);
-    packet.setPacketData(packetData);
-
-    //    qDebug()<<"operator>>-packetType:"<<packetType<<"   packetSerialNumber:"<<packetSerialNumber;
-    //    qDebug()<<"~~In---Size:"<<" quint8:"<<sizeof(quint8)<<" quint16"<<sizeof(quint16)<<" packetData.size()"<<packetData.size();
+    packet.setPacketBody(packetData);
 
     return in;
-
 }

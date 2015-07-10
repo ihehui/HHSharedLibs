@@ -56,7 +56,7 @@ UDPSocket::UDPSocket(QObject *parent)
 
     //注册自定义类型，必须重载“<<”和“>>”, 见"packetstreamoperator.h"
     //qRegisterMetaTypeStreamOperators<HEHUI::Packet>("HEHUI::Packet");
-    Packet::registerMetaTypeStreamOperators();
+    PacketBase::registerMetaTypeStreamOperators();
 
 }
 
@@ -209,33 +209,31 @@ void UDPSocket::readPendingDatagrams() {
         }
         //qDebug()<<"~~datagramSize:"<<datagramSize;
 
-        QDataStream in(datagram, QIODevice::ReadOnly);
-        in.setVersion(QDataStream::Qt_4_8);
-        QVariant v;
-        in >> v;
-        if (v.canConvert<Packet>()){
-            //Packet *packet = new Packet();
-            Packet *packet = PacketHandlerBase::getPacket();
-            *packet = v.value<Packet>();
-            packet->setTransmissionProtocol(TP_UDP);
-            packet->setPeerHostAddress(peerAddress);
-            packet->setPeerHostPort(peerPort);
-            packet->setLocalHostAddress(localAddress());
-            packet->setLocalHostPort(localPort());
+//        QDataStream in(datagram, QIODevice::ReadOnly);
+//        in.setVersion(QDataStream::Qt_4_8);
+//        QVariant v;
+//        in >> v;
+//        if (v.canConvert<PacketBase>()){
+//            //Packet *packet = new Packet();
+//            PacketBase *packet = PacketHandlerBase::getPacket();
+//            *packet = v.value<PacketBase>();
+//            packet->setTransmissionProtocol(TP_UDP);
+//            packet->setPeerHostAddress(peerAddress);
+//            packet->setPeerHostPort(peerPort);
+//            packet->setLocalHostAddress(localAddress());
+//            packet->setLocalHostPort(localPort());
 
-//            qWarning()<<"";
-//            qWarning()<<"~~packet->getPacketData().size():"<<packet->getPacketData().size();
-//            qWarning()<<"~~peerAddress.toString():"<<peerAddress.toString();
-//            qWarning()<<"~~peerPort:"<<peerPort;
-//            qWarning()<<"~~localAddress():"<<localAddress().toString();
-//            qWarning()<<"~~localPort():"<<localPort();
-//            qWarning()<<"";
+//            emit signalNewUDPPacketReceived(packet);
 
+//        }else{
+//            qWarning()<<"ERROR! Can not convert UDP data to Packet!";
+//        }
 
-            emit signalNewUDPPacketReceived(packet);
-
-        }else{
-            qWarning()<<"ERROR! Can not convert UDP data to Packet!";
+        PacketBase packet;
+        if(packet.fromByteArray(datagram)){
+            packet.setPeerHostAddress(peerAddress);
+            packet.setPeerHostPort(peerPort);
+            emit packetReceived(packet);
         }
 
     }

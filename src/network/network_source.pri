@@ -7,16 +7,16 @@ HEADERS += \
 #    rudp/rudppacketstreamoperator.h \
 #    packethandler/packetparserbase.h \
 #    networkmanagerbase.h \
-    packethandler/packetstreamoperator.h \
+#    packethandler/packetstreamoperator.h \
     udp/udpsocket.h \
     udp/multicast/ipmulticast.h \
     udp/multicast/ipmulticastsocketbase.h \
-    packethandler/packet.h \
     packethandler/packethandlerbase.h \
     networkutilities.h \
     global_network.h \
     networklib.h \
-    tcp/tcpbase.h
+    tcp/tcpbase.h \
+    packethandler/packetbase.h
 
 FORMS += 
 SOURCES += \
@@ -26,13 +26,13 @@ SOURCES += \
 #    rudp/rudppacketstreamoperator.cpp \
 #    packethandler/packetparserbase.cpp \
 #    networkmanagerbase.cpp \
+#    packethandler/packetstreamoperator.cpp \
     udp/udpsocket.cpp \
     udp/multicast/ipmulticastsocketbase.cpp \
-    packethandler/packet.cpp \
     packethandler/packethandlerbase.cpp \
     networkutilities.cpp \
-    packethandler/packetstreamoperator.cpp \
-    tcp/tcpbase.cpp
+    tcp/tcpbase.cpp \
+    packethandler/packetbase.cpp
     
 #win32 {
 #    HEADERS += udp/multicast/multicastwin.h

@@ -38,7 +38,7 @@
 
 #include "packethandlerbase.h"
 
-#include "packetstreamoperator.h"
+//#include "packetstreamoperator.h"
 
 
 
@@ -53,7 +53,7 @@ namespace HEHUI {
 //QHash<quint16, Packet *>* PacketHandlerBase::waitingForReplyPackets = new QHash<quint16, Packet *> ();
 //QMutex * PacketHandlerBase::waitingForReplyPacketsMutex = new QMutex();
 
-QList<Packet *>* PacketHandlerBase::unusedPackets = new QList<Packet *> ();
+QList<PacketBase *>* PacketHandlerBase::unusedPackets = new QList<PacketBase *> ();
 QMutex * PacketHandlerBase::unusedPacketsMutex = new QMutex();
 
 
@@ -62,16 +62,16 @@ PacketHandlerBase::PacketHandlerBase(QObject *parent)
     :QObject(parent)
 {
 
-    incomingPackets = new QList<Packet *> ();
+    incomingPackets = new QList<PacketBase *> ();
     //incomingPacketsMutex = new QMutex();
-    outgoingPackets = new QList<Packet *> ();
+    outgoingPackets = new QList<PacketBase *> ();
     //outgoingPacketsMutex = new QMutex();
 
 //    waitingForReplyPackets = new QHash<quint16, Packet *> ();
 //    waitingForReplyPacketsMutex = new QMutex();
 
     //注册自定义类型，必须重载“<<”和“>>”, 见"packetstreamoperator.h"
-    qRegisterMetaTypeStreamOperators<HEHUI::Packet>("HEHUI::Packet");
+    qRegisterMetaTypeStreamOperators<HEHUI::PacketBase>("HEHUI::Packet");
 
 }
 
@@ -81,7 +81,7 @@ PacketHandlerBase::~PacketHandlerBase() {
 
     QMutexLocker incomingPacketsLocker(&incomingPacketsMutex);
     for (int  i= 0;  i< incomingPackets->count(); i++) {
-        Packet *p = incomingPackets->at(i);
+        PacketBase *p = incomingPackets->at(i);
         recylePacket(p);
     }
     incomingPackets->clear();
@@ -89,7 +89,7 @@ PacketHandlerBase::~PacketHandlerBase() {
 
     QMutexLocker outgoingPacketsLocker(&outgoingPacketsMutex);
     for (int  i= 0;  i< outgoingPackets->count(); i++) {
-        Packet *p = outgoingPackets->at(i);
+        PacketBase *p = outgoingPackets->at(i);
         recylePacket(p);
     }
     outgoingPackets->clear();
@@ -104,7 +104,7 @@ PacketHandlerBase::~PacketHandlerBase() {
 
 }
 
-void PacketHandlerBase::appendIncomingPacket(Packet *packet){
+void PacketHandlerBase::appendIncomingPacket(PacketBase *packet){
 
     QMutexLocker locker(&incomingPacketsMutex);
     if(packet && packet->isValid()){
@@ -114,7 +114,7 @@ void PacketHandlerBase::appendIncomingPacket(Packet *packet){
 
 }
 
-Packet * PacketHandlerBase::takeIncomingPacket(){
+PacketBase * PacketHandlerBase::takeIncomingPacket(){
 
     QMutexLocker locker(&incomingPacketsMutex);
     if(incomingPackets->isEmpty()){
@@ -130,7 +130,7 @@ int PacketHandlerBase::incomingPacketsCount(){
     return incomingPackets->count();
 }
 
-void PacketHandlerBase::appendOutgoingPacket(Packet *packet){
+void PacketHandlerBase::appendOutgoingPacket(PacketBase *packet){
 
     QMutexLocker locker(&outgoingPacketsMutex);
     if(packet && packet->isValid()){
@@ -139,7 +139,7 @@ void PacketHandlerBase::appendOutgoingPacket(Packet *packet){
 
 }
 
-Packet * PacketHandlerBase::takeOutgoingPacket(){
+PacketBase * PacketHandlerBase::takeOutgoingPacket(){
 
     QMutexLocker locker(&outgoingPacketsMutex);
     if(outgoingPackets->isEmpty()){
@@ -211,41 +211,20 @@ int PacketHandlerBase::outgoingPacketsCount(){
 
 
 
-Packet * PacketHandlerBase::getPacket(SOCKETID socketID){
+PacketBase * PacketHandlerBase::getPacket(){
     QMutexLocker locker(unusedPacketsMutex);
     
-    Packet *packet = 0;
+    PacketBase *packet = 0;
     if(unusedPackets->isEmpty()){
-        packet = new Packet(socketID);
+        packet = new PacketBase();
     }else{
         packet = unusedPackets->takeFirst();
-        packet->setSocketID(socketID);
     }
     
     return packet;
     
 }
 
-Packet *PacketHandlerBase::getPacket(const QHostAddress &peerAddress, quint16 peerPort, const QHostAddress &localAddress, quint16 localPort, TransmissionProtocol transmissionProtocol){
-    QMutexLocker locker(unusedPacketsMutex);
-    
-    Packet *packet = 0;
-    if(unusedPackets->isEmpty()){
-        packet = new Packet(peerAddress, peerPort, localAddress, localPort);
-    }else{
-        packet = unusedPackets->takeFirst();
-        packet->setPeerHostAddress(peerAddress);
-        packet->setPeerHostPort(peerPort);
-        packet->setLocalHostAddress(localAddress);
-        packet->setLocalHostPort(localPort);
-    }
-    
-    packet->setTransmissionProtocol(transmissionProtocol);
-//    packet->setPacketSerialNumber(packet->createSerialNumber());
-    
-    return packet;
-
-}
 
 //UDPPacket *PacketHandlerBase::getUDPPacket(const QHostAddress &peerAddress, quint16 peerPort, const QHostAddress &localAddress, quint16 localPort){
 //    QMutexLocker locker(unusedPacketsMutex);
@@ -265,7 +244,7 @@ Packet *PacketHandlerBase::getPacket(const QHostAddress &peerAddress, quint16 pe
     
 //}
 
-void PacketHandlerBase::recylePacket(Packet *packet){
+void PacketHandlerBase::recylePacket(PacketBase *packet){
     QMutexLocker locker(unusedPacketsMutex);
     if(packet){
         packet->resetPacket();

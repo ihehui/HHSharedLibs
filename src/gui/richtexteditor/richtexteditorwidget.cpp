@@ -885,10 +885,6 @@ void RichTextEditorWidget::tabIndexChanged(int newIndex)
     new_edit->setTextCursor(cursor);
     m_state = oldState; // Changed is triggered by setting the text
 
-
-    qDebug()<<"HTML:";
-    qDebug()<<text(true);
-
 }
 
 void RichTextEditorWidget::richTextChanged()

@@ -2818,6 +2818,8 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
     bool ok = false;
     nStatus  = NERR_Success;
     if(!users.contains(userName, Qt::CaseInsensitive)){
+        if(userObject->contains("Delete")){return true;}
+
         ok = createLocalUser(userName, "", "", &nStatus);
         if(!ok){
             qCritical()<<QString("Error! Failed to create user '%1'. Error code: %2").arg(userName).arg(nStatus);
@@ -2827,6 +2829,10 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
             return false;
         }
         //addUserToLocalGroup(userName, "Users");
+    }
+
+    if(userObject->contains("Delete")){
+        return deleteLocalUser(userName);
     }
 
 

@@ -49,12 +49,12 @@ class Error
 
 public:
 
-    Error(int errorCode = NO_ERROR, const QString &errorString = "");
+    Error(unsigned int code = NO_ERROR, const QString &errorString = "");
     Error(const Error &error);
     Error & operator = (const Error &error);
 
-    int errorCode() const;
-    void setErrorCode(int errorCode);
+    unsigned int code() const;
+    void setErrorCode(unsigned int code);
 
     QString errorString() const;
     void setErrorString(const QString errorString);
@@ -62,7 +62,7 @@ public:
 
 
 private:
-    int m_errorCode;
+    unsigned int m_errorCode;
     QString m_errorString;
 
 
