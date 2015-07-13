@@ -146,10 +146,8 @@ void PacketBase::resetPacket(){
     this->peerHostAddress = QHostAddress::Null;
     this->peerHostPort = 0;
 
-
     this->m_socketID = 0;
     this->m_peerID = "";
-    this->m_localID = "";
 }
 
 bool PacketBase::isValid() {
@@ -182,7 +180,6 @@ bool PacketBase::fromByteArray(QByteArray *data){
     in >> m_packetType >> m_peerID >> m_packetBody;
 
     return (UnKnownPacket != m_packetType) && (!m_packetBody.isEmpty());
-
 }
 
 
@@ -293,7 +290,7 @@ void PacketBase::setPeerID(const QString &id){
     this->m_peerID = id;
 }
 
-QString PacketBase::getLocalID(){
+const QString PacketBase::getLocalID(){
     return m_localID;
 }
 

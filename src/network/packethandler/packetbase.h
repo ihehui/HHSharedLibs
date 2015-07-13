@@ -94,7 +94,7 @@ public:
     QString getPeerID() const;
     void setPeerID(const QString &id);
 
-    static QString getLocalID();
+    const static QString getLocalID();
     static void setLocalID(const QString &id);
 
 
