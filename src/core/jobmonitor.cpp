@@ -108,7 +108,6 @@ void JobMonitor::finishJob(quint32 jobID, quint8 result, const QVariant &extraDa
     job->ExtraData = extraData;
 
     emit jobFinished(jobID);
-
 }
 
 void JobMonitor::updateJobProgress(quint32 jobID, int progress, const QString &progressMessage){
