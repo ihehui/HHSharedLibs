@@ -11,12 +11,11 @@ HEADERS += \
     udp/udpsocket.h \
     udp/multicast/ipmulticast.h \
     udp/multicast/ipmulticastsocketbase.h \
-    packethandler/packethandlerbase.h \
     networkutilities.h \
     global_network.h \
     networklib.h \
     tcp/tcpbase.h \
-    packethandler/packetbase.h
+    packetbase.h
 
 FORMS += 
 SOURCES += \
@@ -29,10 +28,9 @@ SOURCES += \
 #    packethandler/packetstreamoperator.cpp \
     udp/udpsocket.cpp \
     udp/multicast/ipmulticastsocketbase.cpp \
-    packethandler/packethandlerbase.cpp \
     networkutilities.cpp \
     tcp/tcpbase.cpp \
-    packethandler/packetbase.cpp
+    packetbase.cpp
     
 #win32 {
 #    HEADERS += udp/multicast/multicastwin.h

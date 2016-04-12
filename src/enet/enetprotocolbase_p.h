@@ -5,6 +5,7 @@
 
 #include <QObject>
 #include <QHostAddress>
+#include <QMutex>
 
 #include "enet/include/enet/enet.h"
 

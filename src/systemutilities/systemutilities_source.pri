@@ -1,7 +1,7 @@
 # Input
 HEADERS += \
-    wmlib.h \
-    systemutilities.h
+    systemutilities.h \
+    systemutilitieslib.h
 
 SOURCES += systemutilities.cpp
 

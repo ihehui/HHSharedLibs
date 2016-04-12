@@ -27,7 +27,9 @@ LoginDlg::LoginDlg(UserBase *user, const QString &windowTitle, bool hashPassword
 
 
     ui->userIDComboBox->setEditText(user->getUserID());
-    //ui.passwordLineEdit->setText(user->getPassword());
+
+    ui->userIDComboBox->setEditText("hehui");
+    ui->passwordLineEdit->setText("hehui");
 
 }
 

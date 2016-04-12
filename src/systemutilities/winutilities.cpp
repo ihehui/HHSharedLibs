@@ -52,6 +52,7 @@
 #include <Sddl.h>
 #include <gdiplus.h>
 
+#pragma comment(lib,"gdi32")
 #pragma comment(lib,"gdiplus")
 #pragma comment(lib, "netapi32.lib")
 

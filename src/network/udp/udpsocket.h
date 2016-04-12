@@ -36,12 +36,12 @@
 #include <QUdpSocket>
 
 //#include "multicast/ipmulticast.h"
-#include "../packethandler/packethandlerbase.h"
 
 #include "../networklib.h"
 
 
 namespace HEHUI {
+class PacketBase;
 
 class NETWORK_LIB_API UDPSocket : public QUdpSocket {
     Q_OBJECT

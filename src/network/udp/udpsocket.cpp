@@ -34,6 +34,7 @@
 #include <QDebug>
 
 #include "udpsocket.h"
+#include "packetbase.h"
 
 //#include "./packethandler/packetstreamoperator.h"
 

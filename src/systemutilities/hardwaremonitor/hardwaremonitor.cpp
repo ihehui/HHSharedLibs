@@ -408,7 +408,7 @@ QString HardwareMonitor::WinOSProductKey(){
     long ByteConvert;    //Convert
     int  nCur;      //XOR calculate
 
-    char *KeyChars[] = {
+    const char *KeyChars[] = {
         "B","C","D","F","G","H","J","K","M",
         "P","Q","R","T","V","W","X","Y",
         "2","3","4","6","7","8","9",NULL
