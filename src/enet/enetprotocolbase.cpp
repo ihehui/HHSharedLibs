@@ -6,9 +6,15 @@
 #include <QDebug>
 #include <QtConcurrent>
 
-
-
-
+/*
+Lee Salzman:
+http://lists.cubik.org/pipermail/enet-discuss/2016-January/002409.html
+You would have to guard all access to ENetPeer as well, including enet_peer_send and peer->address.
+enet_host_service must also be locked. enet_host_service and
+enet_host_flush both will modify sensitive internal bits of the host
+structure AND the peer structure, so unfortunately, all of these must
+be locked at the same time to work.
+*/
 
 namespace HEHUI {
 
