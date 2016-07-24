@@ -79,6 +79,8 @@ public:
     void setImage(const QImage &image);
     void setImages(const QStringList &images, unsigned int initIndex = 0);
 
+    static void processBrightnessAndContrast(QImage &image, int brightness, int contrast);
+
 
 protected:
     //#ifndef QT_NO_WHEELEVENT

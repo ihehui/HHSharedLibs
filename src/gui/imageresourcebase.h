@@ -52,6 +52,12 @@ public:
     static QIcon createIcon(const QString &iconFileName, const QString &defaultIconName = QString(), QIcon::Mode mode = QIcon::Normal);
     static QIcon emptyIcon();
 
+    static void setBrightnessAndContrast(QImage &image, int brightness, int contrast);
+    static void averageBlur(QImage &origin, QImage *dstImage, int kernelWidth = 3, int kernelHeight = 3);
+    static void medianBlur(QImage &origin, QImage *newImage, int kernelWidth = 3, int kernelHeight = 3);
+    static void guassianBlur(QImage &origin, QImage *dstImage, float sigma);
+
+
 };
 
 } //namespace HEHUI

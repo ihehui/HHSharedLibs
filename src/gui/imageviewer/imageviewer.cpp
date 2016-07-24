@@ -250,6 +250,32 @@ void ImageViewer::setImages(const QStringList &images, unsigned int initIndex){
 
 }
 
+void ImageViewer::processBrightnessAndContrast(QImage &image, int brightness, int contrast){
+    if(image.isNull()){return;}
+    ////----------------------------
+    ////Algorithm: newColor = contrast * color(x,y) +  brightness )
+    ////----------------------------
+
+    //QDateTime time = QDateTime::currentDateTime();
+
+    quint8 values[256];
+    for(int i=0; i<256; i++){
+        int value = (contrast*0.01) * i + brightness;
+        values[i] = qBound(0, value, 255);
+    }
+
+    for(int y=0; y<image.height(); y++){
+        QRgb *rgb = (QRgb *)image.scanLine(y);
+        for(int x=0; x<image.width(); x++){
+            rgb[x] = qRgb(values[qRed(rgb[x])], values[qGreen(rgb[x])], values[qBlue(rgb[x])]);
+            //image.setPixel(x, y , qRgb(r,g,b));
+        }
+    }
+
+    //qDebug()<<"----Time:"<<QDateTime::currentDateTime().msecsTo(time);
+
+}
+
 
 
 
