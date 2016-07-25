@@ -57,7 +57,12 @@ public:
     static void medianBlur(QImage &origin, QImage *newImage, int kernelWidth = 3, int kernelHeight = 3);
     static void guassianBlur(QImage &origin, QImage *dstImage, float sigma);
 
+    static void weightedFilter(const QImage &origin, QImage *newImage, const int kernel[], int kernelWidth, int divisor = 1);
 
+
+    
+    
+    
 };
 
 } //namespace HEHUI

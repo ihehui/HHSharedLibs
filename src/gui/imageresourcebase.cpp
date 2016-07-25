@@ -216,52 +216,47 @@ void ImageResourceBase::medianBlur(QImage &origin, QImage *newImage, int kernelW
 
 }
 
-void ImageResourceBase::guassianBlur(QImage &origin, QImage *dstImage, float sigma){
+void ImageResourceBase::guassianBlur(QImage &origin, QImage *newImage, float sigma){
     ////////
-    ////g(x,y) = ( 1 / (2*pi*σ^2) ) * exp( -(x^2+y^2)/(2*σ^2) )
-    /// g(x,y):weight of pixel(x,y)
-    /// x,y:Pixel Point;
-    /// σ:radius,0.0~250
-    ///
-    /// kernel: diamet = 6σ+1 = 2*radius+1; σ=radius/3
+    //// g(x,y) = ( 1 / (2*pi*σ^2) ) * exp( -(x^2+y^2)/(2*σ^2) )
+    //// g(x,y):weight of pixel(x,y)
+    //// x,y:Pixel Point;
+    //// σ:radius,0.0~250
+    ////
+    //// kernel: diamet = 6σ+1 = 2*radius+1; σ=radius/3
     ////////
 
     if(origin.isNull()){return;}
 
-    int diamet = (int)6 * sigma + 1;
+    int diamet = (int)(6 * sigma + 1);
     if(!(diamet%2) || diamet < 3){return;}
+
 
     float SQRT_2PI = 2.506628274631f;
     float sigmaMul2PI = 1.0f / (SQRT_2PI * sigma * sigma);
     float divSigmaPow2 = 1.0f / (2.0f * sigma * sigma);
     float sum = 0.0;
 
-    QVector< QVector<float> > kernel;
+    int kernelSize = diamet*diamet;
+    float kernel[kernelSize];
 
-    //float * kernel[][] = new float[diamet][diamet];
     for(int i=0; i<diamet; i++){
-        QVector<float> row;
         for(int j=0; j<diamet; j++){
             float weight = sigmaMul2PI * exp(-(i*i + j*j) * divSigmaPow2);
-            row.append(weight);
+            kernel[i*diamet+j] = weight;
             sum += weight;
         }
-        kernel.append(row);
     }
-
-    for(int i=0; i<diamet; i++){
-        for(int j=0; j<diamet; j++){
-            kernel[i][j] /= sum;
-        }
+    for(int i=0; i<kernelSize; i++){
+            kernel[i] /= sum;
     }
 
 
-    if(!dstImage){
-        dstImage = new QImage(origin);
+    if(!newImage){
+        newImage = new QImage(origin);
     }
 
     int kernelMedian = diamet/2;
-
     QColor color;
     int r,g,b;
 
@@ -272,10 +267,11 @@ void ImageResourceBase::guassianBlur(QImage &origin, QImage *dstImage, float sig
             g = 0;
             b = 0;
 
+            int index = 0;
             for(int i = -kernelMedian; i<= kernelMedian; i++){
                 for(int j = -kernelMedian; j<= kernelMedian; j++){
                     color = QColor(origin.pixel(x+i, y+j));
-                    float weight =  kernel[i+kernelMedian][j+kernelMedian];
+                    float weight =  kernel[index++];
                     if(weight<0.000001){continue;}
                     r += (int)(color.red() * weight);
                     g += (int)(color.green() * weight);
@@ -287,12 +283,86 @@ void ImageResourceBase::guassianBlur(QImage &origin, QImage *dstImage, float sig
             g = qBound(0, g, 255);
             b = qBound(0, b, 255);
 
-            dstImage->setPixel(x,y, qRgb(r,g,b));
+            newImage->setPixel(x,y, qRgb(r,g,b));
 
         }
     }
 
 }
+
+void ImageResourceBase::weightedFilter(const QImage &origin, QImage *newImage, const int kernel[], int kernelWidth, int divisor){
+//////
+////    int kernel2D [5][5]= {{0,0,1,0,0},
+////                         {0,1,3,1,0},
+////                         {1,3,7,3,1},
+////                         {0,1,3,1,0},
+////                         {0,0,1,0,0}};
+////    int kernel[25];
+////    for(int i=0; i<5; i++){
+////        for(int j=0; j<5; j++){
+////            kernel[i*5+j] = (kernel2D[i][j]);
+////        }
+////    }
+////    weightedFilter(orignalImage, &theImage, kernel, 5, 27);
+//////
+
+
+    if(origin.isNull()){return;}
+
+    int kernelSize = kernelWidth*kernelWidth;
+    if(!(kernelSize%2) || kernelSize < 3){return;}
+    if(!divisor){return;}
+
+    if(!newImage){
+        newImage = new QImage(origin);
+    }
+
+    int r,g,b;
+    QColor color;
+    int kernelMedian = kernelWidth/2;
+
+    for(int x=kernelMedian; x<newImage->width()-(kernelMedian); x++){
+        for(int y=kernelMedian; y<newImage->height()-(kernelMedian); y++){
+
+            r = 0;
+            g = 0;
+            b = 0;
+
+
+            int index = 0;
+            for(int i = -kernelMedian; i<= kernelMedian; i++){
+                for(int j = -kernelMedian; j<= kernelMedian; j++){
+                    color = QColor(origin.pixel(x+i, y+j));
+                    //int weight = kernel[(kernelMedian+i)*kernelWidth + (kernelMedian+j)];
+                    int weight = kernel[index++];
+
+                    //qDebug()<<"--"<<(kernelMedian+i)*kernelWidth + (kernelMedian+j)<<":"<<weight;
+                    if(!weight){continue;}
+                    r += color.red()*weight;
+                    g += color.green()*weight;
+                    b += color.blue()*weight;
+                }
+            }
+
+            if(divisor == 1){
+                r = qBound(0, r, 255);
+                g = qBound(0, g, 255);
+                b = qBound(0, b, 255);
+            }else{
+                r = qBound(0, r/divisor, 255);
+                g = qBound(0, g/divisor, 255);
+                b = qBound(0, b/divisor, 255);
+            }
+
+
+            newImage->setPixel(x,y, qRgb(r,g,b));
+
+        }
+    }
+
+}
+
+
 
 
 
