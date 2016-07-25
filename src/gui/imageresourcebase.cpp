@@ -291,20 +291,27 @@ void ImageResourceBase::guassianBlur(QImage &origin, QImage *newImage, float sig
 }
 
 void ImageResourceBase::weightedFilter(const QImage &origin, QImage *newImage, const int kernel[], int kernelWidth, int divisor){
-//////
-////    int kernel2D [5][5]= {{0,0,1,0,0},
-////                         {0,1,3,1,0},
-////                         {1,3,7,3,1},
-////                         {0,1,3,1,0},
-////                         {0,0,1,0,0}};
-////    int kernel[25];
-////    for(int i=0; i<5; i++){
-////        for(int j=0; j<5; j++){
-////            kernel[i*5+j] = (kernel2D[i][j]);
-////        }
-////    }
-////    weightedFilter(orignalImage, &theImage, kernel, 5, 27);
-//////
+/////  **Blur** :
+///    int kernel2D [5][5]= {{0,0,1,0,0},
+///                         {0,1,3,1,0},
+///                         {1,3,7,3,1},
+///                         {0,1,3,1,0},
+///                         {0,0,1,0,0}};
+///    int kernel[25];
+///    for(int i=0; i<5; i++){
+///        for(int j=0; j<5; j++){
+///            kernel[i*5+j] = (kernel2D[i][j]);
+///        }
+///    }
+///    weightedFilter(orignalImage, &theImage, kernel, 5, 27);
+///
+///     **Sharpen** :
+///     int sharpen[9] = {0, -1, 0, -1, 5, -1, 0, -1, 0};
+///     int sharpen[9] = {-1, -1, -1, -1, 9, -1, -1, -1, -1};
+///     int sharpen[9] = {1, -2, 1, -2, 5, -2, 1, -2, 1};
+///     int sharpen[9] = {-1, -2, -1, -2, 19, -2, -1, -2, -1}; divisor=7;
+///
+/////
 
 
     if(origin.isNull()){return;}
