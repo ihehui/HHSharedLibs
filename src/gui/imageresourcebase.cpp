@@ -161,6 +161,27 @@ void ImageResourceBase::averageBlur(QImage &origin, QImage *dstImage, int kernel
 
 }
 
+int ImageResourceBase::median(int array[], int arraySize){
+    int i, j, temp;
+    for(int i=0; i<arraySize-1; i++){
+        for(int j=0; j<arraySize-1-i; j++){
+            if(array[j] > array[j+1]){
+                temp = array[j];
+                array[j] = array[j+1];
+                array[j+1] = temp;
+            }
+        }
+    }
+
+    if((arraySize & 1) > 0){
+        temp = array[(arraySize+1)/2];
+    }else{
+        temp = (array[arraySize/2] + array[arraySize/2+1])/2;
+    }
+
+    return temp;
+}
+
 void ImageResourceBase::medianBlur(QImage &origin, QImage *newImage, int kernelWidth, int kernelHeight){
     if(origin.isNull()){return;}
 
@@ -192,22 +213,21 @@ void ImageResourceBase::medianBlur(QImage &origin, QImage *newImage, int kernelW
             g = 0;
             b = 0;
 
-            QVector<int> vecRed, vecGreen, vecBlue;
+            int arrayRed[kernelSize], arrayGreen[kernelSize], arrayBlue[kernelSize];
+            int index = 0;
             for(int i = -kernelWidthMedian; i<= kernelWidthMedian; i++){
-                for(int j = -kernelMedian; j<= kernelMedian; j++){
+                for(int j = -kernelHeightMedian; j<= kernelHeightMedian; j++){
                     color = QColor(origin.pixel(x+i, y+j));
-                    vecRed.append(color.red());
-                    vecGreen.append(color.green());
-                    vecBlue.append(color.blue());
+                    arrayRed[index] = color.red();
+                    arrayGreen[index] = color.green();
+                    arrayBlue[index] = color.blue();
+                    index++;
                 }
             }
-            qSort(vecRed);
-            qSort(vecGreen);
-            qSort(vecBlue);
 
-            r = vecRed.at(pointsMedian);
-            g = vecGreen.at(pointsMedian);
-            b = vecBlue.at(pointsMedian);
+            r = median(arrayRed, kernelSize);
+            g = median(arrayGreen, kernelSize);
+            b = median(arrayBlue, kernelSize);
 
             newImage->setPixel(x,y, qRgb(r,g,b));
 
