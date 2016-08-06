@@ -16,14 +16,18 @@
 #endif
 
 static QFile* f = 0;
-
+static qulonglong processId = 0;
 
 static void closeDebugLog()
 {
-    if (!f)
-        return;
-    f->write(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
-    f->write(" --- DEBUG LOG CLOSED ---\n\n");
+    if (!f){return;}
+
+    QByteArray s(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
+    s += " [";
+    s += QByteArray::number(processId);
+    s += "] ";
+    QByteArray ps(s + "------ DEBUG LOG CLOSED ------\n");
+    f->write(ps);
     f->flush();
     f->close();
     delete f;
@@ -39,18 +43,21 @@ static void logDebug(QtMsgType type, const char* msg)
 {
     static QMutex mutex;
     QMutexLocker locker(&mutex);
+
+    if(!processId){
 #if defined(Q_OS_WIN32)
-    const qulonglong processId = GetCurrentProcessId();
+    processId = GetCurrentProcessId();
 #else
-    const qulonglong processId = getpid();
+    processId = getpid();
 #endif
+    }
+
     QByteArray s(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
     s += " [";
     s += QByteArray::number(processId);
     s += "] ";
 
     if (!f) {
-        static QString logFilename = QFileInfo(QCoreApplication::applicationFilePath()).baseName() + QDateTime::currentDateTime().toString("-yyyy-MM") + ".log";
 #if defined(Q_OS_WIN32)
         f = new QFile("./" + logFilename);
 #else
@@ -61,7 +68,7 @@ static void logDebug(QtMsgType type, const char* msg)
             f = 0;
             return;
         }
-        QByteArray ps('\n' + s + "--- DEBUG LOG OPENED ---\n");
+        QByteArray ps('\n' + s + "------ DEBUG LOG OPENED ------\n");
         f->write(ps);
     }
 
@@ -83,8 +90,16 @@ static void logDebug(QtMsgType type, const char* msg)
         break;
     }
 
+
+
+
+#if QT_VERSION >= 0x050000
     QString str = QString("%1 (%2:%3, %4)").arg(msg).arg(context.file).arg(context.line).arg(context.function);
     s += str.toUtf8();
+#else
+    s += msg;
+#endif
+
 
 //#if QT_VERSION >= 0x050400
 //    s += qFormatLogMessage(type, context, msg).toLocal8Bit();
@@ -107,25 +122,29 @@ static void logDebug(QtMsgType type, const char* msg)
 
 
 
-void installMessageLogger(){
-
-    //reset the message handler
-    qInstallMessageHandler(0);
+static void installMessageLogger(){
 
 #  if QT_VERSION >= 0x050000
+    //reset the message handler
+    qInstallMessageHandler(0);
     qInstallMessageHandler(logDebug);
 #  else
+    qInstallMsgHandler(0);
     qInstallMsgHandler(logDebug);
 #  endif
-
     qAddPostRoutine(closeDebugLog);
 
 }
 
+static void uninstallMessageLogger(){
+    //reset the message handler
+#  if QT_VERSION >= 0x050000
+    qInstallMessageHandler(0);
+#  else
+    qInstallMsgHandler(0);
+#  endif
 
-//#endif
-
-
+}
 
 
 
