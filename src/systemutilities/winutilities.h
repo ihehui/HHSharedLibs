@@ -41,6 +41,10 @@
 
 #include <Windows.h>
 
+#ifdef __GNUC__
+#define __out
+#endif
+
 #include "systemutilitieslib.h"
 
 

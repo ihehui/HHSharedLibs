@@ -26,23 +26,31 @@ SOURCES += windowsmanagement.cpp \
     winutilities.cpp
 
 
-    INCLUDEPATH += resources/lib/WindowsAPI \
-                    resources/lib/WinRing0
+    INCLUDEPATH += $$PWD \
+                   $$PWD/resources/lib/WindowsAPI \
+                   $$PWD/resources/lib/WinRing0
+
+    LIBS += -L$$PWD/resources/lib/WindowsAPI \
+        -lWindowsAPI \
+        -L$$PWD/resources/lib/WinRing0
 
     LIBS += -luser32 \
         -lNetAPI32 \
         -lAdvapi32 \
+        -lgdi32 \
+        -lgdiplus \
         -lMpr \
         -lWinspool \
         -lVersion \
         -lUserenv \
-        -Lresources/lib/WindowsAPI \
-        -lWindowsAPI \
-        -Lresources/lib/WinRing0
+        -lOleAut32 \
+        -lOle32 \
+        -lwbemuuid
 
-    win32-g++{
-        INCLUDEPATH += resources/lib/WinAPI_GCC
-        LIBS += -Lresources/lib/WinAPI_GCC
-    }
+
+    #win32-g++{
+    #    INCLUDEPATH += resources/lib/WinAPI_GCC
+    #    LIBS += -Lresources/lib/WinAPI_GCC
+    #}
 
 }

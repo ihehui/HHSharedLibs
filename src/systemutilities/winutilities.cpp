@@ -3962,62 +3962,67 @@ bool WinUtilities::serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HAND
         if ( !lpDependencies )
             return FALSE;
 
-        __try {
-            // Enumerate the dependencies.
-            if ( !EnumDependentServices( *schService, SERVICE_ACTIVE,
-                                         lpDependencies, dwBytesNeeded, &dwBytesNeeded,
-                                         &dwCount ) )
+
+        // Enumerate the dependencies.
+        if ( !EnumDependentServices( *schService, SERVICE_ACTIVE,
+                                     lpDependencies, dwBytesNeeded, &dwBytesNeeded,
+                                     &dwCount ) ){
+            HeapFree( GetProcessHeap(), 0, lpDependencies );
+            return FALSE;
+        }
+
+        for ( i = 0; i < dwCount; i++ )
+        {
+            ess = *(lpDependencies + i);
+            // Open the service.
+            hDepService = OpenService( *schSCManager,
+                                       ess.lpServiceName,
+                                       SERVICE_STOP | SERVICE_QUERY_STATUS );
+
+            if ( !hDepService ){
+                HeapFree( GetProcessHeap(), 0, lpDependencies );
                 return FALSE;
+            }
 
-            for ( i = 0; i < dwCount; i++ )
+
+            // Send a stop code.
+            if ( !ControlService( hDepService,
+                                  SERVICE_CONTROL_STOP,
+                                  (LPSERVICE_STATUS) &ssp ) ){
+                CloseServiceHandle( hDepService );
+                HeapFree( GetProcessHeap(), 0, lpDependencies );
+                return FALSE;
+            }
+
+            // Wait for the service to stop.
+            while ( ssp.dwCurrentState != SERVICE_STOPPED )
             {
-                ess = *(lpDependencies + i);
-                // Open the service.
-                hDepService = OpenService( *schSCManager,
-                                           ess.lpServiceName,
-                                           SERVICE_STOP | SERVICE_QUERY_STATUS );
-
-                if ( !hDepService )
-                    return FALSE;
-
-                __try {
-                    // Send a stop code.
-                    if ( !ControlService( hDepService,
-                                          SERVICE_CONTROL_STOP,
-                                          (LPSERVICE_STATUS) &ssp ) )
-                        return FALSE;
-
-                    // Wait for the service to stop.
-                    while ( ssp.dwCurrentState != SERVICE_STOPPED )
-                    {
-                        Sleep( ssp.dwWaitHint );
-                        if ( !QueryServiceStatusEx(
-                                 hDepService,
-                                 SC_STATUS_PROCESS_INFO,
-                                 (LPBYTE)&ssp,
-                                 sizeof(SERVICE_STATUS_PROCESS),
-                                 &dwBytesNeeded ) )
-                            return FALSE;
-
-                        if ( ssp.dwCurrentState == SERVICE_STOPPED )
-                            break;
-
-                        if ( GetTickCount() - dwStartTime > dwTimeout )
-                            return FALSE;
-                    }
-                }
-                __finally
-                {
-                    // Always release the service handle.
+                Sleep( ssp.dwWaitHint );
+                if ( !QueryServiceStatusEx(
+                         hDepService,
+                         SC_STATUS_PROCESS_INFO,
+                         (LPBYTE)&ssp,
+                         sizeof(SERVICE_STATUS_PROCESS),
+                         &dwBytesNeeded ) ){
                     CloseServiceHandle( hDepService );
+                    HeapFree( GetProcessHeap(), 0, lpDependencies );
+                    return FALSE;
+                }
+
+
+                if ( ssp.dwCurrentState == SERVICE_STOPPED )
+                    break;
+
+                if ( GetTickCount() - dwStartTime > dwTimeout ){
+                    CloseServiceHandle( hDepService );
+                    HeapFree( GetProcessHeap(), 0, lpDependencies );
+                    return FALSE;
                 }
             }
+
+
         }
-        __finally
-        {
-            // Always free the enumeration buffer.
-            HeapFree( GetProcessHeap(), 0, lpDependencies );
-        }
+
     }
     return TRUE;
 }

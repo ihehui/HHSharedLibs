@@ -147,13 +147,8 @@ QList<QVariantList> WMIQuery::queryValues(const QString &queryString, const QStr
 
     // Use the IWbemServices pointer to make requests of WMI
     IEnumWbemClassObject* pEnumerator = NULL;
-
-//		bstr_t("WQL"),
-//		bstr_t("SELECT * FROM MSAcpi_ThermalZoneTemperature"),
-//		WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
-
     hr = pSvc->ExecQuery(
-        bstr_t("WQL"),
+        QStringToBSTR("WQL"),
         QStringToBSTR(queryString),
         WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
         NULL,
