@@ -1,3 +1,33 @@
+/*
+ ****************************************************************************
+ * imageviewercontroler.h
+ *
+ * Created on: 2010-6-8
+ *     Author: 贺辉
+ *    License: LGPL
+ *    Comment:
+ *
+ *
+ *    =============================  Usage  =============================
+ *|
+ *|
+ *    ===================================================================
+ *
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ ****************************************************************************
+ */
+
+/*
+ ***************************************************************************
+ * Last Modified on: 2012-8-21
+ * Last Modified by: 贺辉
+ ***************************************************************************
+ */
+
+
 #ifndef IMAGEVIEWERCONTROLER_H
 #define IMAGEVIEWERCONTROLER_H
 
@@ -11,7 +41,6 @@ class ImageViewerControlerUI;
 namespace HEHUI {
 
 
-
 class ImageViewerControler : public QWidget
 {
     Q_OBJECT
@@ -19,7 +48,6 @@ class ImageViewerControler : public QWidget
 public:
     explicit ImageViewerControler(QWidget *parent = 0, Qt::WindowFlags fl = Qt::Popup | Qt::FramelessWindowHint);
     ~ImageViewerControler();
-
 
 
 signals:

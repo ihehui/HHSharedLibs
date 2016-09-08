@@ -1,6 +1,6 @@
 /*
  ****************************************************************************
- * animationcontroler.h
+ * renderwidget.h
  *
  * Created on: 2010-6-8
  *     Author: 贺辉
@@ -28,53 +28,50 @@
  */
 
 
-#ifndef ANIMATIONCONTROLER_H
-#define ANIMATIONCONTROLER_H
+#ifndef RENDERWIDGET_H
+#define RENDERWIDGET_H
 
 #include <QWidget>
-#include <QMovie>
-
-
-namespace Ui {
-class AnimationControler;
-}
 
 namespace HEHUI {
 
 
-class AnimationControler : public QWidget
+class RenderWidget : public QWidget
 {
     Q_OBJECT
-
 public:
-    explicit AnimationControler(QWidget *parent = 0, Qt::WindowFlags fl = Qt::Popup | Qt::FramelessWindowHint);
-    ~AnimationControler();
+    explicit RenderWidget(QWidget *parent = 0, Qt::WindowFlags flags=Qt::WindowFlags());
+
+    const QPixmap * pixmap() const;
+    Qt::AspectRatioMode aspectRatioMode() const;
+    bool scaledContents() const;
 
 
-    QPixmap currentPixmap() const;
-    bool isValidMovie();
+protected:
+    void paintEvent(QPaintEvent *event);
 
 signals:
-    void signalFrameChanged(const QPixmap &pixmap);
 
 public slots:
-    bool setFileName(const QString &fileName);
-
-private slots:
-        void updateFrame();
-        void updateAnimationControls();
-        void goToFrame(int frame);
-
+    void setText(const QString &text);
+    void setPixmap(const QPixmap &pixmap);
+    void setAspectRatioMode(Qt::AspectRatioMode mode);
+    void setScaledContents(bool scale);
+    void setAlignmentCenter(bool alignmentCenter);
+    void adjustSize();
 
 private:
-    Ui::AnimationControler *ui;
-
-    QMovie *movie;
-
-
+    QPixmap m_image;
+    QSize m_preWidgetSize;
+    QSize m_preImageSize;
+    float m_scaleFactor;
+    QPoint m_center;
+    Qt::AspectRatioMode m_aspectRatioMode;
+    bool m_scaledContents;
+    bool m_alignmentCenter;
 
 };
 
 } //namespace HEHUI
 
-#endif // ANIMATIONCONTROLER_H
+#endif // RENDERWIDGET_H

@@ -1,3 +1,33 @@
+/*
+ ****************************************************************************
+ * animationcontroler.cpp
+ *
+ * Created on: 2010-6-8
+ *     Author: 贺辉
+ *    License: LGPL
+ *    Comment:
+ *
+ *
+ *    =============================  Usage  =============================
+ *|
+ *|
+ *    ===================================================================
+ *
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ ****************************************************************************
+ */
+
+/*
+ ***************************************************************************
+ * Last Modified on: 2012-8-21
+ * Last Modified by: 贺辉
+ ***************************************************************************
+ */
+
+
 #include "animationcontroler.h"
 #include "ui_animationcontroler.h"
 

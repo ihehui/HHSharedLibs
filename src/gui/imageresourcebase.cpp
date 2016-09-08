@@ -197,14 +197,14 @@ void ImageResourceBase::medianBlur(QImage &origin, QImage *newImage, int kernelW
     int pointsMedian = kernelSize/2 + 1;
 
     int kernelWidthMedian = kernelWidth/2;
-    int kernelMedian = kernelHeight/2;
+    int kernelHeightMedian = kernelHeight/2;
 
     QColor color;
     int r,g,b;
 
     for(int x=kernelWidthMedian; x<origin.width()-kernelWidthMedian; x++){
 
-        for(int y=kernelMedian; y<origin.height()-kernelMedian; y++){
+        for(int y=kernelHeightMedian; y<origin.height()-kernelHeightMedian; y++){
             //QRgb *rgb = (QRgb *)image.scanLine(y);
             //    rgb[x] = qRgb(values[qRed(rgb[x])], values[qGreen(rgb[x])], values[qBlue(rgb[x])]);
             //image.setPixel(x, y , qRgb(r,g,b));

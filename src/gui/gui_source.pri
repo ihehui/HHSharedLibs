@@ -21,11 +21,8 @@ HEADERS += screenshot/screenshot.h \
     widgetbase/mainwindowbase.h \
     widgetbase/widgetbase.h \
     guilib.h \
-    imageviewer/imageviewercontroler.h \
-    imageviewer/animationcontroler.h \
-    imageviewer/imageviewer.h \
     richtexteditor/htmlhighlighter_p.h \
-    richtexteditor/richtexteditorwidget.h
+    richtexteditor/richtexteditorwidget.h \
 
 SOURCES += screenshot/screenshot.cpp \
     screenshot/selecttargetimagewidget.cpp \
@@ -45,11 +42,8 @@ SOURCES += screenshot/screenshot.cpp \
     dataprint.cpp \
     widgetbase/mainwindowbase.cpp \
     widgetbase/widgetbase.cpp \
-    imageviewer/imageviewercontroler.cpp \
-    imageviewer/animationcontroler.cpp \
-    imageviewer/imageviewer.cpp \
     richtexteditor/htmlhighlighter.cpp \
-    richtexteditor/richtexteditorwidget.cpp
+    richtexteditor/richtexteditorwidget.cpp \
 
 FORMS += screenshot/screenshot.ui \
     screenshot/selecttargetimagewidget.ui \
@@ -58,16 +52,14 @@ FORMS += screenshot/screenshot.ui \
     plugin/pluginmanager/pluginmanagerwindow.ui \
     progress/progressdlg.ui \
     databaseconnecter/databaseconnecterdialog.ui \
-    login/logindlg.ui \
-    imageviewer/imageviewercontroler.ui \
-    imageviewer/animationcontroler.ui
+    login/logindlg.ui
 
 
 RESOURCES += gui.qrc \
-    imageviewer/resource.qrc \
     richtexteditor/richtexteditor.qrc
 
 include (./widgetbase/itembox/itembox.pri)
+include (./imageviewer/imageviewer.pri)
 
 
 #DEFINES += GUI_LIBRARY_EXPORT

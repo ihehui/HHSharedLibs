@@ -1,56 +1,43 @@
-/****************************************************************************
-**
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
-**
-** This file is part of the examples of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:BSD$
-** You may use this file under the terms of the BSD license as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
+/*
+ ****************************************************************************
+ * renderwidget.h
+ *
+ * Created on: 2010-6-8
+ *     Author: 贺辉
+ *    License: LGPL
+ *    Comment:
+ *
+ *
+ *    =============================  Usage  =============================
+ *|
+ *|
+ *    ===================================================================
+ *
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ ****************************************************************************
+ */
+
+/*
+ ***************************************************************************
+ * Last Modified on: 2012-8-21
+ * Last Modified by: 贺辉
+ ***************************************************************************
+ */
+
 
 #ifndef IMAGEVIEWER_H
 #define IMAGEVIEWER_H
 
 #include <QWidget>
+#include <QScrollArea>
+#include <QToolButton>
+#include <QVBoxLayout>
+#include <QLabel>
 
-QT_BEGIN_NAMESPACE
-class QLabel;
-class QVBoxLayout;
-
-class QScrollArea;
-class QScrollBar;
-class QToolButton;
-QT_END_NAMESPACE
+#include "renderwidget.h"
 
 
 #if defined(IMAGEVIEWER_LIBRARY_EXPORT)
@@ -61,7 +48,6 @@ QT_END_NAMESPACE
 
 
 namespace HEHUI {
-
 
 
 class ImageViewerControler;
@@ -76,10 +62,17 @@ public:
     ImageViewer(QWidget *parent = 0, Qt::WindowFlags fl = Qt::FramelessWindowHint);
     ~ImageViewer();
 
-    void setImage(const QImage &image);
-    void setImages(const QStringList &images, unsigned int initIndex = 0);
+    RenderWidget * renderWidget();
+    QScrollArea * scrollArea();
+    ImageViewerControler *imageControler();
 
     static void processBrightnessAndContrast(QImage &image, int brightness, int contrast);
+
+
+public slots:
+    void setImage(const QImage &image, bool moveViewerToCenter = true, bool adjustViewerSize = true);
+    void setImage(const QPixmap &pixmap, bool moveViewerToCenter = true, bool adjustViewerSize = true);
+    void setImages(const QStringList &m_images, unsigned int initIndex = 0);
 
 
 protected:
@@ -91,6 +84,8 @@ protected:
     //    void mouseMoveEvent(QMouseEvent * event);
 
     bool eventFilter(QObject *obj, QEvent *event);
+    virtual bool processKeyEvent(QObject *obj, QKeyEvent *keyEvent);
+    virtual bool processMouseButtonDblClick(QObject *obj, QMouseEvent *event);
 
 
 public slots:
@@ -107,6 +102,9 @@ public slots:
 
     bool setDefaultSavePath(const QString &path);
     QString defaultSavePath();
+
+    void moveToCenter(bool adjustViewerSize = true);
+
 
 private slots:
     void open();
@@ -133,7 +131,7 @@ private slots:
 
     void showScaleFactor();
     void showImageInfo();
-    void moveCloseButton();
+    void moveControler();
 
 private:
     void createActions();
@@ -147,53 +145,49 @@ private:
 
 private:
     QString currentImageDirectory;
-    QStringList images;
-    int curImageIndex;
+    QStringList m_images;
+    int m_curImageIndex;
 
-    QLabel *imageLabel;
-    QPixmap curPixmap;
-    QPixmap orignalPixmap;
+    RenderWidget *m_imageLabel;
+    QPixmap m_curPixmap;
+    QPixmap m_orignalPixmap;
 
-
-    QScrollArea *scrollArea;
-    double scaleFactor;
+    QScrollArea *m_scrollArea;
+    double m_scaleFactor;
     bool m_fitToWindow;
-    int rotateAngle;
+    int m_rotateAngle;
 
+    QAction *m_zoomInAct;
+    QAction *m_zoomOutAct;
+    QAction *m_normalSizeAct;
+    QAction *m_fitToWindowAct;
 
-    QAction *zoomInAct;
-    QAction *zoomOutAct;
-    QAction *normalSizeAct;
-    QAction *fitToWindowAct;
+    QAction *m_resetAct;
 
-    QAction *resetAct;
+    QAction *m_saveAsAct;
+    QAction *m_printAct;
 
-    QAction *saveAsAct;
-    QAction *printAct;
+    QAction *m_openAct;
+    QAction *m_exitAct;
 
-    QAction *openAct;
-    QAction *exitAct;
+    QVBoxLayout *m_mainLayout;
 
-
-    QVBoxLayout *mainLayout;
-
-
-    ImageViewerControler *imageControler;
-    AnimationControler *animationControler;
-    QToolButton *toolButtonClose;
+    ImageViewerControler *m_imageControler;
+    AnimationControler *m_animationControler;
+    QToolButton *m_toolButtonClose;
 
     QSize m_minimumScrollAreaSize;
-    bool runningValidMovie;
+    bool m_runningValidMovie;
 
-    QLabel *tipLabel;
-    QTimer *tipTimer;
-    bool tipScaleFactor;
+    QLabel *m_tipLabel;
+    QTimer *m_tipTimer;
+    bool m_tipScaleFactor;
 
-    bool  flipHorizontally;
-    bool flipVertically;
+    bool  m_flipHorizontally;
+    bool m_flipVertically;
 
 
-    QPoint dragPosition;
+    QPoint m_dragPosition;
     bool m_dragable;
 
     QString m_defaultSavePath;
