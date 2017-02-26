@@ -52,7 +52,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class ItemBoxItemData;
@@ -61,7 +62,8 @@ class ITEMBOX_LIB_API ItemBoxWidgetInterface : public QWidget
 {
     Q_OBJECT
 public:
-    class ITEMBOX_LIB_API Item {
+    class ITEMBOX_LIB_API Item
+    {
     public:
         enum Type { Default, Custom };
         Item(const QString &aname = QString(), const QString &xml = QString(),
@@ -90,25 +92,59 @@ public:
 
     typedef QList<Item> ItemList;
 
-    class Category {
+    class Category
+    {
     public:
         enum Type { Default, Scratchpad };
 
         Category(const QString &aid = QString(), const QString &aname = QString(), Type atype = Default)
             : m_id(aid), m_name(aname), m_type(atype) {}
 
-        QString id() const { return m_id; }
-        void setID(const QString &id){ m_id = id; }
-        QString name() const { return m_name; }
-        void setName(const QString &aname) { m_name = aname; }
-        int itemCount() const { return m_item_list.size(); }
-        Item item(int idx) const { return m_item_list.at(idx); }
-        void removeItem(int idx) { m_item_list.removeAt(idx); }
-        void addItem(const Item &aitem) { m_item_list.append(aitem); }
-        Type type() const { return m_type; }
-        void setType(Type atype) { m_type = atype; }
+        QString id() const
+        {
+            return m_id;
+        }
+        void setID(const QString &id)
+        {
+            m_id = id;
+        }
+        QString name() const
+        {
+            return m_name;
+        }
+        void setName(const QString &aname)
+        {
+            m_name = aname;
+        }
+        int itemCount() const
+        {
+            return m_item_list.size();
+        }
+        Item item(int idx) const
+        {
+            return m_item_list.at(idx);
+        }
+        void removeItem(int idx)
+        {
+            m_item_list.removeAt(idx);
+        }
+        void addItem(const Item &aitem)
+        {
+            m_item_list.append(aitem);
+        }
+        Type type() const
+        {
+            return m_type;
+        }
+        void setType(Type atype)
+        {
+            m_type = atype;
+        }
 
-        bool isNull() const { return m_id.isEmpty(); }
+        bool isNull() const
+        {
+            return m_id.isEmpty();
+        }
 
     private:
         QString m_id;

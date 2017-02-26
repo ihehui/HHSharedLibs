@@ -6,7 +6,8 @@
 #include "systemutilitieslib.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class SYSUTIL_LIB_API SystemUtilities : public QObject

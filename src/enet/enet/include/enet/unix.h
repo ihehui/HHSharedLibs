@@ -1,4 +1,4 @@
-/** 
+/**
  @file  unix.h
  @brief ENet Unix header
 */
@@ -13,7 +13,7 @@
 #include <unistd.h>
 
 #ifdef MSG_MAXIOVLEN
-#define ENET_BUFFER_MAXIMUM MSG_MAXIOVLEN
+    #define ENET_BUFFER_MAXIMUM MSG_MAXIOVLEN
 #endif
 
 typedef int ENetSocket;
@@ -26,9 +26,8 @@ typedef int ENetSocket;
 #define ENET_NET_TO_HOST_16(value) (ntohs (value)) /**< macro that converts net to host byte-order of a 16-bit value */
 #define ENET_NET_TO_HOST_32(value) (ntohl (value)) /**< macro that converts net to host byte-order of a 32-bit value */
 
-typedef struct
-{
-    void * data;
+typedef struct {
+    void *data;
     size_t dataLength;
 } ENetBuffer;
 
@@ -42,6 +41,6 @@ typedef fd_set ENetSocketSet;
 #define ENET_SOCKETSET_ADD(sockset, socket)    FD_SET (socket, & (sockset))
 #define ENET_SOCKETSET_REMOVE(sockset, socket) FD_CLR (socket, & (sockset))
 #define ENET_SOCKETSET_CHECK(sockset, socket)  FD_ISSET (socket, & (sockset))
-    
+
 #endif /* __ENET_UNIX_H__ */
 

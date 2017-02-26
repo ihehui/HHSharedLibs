@@ -11,7 +11,8 @@
 class IWbemLocator;
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class SYSUTIL_LIB_API WMIQuery : public QObject
@@ -26,7 +27,7 @@ public:
     QList<QVariantList> queryValues(const QString &queryString, const QString &propertiesToRetrieve,
                                     const QString &wmiNamespace = "root/CIMV2", DWORD *errorCode = 0,
                                     const QString &server = "."
-            );
+                                   );
 
 
 
@@ -34,7 +35,7 @@ private:
 
     bool m_isNull;
 
-    IWbemLocator* m_pLocator;
+    IWbemLocator *m_pLocator;
     CRITICAL_SECTION m_csLock;
 
 

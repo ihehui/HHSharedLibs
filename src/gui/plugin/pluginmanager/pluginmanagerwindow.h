@@ -38,14 +38,17 @@
 
 #include "../../guilib.h"
 
-namespace Ui {
+namespace Ui
+{
 class PluginManagerWindowUI;
 }
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
-class GUI_LIB_API PluginManagerWindow: public QWidget {
+class GUI_LIB_API PluginManagerWindow: public QWidget
+{
     Q_OBJECT
 
 public:

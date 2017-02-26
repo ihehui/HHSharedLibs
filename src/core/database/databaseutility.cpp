@@ -40,7 +40,7 @@
 
 
 DatabaseUtility::DatabaseUtility(QObject *parent)
-    :QObject(parent)
+    : QObject(parent)
 {
 
     //qDebug()<<"----DatabaseUtility::DatabaseUtility(...)";
@@ -52,12 +52,14 @@ DatabaseUtility::DatabaseUtility(QObject *parent)
 
 }
 
-DatabaseUtility::~DatabaseUtility() {
+DatabaseUtility::~DatabaseUtility()
+{
     // TODO Auto-generated destructor stub
 }
 
 
-QStringList DatabaseUtility::availableDrivers()  {
+QStringList DatabaseUtility::availableDrivers()
+{
     //获取可用的数据库驱动
     //Get available database drivers
     QStringList driversList = QSqlDatabase::drivers();
@@ -79,7 +81,7 @@ QSqlError DatabaseUtility::openDatabase(const QString &connectionNameString, con
                                         const QString &databaseName, HEHUI::DatabaseType databaseType)
 {
 
-    qDebug()<<"--DatabaseUtility::openDatabase(...)";
+    qDebug() << "--DatabaseUtility::openDatabase(...)";
 
     Q_ASSERT_X(!driver.isEmpty(), "DatabaseUtility::openDatabase(...)", "'driver' is empty!");
     Q_ASSERT_X(!databaseName.isEmpty(), "DatabaseUtility::openDatabase(...)", "'databaseName' is empty!");
@@ -87,7 +89,7 @@ QSqlError DatabaseUtility::openDatabase(const QString &connectionNameString, con
     //QCoreApplication::processEvents();
 
     QString connectionName = connectionNameString;
-    if(connectionName.isEmpty()){
+    if(connectionName.isEmpty()) {
         switch (databaseType) {
         case HEHUI::SQLITE:
         case HEHUI::M$ACCESS:
@@ -95,7 +97,7 @@ QSqlError DatabaseUtility::openDatabase(const QString &connectionNameString, con
             break;
 
         default:
-            connectionName = user+"@"+host+":"+QString::number(port)+"/"+databaseName;
+            connectionName = user + "@" + host + ":" + QString::number(port) + "/" + databaseName;
             break;
         }
 
@@ -103,33 +105,33 @@ QSqlError DatabaseUtility::openDatabase(const QString &connectionNameString, con
 
     QSqlError err ;
 
-    if(QSqlDatabase::contains(connectionName)){
+    if(QSqlDatabase::contains(connectionName)) {
         QSqlDatabase db = QSqlDatabase::database(connectionName);
-        if(db.isValid()){
-            if(!db.isOpen()){
-                if(!db.open()){
+        if(db.isValid()) {
+            if(!db.isOpen()) {
+                if(!db.open()) {
                     closeDBConnection(connectionName);
-                }else{
+                } else {
                     return db.lastError();
                 }
-            }else{
+            } else {
                 //err.setType(QSqlError::ConnectionError);
                 err.setType(QSqlError::NoError);
                 err.setDatabaseText(tr("Database connection('%1') has been previously added!").arg(databaseName));
-                qCritical()<<QString("Database connection('%1') has been previously added!").arg(databaseName);
+                qCritical() << QString("Database connection('%1') has been previously added!").arg(databaseName);
                 return err;
             }
 
-        }else{
+        } else {
             QSqlDatabase::removeDatabase(connectionName);
         }
 
 
     }
 
-    if(databaseType == HEHUI::SQLITE || databaseType == HEHUI::M$ACCESS){
+    if(databaseType == HEHUI::SQLITE || databaseType == HEHUI::M$ACCESS) {
         err = openLocalFileDatabase(connectionName, databaseName, driver);
-    }else{
+    } else {
         err = openRemoteDatabase(connectionName, driver, host, port, user, passwd, databaseName, databaseType);
     }
 
@@ -141,7 +143,7 @@ QSqlError DatabaseUtility::openDatabase(const QString &connectionNameString, con
 
 
 QSqlError DatabaseUtility::openRemoteDatabase(const QString &connectionName, const QString &driver,
-                                              const QString &host, int port, const QString &user, const QString &passwd, const QString &databaseName, HEHUI::DatabaseType databaseType)
+        const QString &host, int port, const QString &user, const QString &passwd, const QString &databaseName, HEHUI::DatabaseType databaseType)
 {
     //qDebug()<<"--DatabaseUtility::DatabaseUtility::openRemoteDatabase(...)";
 
@@ -152,18 +154,18 @@ QSqlError DatabaseUtility::openRemoteDatabase(const QString &connectionName, con
 
     QSqlDatabase db;
 
-    if(databaseType == HEHUI::M$SQLSERVER && OS_IS_WINDOWS ){
+    if(databaseType == HEHUI::M$SQLSERVER && OS_IS_WINDOWS ) {
         db = QSqlDatabase::addDatabase("QODBC", connectionName);
         db.setDatabaseName(
-                    QString("DRIVER={SQL Server};SERVER=%1;DATABASE=%2;UID=%3;PWD=%4")
-                    .arg(host.trimmed())
-                    .arg(databaseName.trimmed())
-                    .arg(user.trimmed())
-                    .arg(passwd.trimmed())
-                    );
+            QString("DRIVER={SQL Server};SERVER=%1;DATABASE=%2;UID=%3;PWD=%4")
+            .arg(host.trimmed())
+            .arg(databaseName.trimmed())
+            .arg(user.trimmed())
+            .arg(passwd.trimmed())
+        );
         db.open();
 
-    }else{
+    } else {
         db = QSqlDatabase::addDatabase(driver, connectionName);
         db.setDatabaseName(databaseName);
         db.setHostName(host);
@@ -182,15 +184,16 @@ QSqlError DatabaseUtility::openRemoteDatabase(const QString &connectionName, con
         //qCritical()<< QString("XX An error occurred when opening the database: %1").arg(error.text());
     }
 
-    qDebug()<< QString("~~ Database connection %1 is %2").arg(connectionName).arg(db.isValid() ? "Valid" : "Invalid");
+    qDebug() << QString("~~ Database connection %1 is %2").arg(connectionName).arg(db.isValid() ? "Valid" : "Invalid");
 
     return error;
 
 }
 
 
-QSqlError DatabaseUtility::openLocalFileDatabase(const QString &connectionName, const QString &databaseFileNamePath, const QString &driverName) {
-    qDebug()<<"----DatabaseUtility::openLocalFileDatabase(...)";
+QSqlError DatabaseUtility::openLocalFileDatabase(const QString &connectionName, const QString &databaseFileNamePath, const QString &driverName)
+{
+    qDebug() << "----DatabaseUtility::openLocalFileDatabase(...)";
 
     Q_ASSERT_X(!driverName.isEmpty(), "DatabaseUtility::openLocalFileDatabase(...)", "'driverName' is empty!");
     Q_ASSERT_X(!databaseFileNamePath.isEmpty(), "DatabaseUtility::openLocalFileDatabase(...)", "'databaseFileNamePath' is empty!");
@@ -198,24 +201,24 @@ QSqlError DatabaseUtility::openLocalFileDatabase(const QString &connectionName, 
 
     QSqlError err;
 
-    if(driverName != "QSQLITE"){
+    if(driverName != "QSQLITE") {
 
         if (!QFileInfo(databaseFileNamePath).exists()) {
             err.setType(QSqlError::ConnectionError);
             err.setDatabaseText(QObject::tr("Database file  %1  does not exists !"
-                                            ).arg(databaseFileNamePath)
-                                );
+                                           ).arg(databaseFileNamePath)
+                               );
 
             //qCritical()<< QString("XX An error occurred when opening the database: %1").arg(err.text());
             return err;
 
         } else if (!QFileInfo(databaseFileNamePath).permission(QFile::WriteUser
-                                                               | QFile::ReadUser)) {
+                   | QFile::ReadUser)) {
 
             err.setType(QSqlError::ConnectionError);
             err.setDatabaseText(QObject::tr("Database file  %1  can not be read or written !")
                                 .arg(databaseFileNamePath)
-                                );
+                               );
 
             //qCritical()<< QString("XX An error occurred when opening the database: %1").arg(err.text());
             return err;
@@ -231,8 +234,8 @@ QSqlError DatabaseUtility::openLocalFileDatabase(const QString &connectionName, 
 
         db = QSqlDatabase::addDatabase("QODBC", connectionName);
         db.setDatabaseName(
-                    QString("DRIVER={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ=%1")
-                    .arg(databaseFileNamePath));
+            QString("DRIVER={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ=%1")
+            .arg(databaseFileNamePath));
 
     } else {
 
@@ -255,34 +258,35 @@ QSqlError DatabaseUtility::openLocalFileDatabase(const QString &connectionName, 
 
 }
 
-QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database, const QString &scriptFileName, const QString &fileCodec, QSqlQuery *q, bool stopOnError){
+QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database, const QString &scriptFileName, const QString &fileCodec, QSqlQuery *q, bool stopOnError)
+{
 
     QSqlError error;
     error.setType(QSqlError::NoError);
     error.setDatabaseText("");
     error.setDriverText("");
 
-    if(scriptFileName.trimmed().isEmpty()){
+    if(scriptFileName.trimmed().isEmpty()) {
         error.setType(QSqlError::StatementError);
         error.setDatabaseText(tr("Invalid SQL Script File Name!"));
         return error;
     }
 
     QFile file(scriptFileName);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QString msg = file.errorString();
         error.setType(QSqlError::StatementError);
         error.setDatabaseText(msg);
-        qCritical()<< msg;
+        qCritical() << msg;
         return error;
     }
 
-    if(!database.isValid()){
+    if(!database.isValid()) {
         error.setType(QSqlError::ConnectionError);
         error.setDatabaseText(tr("Invalid Database!"));
         return error;
     }
-    if(!database.isOpen()){
+    if(!database.isOpen()) {
         error.setType(QSqlError::ConnectionError);
         error.setDatabaseText(tr("Database Not Open!"));
         return error;
@@ -293,9 +297,9 @@ QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database,
     QString statement = "";
 
     QTextStream in(&file);
-    if(fileCodec.trimmed().isEmpty()){
+    if(fileCodec.trimmed().isEmpty()) {
         in.setCodec(QTextCodec::codecForLocale());
-    }else{
+    } else {
         in.setCodec(fileCodec.toLocal8Bit());
     }
     in.setAutoDetectUnicode(true);
@@ -303,7 +307,7 @@ QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database,
     while (!in.atEnd()) {
         QString line = in.readLine();
 
-        if(line.startsWith("--", Qt::CaseInsensitive)){
+        if(line.startsWith("--", Qt::CaseInsensitive)) {
             qDebug();
             qDebug("Single Line Comment Ignored:\n%s", qPrintable(line));
             qDebug();
@@ -311,11 +315,11 @@ QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database,
             continue;
         }
 
-        statement += (statement.isEmpty()?line:("\n" + line));
+        statement += (statement.isEmpty() ? line : ("\n" + line));
 
         QString temp = line.trimmed();
         temp.replace(";", "");
-        if(statement.trimmed().startsWith("/*", Qt::CaseInsensitive) && temp.endsWith("*/", Qt::CaseInsensitive)){
+        if(statement.trimmed().startsWith("/*", Qt::CaseInsensitive) && temp.endsWith("*/", Qt::CaseInsensitive)) {
             qDebug();
             qDebug("Multi Line Comment Ignored:\n%s", qPrintable(statement));
             qDebug();
@@ -324,15 +328,15 @@ QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database,
             continue;
         }
 
-        if(line.endsWith(";") || in.atEnd()){
-            if(!query.exec(statement)){
+        if(line.endsWith(";") || in.atEnd()) {
+            if(!query.exec(statement)) {
                 error = query.lastError();
                 qDebug();
                 qCritical("Can not excute SQL statement:\n%s\n%s", qPrintable(statement), qPrintable(error.text()));
                 qDebug();
 
-                if(stopOnError){
-                    if(q){
+                if(stopOnError) {
+                    if(q) {
                         *q = query;
                     }
                     return error;
@@ -341,7 +345,7 @@ QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database,
 
                 statement = "";
                 continue;
-            }else{
+            } else {
                 qDebug();
                 qDebug("SQL Statement Excuted:\n%s", qPrintable(statement));
                 qDebug();
@@ -352,7 +356,7 @@ QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database,
 
     }
 
-    if(q){
+    if(q) {
         *q = query;
     }
     error = query.lastError();
@@ -362,16 +366,18 @@ QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database,
 
 }
 
-QSqlDatabase DatabaseUtility::getDatabase(const QString &connectionName){
-    qDebug()<<"----DatabaseUtility::getDatabase(const QString &connectionName)";
+QSqlDatabase DatabaseUtility::getDatabase(const QString &connectionName)
+{
+    qDebug() << "----DatabaseUtility::getDatabase(const QString &connectionName)";
 
     return QSqlDatabase::database(connectionName);
 
 }
 
-QSqlQuery DatabaseUtility::queryDatabase(const QString & queryString, const QString &connectionName, const QString &driver,
-                                         const QString &host, int port, const QString &user, const QString &passwd,
-                                         const QString &databaseName, HEHUI::DatabaseType databaseType) {
+QSqlQuery DatabaseUtility::queryDatabase(const QString &queryString, const QString &connectionName, const QString &driver,
+        const QString &host, int port, const QString &user, const QString &passwd,
+        const QString &databaseName, HEHUI::DatabaseType databaseType)
+{
 
     //qDebug()<<"----DatabaseUtility::queryDatabase(...)";
 
@@ -386,12 +392,12 @@ QSqlQuery DatabaseUtility::queryDatabase(const QString & queryString, const QStr
         QSqlError err;
         err = openDatabase(connectionName, driver, host, port, user, passwd,
                            databaseName, databaseType);
-        if(err.type() != QSqlError::NoError){
+        if(err.type() != QSqlError::NoError) {
             return QSqlQuery();
         }
 
         db = QSqlDatabase::database(connectionName);
-        qDebug()<<"~~Database Connection: "<<connectionName<<"Valid? "<<db.isValid();
+        qDebug() << "~~Database Connection: " << connectionName << "Valid? " << db.isValid();
 
     }
 
@@ -411,17 +417,19 @@ QSqlQuery DatabaseUtility::queryDatabase(const QString & queryString, const QStr
 
 
 
-void DatabaseUtility::closeDBConnection(const QString &connectionName){
+void DatabaseUtility::closeDBConnection(const QString &connectionName)
+{
     QSqlDatabase db = QSqlDatabase::database(connectionName);
-    if(db.isValid()){
+    if(db.isValid()) {
         db.close();
     }
     QSqlDatabase::removeDatabase(connectionName);
 
 }
 
-void DatabaseUtility::closeAllDBConnections(){
-    qDebug()<<"----DatabaseUtility::closeAllDBConnections()";
+void DatabaseUtility::closeAllDBConnections()
+{
+    qDebug() << "----DatabaseUtility::closeAllDBConnections()";
 
     QStringList connectionNames = QSqlDatabase::connectionNames();
 
@@ -430,10 +438,10 @@ void DatabaseUtility::closeAllDBConnections(){
 
         if (db.isOpen()) {
             db.close ();
-            qDebug()<<QString("~~ Close Database '%1'(Connection Name:%2)").arg(db.databaseName(), connectionNames.at(i));
+            qDebug() << QString("~~ Close Database '%1'(Connection Name:%2)").arg(db.databaseName(), connectionNames.at(i));
         }
         QSqlDatabase::removeDatabase(connectionNames.at(i));
-        qDebug()<<QString("~~ Remove Database Connection '%1'(Database Name:%2)").arg(connectionNames.at(i), db.databaseName());
+        qDebug() << QString("~~ Remove Database Connection '%1'(Database Name:%2)").arg(connectionNames.at(i), db.databaseName());
     }
 
 }

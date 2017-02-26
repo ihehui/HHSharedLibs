@@ -38,9 +38,11 @@
 
 #include "core_lib.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-class CORE_LIB_API UserBase: public QObject {
+class CORE_LIB_API UserBase: public QObject
+{
     Q_OBJECT
 
 public:

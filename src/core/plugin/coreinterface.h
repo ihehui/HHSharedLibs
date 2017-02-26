@@ -39,12 +39,14 @@
 #include "../core_lib.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-class CORE_LIB_API CoreInterface : public AbstractPluginInterface{
-    public:
+class CORE_LIB_API CoreInterface : public AbstractPluginInterface
+{
+public:
 
-        virtual ~CoreInterface(){}
+    virtual ~CoreInterface() {}
 
 //        virtual QString name() const = 0;
 //        virtual QString version() const = 0;
@@ -56,15 +58,15 @@ class CORE_LIB_API CoreInterface : public AbstractPluginInterface{
 //
 //        virtual bool isSingle() = 0;
 
-        //Initialization
-        virtual bool initialize(QObject *parent = 0) = 0;
+    //Initialization
+    virtual bool initialize(QObject *parent = 0) = 0;
 
 
-        //Unload the plugin
+    //Unload the plugin
 //        virtual bool unload() = 0;
 
 
-    };
+};
 
 
 }

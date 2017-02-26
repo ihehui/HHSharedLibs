@@ -35,12 +35,12 @@
 
 #include <QtCore/QtGlobal>
 
- //#if defined(MYSHAREDLIB_LIBRARY_EXPORT)
- #if defined(CORE_LIB_LIBRARY_EXPORT)
- #  define CORE_LIB_API Q_DECL_EXPORT
- #else
- #  define CORE_LIB_API Q_DECL_IMPORT
- #endif
+//#if defined(MYSHAREDLIB_LIBRARY_EXPORT)
+#if defined(CORE_LIB_LIBRARY_EXPORT)
+    #define CORE_LIB_API Q_DECL_EXPORT
+#else
+    #define CORE_LIB_API Q_DECL_IMPORT
+#endif
 
 
 /*

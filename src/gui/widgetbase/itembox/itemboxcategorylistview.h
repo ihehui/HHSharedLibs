@@ -53,7 +53,8 @@
 #include <QEvent>
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class ItemBoxCategoryModel;
@@ -70,7 +71,7 @@ public:
     explicit ItemBoxCategoryListView(ItemBoxEventHandler *core, QWidget *parent = 0);
     void setViewMode(ViewMode vm);
 
-    void dropItems(const QList<ItemBoxWidgetInterface*> &item_list);
+    void dropItems(const QList<ItemBoxWidgetInterface *> &item_list);
 
     using QListView::contentsSize;
 

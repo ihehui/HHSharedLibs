@@ -7,7 +7,8 @@
 #include "ui_logindlg.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 LoginDlg::LoginDlg(UserBase *user, const QString &windowTitle, bool hashPassword, QWidget *parent) :
     QDialog(parent),
@@ -21,7 +22,7 @@ LoginDlg::LoginDlg(UserBase *user, const QString &windowTitle, bool hashPassword
 
     ui->setupUi(this);
 
-    if(!windowTitle.isEmpty()){
+    if(!windowTitle.isEmpty()) {
         setWindowTitle(windowTitle);
     }
 
@@ -33,16 +34,19 @@ LoginDlg::LoginDlg(UserBase *user, const QString &windowTitle, bool hashPassword
 
 }
 
-LoginDlg::~LoginDlg() {
+LoginDlg::~LoginDlg()
+{
     delete ui;
 }
 
-void LoginDlg::closeEvent(QCloseEvent * event){
+void LoginDlg::closeEvent(QCloseEvent *event)
+{
     event->accept();
     emit signalAbort();
 }
 
-void LoginDlg::keyPressEvent(QKeyEvent *e) {
+void LoginDlg::keyPressEvent(QKeyEvent *e)
+{
 
     int key = e->key();
 
@@ -64,18 +68,18 @@ void LoginDlg::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_R:
         //是否进入RestoreMode
         //Whether enter RestoreMode
-        if(ui->pushButtonLogin->hasFocus()){
+        if(ui->pushButtonLogin->hasFocus()) {
             bool ok = false;
             QString text = QInputDialog::getText(this, tr("Authentication Required"),
                                                  tr("Access Code:"), QLineEdit::NoEcho,
                                                  "", &ok);
-            if (ok && !text.isEmpty()){
+            if (ok && !text.isEmpty()) {
                 QString accessCodeString = "iamhehui";
                 accessCodeString.append(QTime::currentTime().toString("hhmm"));
-                if(text.toLower() == accessCodeString){
+                if(text.toLower() == accessCodeString) {
                     //user->setRootMode(true);
                     accept();
-                }else{
+                } else {
                     ui->userIDComboBox->setFocus();
                 }
             }
@@ -88,7 +92,8 @@ void LoginDlg::keyPressEvent(QKeyEvent *e) {
 
 }
 
-void LoginDlg::languageChange() {
+void LoginDlg::languageChange()
+{
     ui->retranslateUi(this);
 }
 
@@ -96,24 +101,29 @@ void LoginDlg::languageChange() {
 //    this->user = user;
 //}
 
-void LoginDlg::setErrorMessage(const QString &message){
+void LoginDlg::setErrorMessage(const QString &message)
+{
     ui->labelBottom->setText(message);
     ui->pushButtonAbort->setText(tr("OK"));
 }
 
-void LoginDlg::on_toolButtonUser_clicked(){
+void LoginDlg::on_toolButtonUser_clicked()
+{
     emit signalUserButtonClicked();
 }
 
-void LoginDlg::on_toolButtonKey_clicked(){
+void LoginDlg::on_toolButtonKey_clicked()
+{
     emit signalKeyButtonClicked();
 }
 
-void LoginDlg::on_pushButtonSettings_clicked(){
+void LoginDlg::on_pushButtonSettings_clicked()
+{
     emit signalModifySettings();
 }
 
-void LoginDlg::on_pushButtonLogin_clicked() {
+void LoginDlg::on_pushButtonLogin_clicked()
+{
 
     QString uid = ui->userIDComboBox->currentText().trimmed();
     QString password = ui->passwordLineEdit->text();
@@ -138,7 +148,7 @@ void LoginDlg::on_pushButtonLogin_clicked() {
     //        return;
 
     //    }
-    else{
+    else {
         user->setUserID(uid);
         user->setPassword(password, hashThePassword);
         ui->passwordLineEdit->clear();
@@ -152,12 +162,14 @@ void LoginDlg::on_pushButtonLogin_clicked() {
 
 }
 
-void LoginDlg::on_pushButtonCancel_clicked() {
+void LoginDlg::on_pushButtonCancel_clicked()
+{
     ui->passwordLineEdit->clear();
     reject();
 }
 
-void LoginDlg::on_pushButtonAbort_clicked(){
+void LoginDlg::on_pushButtonAbort_clicked()
+{
     ui->stackedWidget->setCurrentWidget(ui->pageUserInfo);
     ui->userIDComboBox->setFocus();
     emit signalAbort();

@@ -10,7 +10,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class UDT_LIB_API UDTProtocolForFileTransmission : public UDTProtocolBase
@@ -18,7 +19,7 @@ class UDT_LIB_API UDTProtocolForFileTransmission : public UDTProtocolBase
     Q_OBJECT
 public:
     explicit UDTProtocolForFileTransmission(QObject *parent = 0);
-    
+
 signals:
 
 public slots:
@@ -46,7 +47,7 @@ private:
 
 
 
-    
+
 };
 
 } //namespace HEHUI

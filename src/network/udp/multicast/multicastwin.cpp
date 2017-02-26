@@ -40,15 +40,15 @@ IPMultiCastWin::IPMultiCastWin(QObject *parent)
     : IPMulticastSocketBase(parent)
 {
     //udpSocket = 0;
-    count=0;
-    Receivedpackets=0;
+    count = 0;
+    Receivedpackets = 0;
 
 }
 
 IPMultiCastWin::~IPMultiCastWin()
 {
 
-    if(isBound()){
+    if(isBound()) {
         leaveGroup();
     }
 
@@ -65,10 +65,11 @@ IPMultiCastWin::~IPMultiCastWin()
 
 }
 
-bool IPMultiCastWin::startIPMulticastListening(const QHostAddress &ipMulticastGroupAddress, quint16 ipMulticastGroupPort) {
+bool IPMultiCastWin::startIPMulticastListening(const QHostAddress &ipMulticastGroupAddress, quint16 ipMulticastGroupPort)
+{
 
     QUdpSocket *udpSocket = getUdpSocket();
-    if(!udpSocket){
+    if(!udpSocket) {
         qCritical("Invalid UDP Socket!");
         return false;
     }
@@ -97,7 +98,7 @@ bool IPMultiCastWin::startIPMulticastListening(const QHostAddress &ipMulticastGr
         return false;
     }
     bFlag = TRUE; //file://设置套接字选项，使套接字为可重用端口地址
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*) &bFlag, sizeof(bFlag));
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &bFlag, sizeof(bFlag));
 
     //将sock绑定到本机某端口上。
     local.sin_family = AF_INET;
@@ -105,7 +106,7 @@ bool IPMultiCastWin::startIPMulticastListening(const QHostAddress &ipMulticastGr
     local.sin_port = htons(ipMulticastGroupPort);
     local.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(sock, (struct sockaddr*) &local, sizeof(local)) == SOCKET_ERROR) {
+    if (bind(sock, (struct sockaddr *) &local, sizeof(local)) == SOCKET_ERROR) {
         printf("bind failed with:%d \n", WSAGetLastError());
         closesocket(sock);
         WSACleanup();
@@ -116,7 +117,7 @@ bool IPMultiCastWin::startIPMulticastListening(const QHostAddress &ipMulticastGr
     //加入多播组
     remote.sin_family = AF_INET;
     //remote.sin_port = htons(MCASTPORT);
-    remote.sin_addr.s_addr = inet_addr((char*)ipMulticastGroupPort);
+    remote.sin_addr.s_addr = inet_addr((char *)ipMulticastGroupPort);
     //remote.sin_addr.s_addr = inet_addr(MCASTADDR);
     remote.sin_addr.s_addr = inet_addr(ipMulticastGroupAddress.toString().toLocal8Bit().data());
 
@@ -138,7 +139,7 @@ bool IPMultiCastWin::startIPMulticastListening(const QHostAddress &ipMulticastGr
      */
 
     /* Winsock2.0*/
-    if ((sockM = WSAJoinLeaf(sock, (SOCKADDR*) &remote, sizeof(remote), NULL,
+    if ((sockM = WSAJoinLeaf(sock, (SOCKADDR *) &remote, sizeof(remote), NULL,
                              NULL, NULL, NULL, JL_BOTH)) == INVALID_SOCKET) {
         printf("WSAJoinLeaf() failed:%d\n", WSAGetLastError());
         closesocket(sock);
@@ -161,7 +162,8 @@ bool IPMultiCastWin::startIPMulticastListening(const QHostAddress &ipMulticastGr
 
 }
 
-void IPMultiCastWin::leaveGroup(){
+void IPMultiCastWin::leaveGroup()
+{
     closesocket(sock);
     WSACleanup();
 
@@ -169,7 +171,7 @@ void IPMultiCastWin::leaveGroup(){
     setPort(0);
     setBound(false);
 
-    qDebug()<<"----MultiCastWin::leaveGroup()";
+    qDebug() << "----MultiCastWin::leaveGroup()";
 
 
 }
@@ -200,11 +202,12 @@ void IPMultiCastWin::leaveGroup(){
 //	datagram.clear();
 //}
 
-bool IPMultiCastWin::slotSendUDPDatagramViaBoundSocket(const QString &ip, quint16 port, const QByteArray &data){
+bool IPMultiCastWin::slotSendUDPDatagramViaBoundSocket(const QString &ip, quint16 port, const QByteArray &data)
+{
 
 
     QUdpSocket *udpSocket = getUdpSocket();
-    if(!udpSocket){
+    if(!udpSocket) {
         qCritical("Invalid UDP Socket!");
         return false;
     }
@@ -213,13 +216,13 @@ bool IPMultiCastWin::slotSendUDPDatagramViaBoundSocket(const QString &ip, quint1
     //	datagram = message.toUtf8().toBase64();
 
     qint64 bytesSent = udpSocket->writeDatagram(data, QHostAddress(ip), port);
-    if (bytesSent != data.size() ){
-        qDebug()<<"XXXXMultiCastWin::slotSendUDPDatagramsViaBoundSocket(....): Failed!!!!!!!!!";
+    if (bytesSent != data.size() ) {
+        qDebug() << "XXXXMultiCastWin::slotSendUDPDatagramsViaBoundSocket(....): Failed!!!!!!!!!";
 
         return false;
     }
 
-    qDebug()<<"----MultiCastWin::slotSendUDPDatagramsViaBoundSocket(....): Successful!!!!!!!!!";
+    qDebug() << "----MultiCastWin::slotSendUDPDatagramsViaBoundSocket(....): Successful!!!!!!!!!";
 
 
     /*
@@ -232,7 +235,7 @@ bool IPMultiCastWin::slotSendUDPDatagramViaBoundSocket(const QString &ip, quint1
         WSACleanup();
         return false;
     }
-*/
+    */
 
     return true;
 

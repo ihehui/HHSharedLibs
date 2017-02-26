@@ -50,8 +50,9 @@ DatabaseConnecterDialog::DatabaseConnecterDialog(QWidget *parent) :
 }
 
 DatabaseConnecterDialog::DatabaseConnecterDialog(const QString &connectionName, const QString &host, int port, const QString &user, const QString &passwd, const QString &databaseName, HEHUI::DatabaseType databaseType, QWidget *parent) :
-    QDialog(parent), specifiedConnectionName(connectionName),
-    ui(new Ui::DatabaseConnecterDialogUI)
+    QDialog(parent),
+    ui(new Ui::DatabaseConnecterDialogUI),
+    specifiedConnectionName(connectionName)
 {
 
     setup();
@@ -64,7 +65,9 @@ DatabaseConnecterDialog::DatabaseConnecterDialog(const QString &connectionName, 
     ui->databaseTypeComboBox->setCurrentIndex(ui->databaseTypeComboBox->findData(databaseType));
 
     ui->hostnameEdit->setText(host);
-    if(port > 0){ui->portSpinBox->setValue(port);}
+    if(port > 0) {
+        ui->portSpinBox->setValue(port);
+    }
     ui->userNameEdit->setText(user);
     ui->passwordEdit->setText(passwd);
     ui->databaseNameEdit->setText(databaseName);
@@ -72,8 +75,8 @@ DatabaseConnecterDialog::DatabaseConnecterDialog(const QString &connectionName, 
 }
 
 DatabaseConnecterDialog::DatabaseConnecterDialog(QWidget *parent, HEHUI::DatabaseType databaseType, const QString &databaseFilePath)
-    :QDialog(parent),
-    ui(new Ui::DatabaseConnecterDialogUI)
+    : QDialog(parent),
+      ui(new Ui::DatabaseConnecterDialogUI)
 {
     setup();
 
@@ -83,14 +86,15 @@ DatabaseConnecterDialog::DatabaseConnecterDialog(QWidget *parent, HEHUI::Databas
 //    }
     ui->databaseTypeComboBox->setCurrentIndex(ui->databaseTypeComboBox->findData(databaseType));
 
-    if(!databaseFilePath.trimmed().isEmpty()){
+    if(!databaseFilePath.trimmed().isEmpty()) {
         ui->databaseFilePathComboBox->insertItem(0, databaseFilePath);
         ui->databaseFilePathComboBox->setCurrentIndex(0);
     }
 
 }
 
-void DatabaseConnecterDialog::setup(){
+void DatabaseConnecterDialog::setup()
+{
 
     ui->setupUi(this);
     ui->checkBoxSaveSettings->hide();
@@ -98,7 +102,7 @@ void DatabaseConnecterDialog::setup(){
     //获取有可用的数据库驱动, 填充数据库驱动ComboBox
     //Get available database drivers， setup the database drivers ComboBox
     QStringList drivers = availableDrivers();
-    if(drivers.isEmpty()){
+    if(drivers.isEmpty()) {
         QMessageBox::critical(this, tr("Fatal Error"), tr("No available database driver!"));
         qCritical("XX Critical Error! No available database driver!");
         return;
@@ -108,45 +112,45 @@ void DatabaseConnecterDialog::setup(){
     //初始化所支持的数据库列表
     //Init supported databases list
     supportedDatabases.clear();
-    if(drivers.contains(QString("QMYSQL"), Qt::CaseInsensitive)){
+    if(drivers.contains(QString("QMYSQL"), Qt::CaseInsensitive)) {
         supportedDatabases.append(qMakePair(QString("MySQL"), HEHUI::MYSQL));
     }
 
-    if(drivers.contains(QString("QSQLITE"), Qt::CaseInsensitive)){
+    if(drivers.contains(QString("QSQLITE"), Qt::CaseInsensitive)) {
         supportedDatabases.append(qMakePair(QString("SQLite"), HEHUI::SQLITE));
     }
 
-    if(drivers.contains(QString("QPSQL"), Qt::CaseInsensitive)){
+    if(drivers.contains(QString("QPSQL"), Qt::CaseInsensitive)) {
         supportedDatabases.append(qMakePair(QString("PostgreSQL"), HEHUI::POSTGRESQL));
     }
 
-    if(drivers.contains(QString("QIBASE"), Qt::CaseInsensitive)){
+    if(drivers.contains(QString("QIBASE"), Qt::CaseInsensitive)) {
         supportedDatabases.append(qMakePair(QString("Firebird"), HEHUI::FIREBIRD));
     }
 
-    if(drivers.contains(QString("QDB2"), Qt::CaseInsensitive)){
+    if(drivers.contains(QString("QDB2"), Qt::CaseInsensitive)) {
         supportedDatabases.append(qMakePair(QString("IBM DB2"), HEHUI::DB2));
     }
 
-    if(drivers.contains(QString("QOCI"), Qt::CaseInsensitive)){
+    if(drivers.contains(QString("QOCI"), Qt::CaseInsensitive)) {
         supportedDatabases.append(qMakePair(QString("Oracle"), HEHUI::ORACLE));
     }
 
-    if(drivers.contains(QString("QODBC"), Qt::CaseInsensitive)){
+    if(drivers.contains(QString("QODBC"), Qt::CaseInsensitive)) {
         supportedDatabases.append(qMakePair(QString("M$ SQL SERVER"), HEHUI::M$SQLSERVER));
     }
 
-    if(drivers.contains(QString("QODBC"), Qt::CaseInsensitive)){
+    if(drivers.contains(QString("QODBC"), Qt::CaseInsensitive)) {
         supportedDatabases.append(qMakePair(QString("M$ Access"), HEHUI::M$ACCESS));
     }
 
-    if(!drivers.isEmpty()){
+    if(!drivers.isEmpty()) {
         supportedDatabases.append(qMakePair(QString("Other"), HEHUI::OTHER));
     }
 
     //填充数据库类型ComboBox
     //Setup database type combobox
-    for(int i=0; i<supportedDatabases.size(); i++){
+    for(int i = 0; i < supportedDatabases.size(); i++) {
         QPair<QString, HEHUI::DatabaseType> pair = supportedDatabases.at(i);
         ui->databaseTypeComboBox->addItem(pair.first, pair.second);
     }
@@ -154,7 +158,8 @@ void DatabaseConnecterDialog::setup(){
     setWindowFlags(Qt::Dialog);
 }
 
-DatabaseConnecterDialog::~DatabaseConnecterDialog() {
+DatabaseConnecterDialog::~DatabaseConnecterDialog()
+{
 
     supportedDatabases.clear();
     parameters.clear();
@@ -186,12 +191,14 @@ void DatabaseConnecterDialog::keyPressEvent(QKeyEvent *e)
 
 }
 
-void DatabaseConnecterDialog::languageChange() {
+void DatabaseConnecterDialog::languageChange()
+{
     ui->retranslateUi(this);
 }
 
 
-QStringList DatabaseConnecterDialog::availableDrivers() const {
+QStringList DatabaseConnecterDialog::availableDrivers() const
+{
     //获取可用的数据库驱动
     //Get available database drivers
     QStringList driversList = QSqlDatabase::drivers();
@@ -206,13 +213,14 @@ QStringList DatabaseConnecterDialog::availableDrivers() const {
     return driversList;
 }
 
-QString DatabaseConnecterDialog::driverName() const {
+QString DatabaseConnecterDialog::driverName() const
+{
 
     //如果数据库驱动ComboBox的当前索引是0(即为"自动选择"),那么根据所选的数据库类型返回对应的驱动程序名称,默认返回‘QODBC’
     //If the index of database driver combobox is 0("Auto Select"), return the driver name of the selected database type, 'QODBC' for default
     if (ui->driverCombo->currentIndex() == 0) {
 
-        switch(selectedDatabaseType){
+        switch(selectedDatabaseType) {
         case HEHUI::MYSQL:
             return QString("QMYSQL");
             break;
@@ -248,23 +256,26 @@ QString DatabaseConnecterDialog::driverName() const {
 
 }
 
-QString DatabaseConnecterDialog::databaseName() const {
+QString DatabaseConnecterDialog::databaseName() const
+{
 
     //如果所选数据库类型是SQLite或M$ACCESS，则返回数据库文件路径
-    if(selectedDatabaseType == HEHUI::SQLITE || selectedDatabaseType == HEHUI::M$ACCESS){
+    if(selectedDatabaseType == HEHUI::SQLITE || selectedDatabaseType == HEHUI::M$ACCESS) {
         return localDatabaseFilePath();
-    }else{
+    } else {
         return remoteDatabaseName();
     }
 
 
 }
 
-QString DatabaseConnecterDialog::remoteDatabaseName() const {
+QString DatabaseConnecterDialog::remoteDatabaseName() const
+{
     return ui->databaseNameEdit->text();
 }
 
-QString DatabaseConnecterDialog::localDatabaseFilePath() const {
+QString DatabaseConnecterDialog::localDatabaseFilePath() const
+{
 
 #ifdef Q_OS_WIN
     return QString(ui->databaseFilePathComboBox->currentText()).toLower();
@@ -274,105 +285,115 @@ QString DatabaseConnecterDialog::localDatabaseFilePath() const {
 
 }
 
-QString DatabaseConnecterDialog::userName() const {
+QString DatabaseConnecterDialog::userName() const
+{
     return ui->userNameEdit->text();
 }
 
-QString DatabaseConnecterDialog::password() const {
+QString DatabaseConnecterDialog::password() const
+{
     return ui->passwordEdit->text();
 }
 
-QString DatabaseConnecterDialog::hostName() const {
+QString DatabaseConnecterDialog::hostName() const
+{
     return ui->hostnameEdit->text();
 }
 
-int DatabaseConnecterDialog::port() const {
+int DatabaseConnecterDialog::port() const
+{
     return ui->portSpinBox->value();
 }
 
-QString DatabaseConnecterDialog::connectionName() const{
+QString DatabaseConnecterDialog::connectionName() const
+{
 
-    if(selectedDatabaseType == HEHUI::SQLITE || selectedDatabaseType == HEHUI::M$ACCESS){
+    if(selectedDatabaseType == HEHUI::SQLITE || selectedDatabaseType == HEHUI::M$ACCESS) {
         return localDatabaseFilePath();
-    }else if(!specifiedConnectionName.isEmpty()){
+    } else if(!specifiedConnectionName.isEmpty()) {
         return specifiedConnectionName;
-    }else{
-        return QString(userName()+"@"+hostName()+":"+QString::number(port())+"/"+remoteDatabaseName());
+    } else {
+        return QString(userName() + "@" + hostName() + ":" + QString::number(port()) + "/" + remoteDatabaseName());
     }
 
     return QString("");
 }
 
-QStringList DatabaseConnecterDialog::getParameters(){
+QStringList DatabaseConnecterDialog::getParameters()
+{
 
-    if(this->exec() != QDialog::Accepted){
+    if(this->exec() != QDialog::Accepted) {
         return QStringList();
     }
 
     parameters.clear();
-    parameters<<connectionName()
-             <<driverName()
-            <<hostName()
-           <<QString::number(port())
-          <<userName()
-         <<password()
-        <<databaseName()
-       <<QString::number((uint)selectedDatabaseType)
-      //<<(ui->checkBoxSaveSettings->isChecked())?"1":"0"
-         ;
+    parameters << connectionName()
+               << driverName()
+               << hostName()
+               << QString::number(port())
+               << userName()
+               << password()
+               << databaseName()
+               << QString::number((uint)selectedDatabaseType)
+               //<<(ui->checkBoxSaveSettings->isChecked())?"1":"0"
+               ;
 
     return parameters;
 }
 
-void DatabaseConnecterDialog::getParameters(QString *dbConnectionName, QString *dbDriverName, QString *dbHostAddress, quint16 *dbHostPort, QString *dbUser, QString *dbPassword, QString *dbName, HEHUI::DatabaseType *dbType){
-    if(dbConnectionName){
+void DatabaseConnecterDialog::getParameters(QString *dbConnectionName, QString *dbDriverName, QString *dbHostAddress, quint16 *dbHostPort, QString *dbUser, QString *dbPassword, QString *dbName, HEHUI::DatabaseType *dbType)
+{
+    if(dbConnectionName) {
         *dbConnectionName = connectionName();
     }
-    if(dbDriverName){
+    if(dbDriverName) {
         *dbDriverName = driverName();
     }
-    if(dbHostAddress){
+    if(dbHostAddress) {
         *dbHostAddress = hostName();
     }
-    if(dbHostPort){
+    if(dbHostPort) {
         *dbHostPort = port();
     }
-    if(dbUser){
+    if(dbUser) {
         *dbUser = userName();
     }
-    if(dbPassword){
+    if(dbPassword) {
         *dbPassword = password();
     }
-    if(dbName){
+    if(dbName) {
         *dbName = databaseName();
     }
-    if(dbType){
+    if(dbType) {
         *dbType = selectedDatabaseType;
     }
 
 }
 
 
-bool DatabaseConnecterDialog::saveSettings(){
+bool DatabaseConnecterDialog::saveSettings()
+{
     return ui->checkBoxSaveSettings->isChecked();
 }
 
-void DatabaseConnecterDialog::showSaveSettingsOption(bool show){
+void DatabaseConnecterDialog::showSaveSettingsOption(bool show)
+{
     ui->checkBoxSaveSettings->setVisible(show);
 }
 
-void DatabaseConnecterDialog::on_browseButton_clicked() {
+void DatabaseConnecterDialog::on_browseButton_clicked()
+{
     QString databaseFilePath = QFileDialog::getOpenFileName(this,
-                                                            tr("Database File Path"),
-                                                            QDir::currentPath(),
-                                                            tr("Database (*.db *.mdb);;All Files (*.*)")
-                                                            );
+                               tr("Database File Path"),
+                               QDir::currentPath(),
+                               tr("Database (*.db *.mdb);;All Files (*.*)")
+                                                           );
 
     if (!databaseFilePath.isEmpty()) {
         int index = ui->databaseFilePathComboBox->findText(databaseFilePath, Qt::MatchFixedString);
-        if(index>=0){
+        if(index >= 0) {
             ui->databaseFilePathComboBox->setCurrentIndex(index);
-        }else{
+        } else {
             ui->databaseFilePathComboBox->insertItem(0, databaseFilePath);
             ui->databaseFilePathComboBox->setCurrentIndex(0);
         }
@@ -381,12 +402,13 @@ void DatabaseConnecterDialog::on_browseButton_clicked() {
 
 }
 
-void DatabaseConnecterDialog::on_databaseTypeComboBox_currentIndexChanged(int index){
+void DatabaseConnecterDialog::on_databaseTypeComboBox_currentIndexChanged(int index)
+{
 
     //根据所选的数据库类型设置ui->stackedWidget的当前激活页
     //Set the active page of the ui->stackedWidget according to the selected database type
     uint databaseType = ui->databaseTypeComboBox->itemData(index).toUInt();
-    switch(databaseType){
+    switch(databaseType) {
     case HEHUI::MYSQL:
         ui->stackedWidget->setCurrentWidget(ui->networkDatabasePage);
         ui->networkDatabaseGroupbox->setTitle(tr("MySQL"));
@@ -478,12 +500,13 @@ void DatabaseConnecterDialog::on_databaseTypeComboBox_currentIndexChanged(int in
 
 }
 
-void DatabaseConnecterDialog::on_driverCombo_currentIndexChanged(const QString & text){
+void DatabaseConnecterDialog::on_driverCombo_currentIndexChanged(const QString &text)
+{
 
     //根据所选的驱动类型设置ui->stackedWidget的当前激活页的控件
     //Setup the component in the active page of the ui->stackedWidget according to the selected database driver type
     QString driverText = text;
-    if(driverText == QString("QODBC")){
+    if(driverText == QString("QODBC")) {
 #ifndef Q_OS_WIN
         ui->hostnameEdit->setText(tr("localhost"));
         ui->hostnameEdit->setEnabled(false);
@@ -504,12 +527,13 @@ void DatabaseConnecterDialog::on_driverCombo_currentIndexChanged(const QString &
 
 }
 
-void DatabaseConnecterDialog::on_okButton_clicked() {
+void DatabaseConnecterDialog::on_okButton_clicked()
+{
     ui->okButton->setEnabled(false);
 
     if (selectedDatabaseType == HEHUI::MYSQL || selectedDatabaseType == HEHUI::M$SQLSERVER || selectedDatabaseType == HEHUI::OTHER) {
 
-        if (userName().isEmpty()||remoteDatabaseName().isEmpty()||hostName().isEmpty()) {
+        if (userName().isEmpty() || remoteDatabaseName().isEmpty() || hostName().isEmpty()) {
             QMessageBox::information(this, tr("Error"), tr("<b>Please fill in every required information!</b>"));
             ui->hostnameEdit->setFocus();
             ui->okButton->setEnabled(true);
@@ -541,7 +565,7 @@ void DatabaseConnecterDialog::on_okButton_clicked() {
     }
 
     ui->okButton->setEnabled(true);
-*/
+    */
 
 
     //    parameters.clear();

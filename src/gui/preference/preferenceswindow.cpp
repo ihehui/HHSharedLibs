@@ -34,7 +34,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 PreferencesWindow::PreferencesWindow(QWidget *parent) :
     QWidget(parent),

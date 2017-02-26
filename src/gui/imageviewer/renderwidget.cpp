@@ -37,7 +37,8 @@
 #include <QStyleOption>
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 RenderWidget::RenderWidget(QWidget *parent, Qt::WindowFlags flags)
@@ -56,28 +57,34 @@ RenderWidget::RenderWidget(QWidget *parent, Qt::WindowFlags flags)
 
 }
 
-const QPixmap *RenderWidget::pixmap() const{
+const QPixmap *RenderWidget::pixmap() const
+{
     return &m_image;
 }
 
-Qt::AspectRatioMode RenderWidget::aspectRatioMode() const{
+Qt::AspectRatioMode RenderWidget::aspectRatioMode() const
+{
     return m_aspectRatioMode;
 }
 
-bool RenderWidget::scaledContents() const{
+bool RenderWidget::scaledContents() const
+{
     return m_scaledContents;
 }
 
-void RenderWidget::paintEvent(QPaintEvent *event){
+void RenderWidget::paintEvent(QPaintEvent *event)
+{
 
-    if(m_image.isNull()){return;}
-    if(m_image.size() != m_preImageSize || size() != m_preWidgetSize){
+    if(m_image.isNull()) {
+        return;
+    }
+    if(m_image.size() != m_preImageSize || size() != m_preWidgetSize) {
         QSize newImageSize = m_image.size();
-        if(m_scaledContents){
+        if(m_scaledContents) {
             newImageSize = m_image.size().scaled(size(), m_aspectRatioMode);
         }
         m_scaleFactor = (double)newImageSize.width() / m_image.width();
-        m_center = QPoint(width()/2, height()/2) - QPoint(newImageSize.width()/2, newImageSize.height()/2);
+        m_center = QPoint(width() / 2, height() / 2) - QPoint(newImageSize.width() / 2, newImageSize.height() / 2);
         m_preImageSize = m_image.size();
         m_preWidgetSize = size();
     }
@@ -86,18 +93,18 @@ void RenderWidget::paintEvent(QPaintEvent *event){
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    if(m_alignmentCenter){
+    if(m_alignmentCenter) {
         painter.translate(m_center);
     }
 
-    if(m_scaleFactor != 1.0){
+    if(m_scaleFactor != 1.0) {
         painter.scale(m_scaleFactor, m_scaleFactor);
     }
 
     painter.drawPixmap(0, 0, m_image);
     painter.end();
 
-    if(!styleSheet().trimmed().isEmpty()){
+    if(!styleSheet().trimmed().isEmpty()) {
         QStyleOption opt;
         opt.init(this);
         painter.begin(this);
@@ -108,30 +115,36 @@ void RenderWidget::paintEvent(QPaintEvent *event){
 
 }
 
-void RenderWidget::setText(const QString &text){
+void RenderWidget::setText(const QString &text)
+{
 
 }
 
-void RenderWidget::setPixmap(const QPixmap &pixmap){
+void RenderWidget::setPixmap(const QPixmap &pixmap)
+{
     m_image = pixmap;
     update();
 }
 
-void RenderWidget::setAspectRatioMode(Qt::AspectRatioMode mode){
+void RenderWidget::setAspectRatioMode(Qt::AspectRatioMode mode)
+{
     m_aspectRatioMode = mode;
     update();
 }
 
-void RenderWidget::setScaledContents(bool scale){
+void RenderWidget::setScaledContents(bool scale)
+{
     m_scaledContents = scale;
 }
 
-void RenderWidget::setAlignmentCenter(bool alignmentCenter){
+void RenderWidget::setAlignmentCenter(bool alignmentCenter)
+{
     m_alignmentCenter = alignmentCenter;
 }
 
-void RenderWidget::adjustSize(){
-    if(!m_image.isNull()){
+void RenderWidget::adjustSize()
+{
+    if(!m_image.isNull()) {
         resize(m_image.size());
         update();
     }

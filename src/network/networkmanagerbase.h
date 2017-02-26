@@ -45,10 +45,12 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
-class NETWORK_LIB_API NetworkManagerBase : public QObject {
+class NETWORK_LIB_API NetworkManagerBase : public QObject
+{
     Q_OBJECT
 
 public:
@@ -64,7 +66,7 @@ public:
     void closeAllServers();
 
     void setPacketHandler(PacketHandlerBase *packetHandlerBase);
-    PacketHandlerBase * getPacketHandler();
+    PacketHandlerBase *getPacketHandler();
 
     void setNetworkType(NetworkType type);
     NetworkType getNetworkType() const;
@@ -73,11 +75,11 @@ public:
     CommunicationMode getCommunicationMode() const;
 
     UDPServer *getUDPServer(quint16 port, const QHostAddress &localAddress);
-    UDPServer * startUDPServerListening(const QHostAddress &localAddress, quint16 localPort);
-    UDPServer * startIPMulticastServerListening(const QHostAddress &ipMulticastGroupAddress, quint16 ipMulticastGroupPort);
+    UDPServer *startUDPServerListening(const QHostAddress &localAddress, quint16 localPort);
+    UDPServer *startIPMulticastServerListening(const QHostAddress &ipMulticastGroupAddress, quint16 ipMulticastGroupPort);
 
-    RUDPServer * getRUDPServer(quint16 port, const QHostAddress &localAddress);
-    RUDPServer * startRUDPServerListening(const QHostAddress &localAddress, quint16 localPort, int keepAliveTimerInterval = RUDP_KEEPALIVE_TIMER_INTERVAL);
+    RUDPServer *getRUDPServer(quint16 port, const QHostAddress &localAddress);
+    RUDPServer *startRUDPServerListening(const QHostAddress &localAddress, quint16 localPort, int keepAliveTimerInterval = RUDP_KEEPALIVE_TIMER_INTERVAL);
 
 
     QString errorString() const;

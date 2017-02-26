@@ -33,16 +33,17 @@
 
 #include <QWidget>
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class RenderWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit RenderWidget(QWidget *parent = 0, Qt::WindowFlags flags=Qt::WindowFlags());
+    explicit RenderWidget(QWidget *parent = 0, Qt::WindowFlags flags = Qt::WindowFlags());
 
-    const QPixmap * pixmap() const;
+    const QPixmap *pixmap() const;
     Qt::AspectRatioMode aspectRatioMode() const;
     bool scaledContents() const;
 

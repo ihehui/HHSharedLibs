@@ -17,7 +17,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 // Richtext simplification filter helpers: Elements to be discarded
@@ -33,10 +34,11 @@ static inline void filterAttributes(const QStringRef &name,
 {
     typedef QXmlStreamAttributes::iterator AttributeIt;
 
-    if (atts->isEmpty())
+    if (atts->isEmpty()) {
         return;
+    }
 
-     // No style attributes for <body>
+    // No style attributes for <body>
     if (name == QStringLiteral("body")) {
         atts->clear();
         return;
@@ -61,8 +63,9 @@ static inline bool isWhiteSpace(const QStringRef &in)
 {
     const int count = in.size();
     for (int i = 0; i < count; i++)
-        if (!in.at(i).isSpace())
+        if (!in.at(i).isSpace()) {
             return false;
+        }
     return true;
 }
 
@@ -88,15 +91,17 @@ QString simplifyRichTextFilter(const QString &in, bool *isPlainTextPtr = 0)
                 QXmlStreamAttributes attributes = reader.attributes();
                 filterAttributes(name, &attributes, &paragraphAlignmentFound);
                 writer.writeStartElement(name.toString());
-                if (!attributes.isEmpty())
+                if (!attributes.isEmpty()) {
                     writer.writeAttributes(attributes);
+                }
             } else {
                 reader.readElementText(); // Skip away all nested elements and characters.
             }
             break;
         case QXmlStreamReader::Characters:
-            if (!isWhiteSpace(reader.text()))
+            if (!isWhiteSpace(reader.text())) {
                 writer.writeCharacters(reader.text().toString());
+            }
             break;
         case QXmlStreamReader::EndElement:
             writer.writeEndElement();
@@ -106,8 +111,9 @@ QString simplifyRichTextFilter(const QString &in, bool *isPlainTextPtr = 0)
         }
     }
     // Check for plain text (no spans, just <html><head><body><p>)
-    if (isPlainTextPtr)
-        *isPlainTextPtr = !paragraphAlignmentFound && elementCount == 4u; //
+    if (isPlainTextPtr) {
+        *isPlainTextPtr = !paragraphAlignmentFound && elementCount == 4u;    //
+    }
     return out;
 }
 
@@ -120,7 +126,10 @@ public:
 
     QToolBar *createToolBar(QWidget *parent = 0);
 
-    bool simplifyRichText() const      { return m_simplifyRichText; }
+    bool simplifyRichText() const
+    {
+        return m_simplifyRichText;
+    }
 
 public slots:
     void setFontBold(bool b);
@@ -253,7 +262,7 @@ void AddLinkDialog::setupUi()
 
     buttonBox = new QDialogButtonBox(this);
     buttonBox->setOrientation(Qt::Horizontal);
-    buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+    buttonBox->setStandardButtons(QDialogButtonBox::Cancel | QDialogButtonBox::Ok);
 
     verticalLayout->addWidget(buttonBox);
 
@@ -304,7 +313,7 @@ void HtmlTextEdit::contextMenuEvent(QContextMenuEvent *event)
     }
 
     menu->addMenu(htmlMenu);
-    connect(htmlMenu, SIGNAL(triggered(QAction*)), SLOT(actionTriggered(QAction*)));
+    connect(htmlMenu, SIGNAL(triggered(QAction *)), SLOT(actionTriggered(QAction *)));
 
     menu->exec(event->globalPos());
     delete menu;
@@ -322,7 +331,10 @@ class ColorAction : public QAction
 public:
     ColorAction(QObject *parent);
 
-    const QColor& color() const { return m_color; }
+    const QColor &color() const
+    {
+        return m_color;
+    }
     void setColor(const QColor &color);
 
 signals:
@@ -345,8 +357,9 @@ ColorAction::ColorAction(QObject *parent):
 
 void ColorAction::setColor(const QColor &color)
 {
-    if (color == m_color)
+    if (color == m_color) {
         return;
+    }
     m_color = color;
     QPixmap pix(24, 24);
     QPainter painter(&pix);
@@ -406,7 +419,8 @@ private:
 };
 
 
-static QIcon createIconSet(const QString &name){
+static QIcon createIconSet(const QString &name)
+{
     return QIcon(":/richtexteditor/resources/images/" + name);
 }
 
@@ -419,25 +433,27 @@ static QAction *createCheckableAction(const QIcon &icon, const QString &text,
     result->setText(text);
     result->setCheckable(true);
     result->setChecked(false);
-    if (slot)
+    if (slot) {
         QObject::connect(result, SIGNAL(triggered(bool)), receiver, slot);
+    }
     return result;
 }
 
 RichTextEditorToolBar::RichTextEditorToolBar(RichTextEditor *editor, QWidget *parent)
-    :QToolBar(parent),
-    m_link_action(new QAction(this)),
-    m_image_action(new QAction(this)),
-    m_color_action(new ColorAction(this)),
-    m_font_size_input(new QComboBox),
-    m_editor(editor)
+    : QToolBar(parent),
+      m_link_action(new QAction(this)),
+      m_image_action(new QAction(this)),
+      m_color_action(new ColorAction(this)),
+      m_font_size_input(new QComboBox),
+      m_editor(editor)
 {
     // Font size combo box
     m_font_size_input->setEditable(false);
     m_font_size_input->setToolTip(tr("Font Size"));
     const QList<int> font_sizes = QFontDatabase::standardSizes();
-    foreach (int font_size, font_sizes)
+    foreach (int font_size, font_sizes) {
         m_font_size_input->addItem(QString::number(font_size));
+    }
 
     connect(m_font_size_input, SIGNAL(activated(QString)),
             this, SLOT(sizeInputActivated(QString)));
@@ -452,20 +468,20 @@ RichTextEditorToolBar::RichTextEditorToolBar(RichTextEditor *editor, QWidget *pa
 
     // Bold, italic and underline buttons
     m_bold_action = createCheckableAction(
-            createIconSet(QStringLiteral("textbold.png")),
-            tr("Bold"), editor, SLOT(setFontBold(bool)), this);
+                        createIconSet(QStringLiteral("textbold.png")),
+                        tr("Bold"), editor, SLOT(setFontBold(bool)), this);
     m_bold_action->setShortcut(tr("CTRL+B"));
     addAction(m_bold_action);
 
     m_italic_action = createCheckableAction(
-            createIconSet(QStringLiteral("textitalic.png")),
-            tr("Italic"), editor, SLOT(setFontItalic(bool)), this);
+                          createIconSet(QStringLiteral("textitalic.png")),
+                          tr("Italic"), editor, SLOT(setFontItalic(bool)), this);
     m_italic_action->setShortcut(tr("CTRL+I"));
     addAction(m_italic_action);
 
     m_underline_action = createCheckableAction(
-            createIconSet(QStringLiteral("textunder.png")),
-            tr("Underline"), editor, SLOT(setFontUnderline(bool)), this);
+                             createIconSet(QStringLiteral("textunder.png")),
+                             tr("Underline"), editor, SLOT(setFontUnderline(bool)), this);
     m_underline_action->setShortcut(tr("CTRL+U"));
     addAction(m_underline_action);
 
@@ -474,32 +490,32 @@ RichTextEditorToolBar::RichTextEditorToolBar(RichTextEditor *editor, QWidget *pa
     // Left, center, right and justified alignment buttons
 
     QActionGroup *alignment_group = new QActionGroup(this);
-    connect(alignment_group, SIGNAL(triggered(QAction*)),
-                             SLOT(alignmentActionTriggered(QAction*)));
+    connect(alignment_group, SIGNAL(triggered(QAction *)),
+            SLOT(alignmentActionTriggered(QAction *)));
 
     m_align_left_action = createCheckableAction(
-            createIconSet(QStringLiteral("textleft.png")),
-            tr("Left Align"), editor, 0, alignment_group);
+                              createIconSet(QStringLiteral("textleft.png")),
+                              tr("Left Align"), editor, 0, alignment_group);
     addAction(m_align_left_action);
 
     m_align_center_action = createCheckableAction(
-            createIconSet(QStringLiteral("textcenter.png")),
-            tr("Center"), editor, 0, alignment_group);
+                                createIconSet(QStringLiteral("textcenter.png")),
+                                tr("Center"), editor, 0, alignment_group);
     addAction(m_align_center_action);
 
     m_align_right_action = createCheckableAction(
-            createIconSet(QStringLiteral("textright.png")),
-            tr("Right Align"), editor, 0, alignment_group);
+                               createIconSet(QStringLiteral("textright.png")),
+                               tr("Right Align"), editor, 0, alignment_group);
     addAction(m_align_right_action);
 
     m_align_justify_action = createCheckableAction(
-            createIconSet(QStringLiteral("textjustify.png")),
-            tr("Justify"), editor, 0, alignment_group);
+                                 createIconSet(QStringLiteral("textjustify.png")),
+                                 tr("Justify"), editor, 0, alignment_group);
     addAction(m_align_justify_action);
 
     m_layoutDirectionAction = createCheckableAction(
-            createIconSet(QStringLiteral("righttoleft.png")),
-            tr("Right to Left"), this, SLOT(layoutDirectionChanged()));
+                                  createIconSet(QStringLiteral("righttoleft.png")),
+                                  tr("Right to Left"), this, SLOT(layoutDirectionChanged()));
     addAction(m_layoutDirectionAction);
 
     addSeparator();
@@ -507,15 +523,15 @@ RichTextEditorToolBar::RichTextEditorToolBar(RichTextEditor *editor, QWidget *pa
     // Superscript and subscript buttons
 
     m_valign_sup_action = createCheckableAction(
-            createIconSet(QStringLiteral("textsuperscript.png")),
-            tr("Superscript"),
-            this, SLOT(setVAlignSuper(bool)), this);
+                              createIconSet(QStringLiteral("textsuperscript.png")),
+                              tr("Superscript"),
+                              this, SLOT(setVAlignSuper(bool)), this);
     addAction(m_valign_sup_action);
 
     m_valign_sub_action = createCheckableAction(
-            createIconSet(QStringLiteral("textsubscript.png")),
-            tr("Subscript"),
-            this, SLOT(setVAlignSub(bool)), this);
+                              createIconSet(QStringLiteral("textsubscript.png")),
+                              tr("Subscript"),
+                              this, SLOT(setVAlignSub(bool)), this);
     addAction(m_valign_sub_action);
 
     addSeparator();
@@ -576,8 +592,9 @@ void RichTextEditorToolBar::sizeInputActivated(const QString &size)
 {
     bool ok;
     int i = size.toInt(&ok);
-    if (!ok)
+    if (!ok) {
         return;
+    }
 
     m_editor->setFontPointSize(i);
     m_editor->setFocus();
@@ -586,7 +603,7 @@ void RichTextEditorToolBar::sizeInputActivated(const QString &size)
 void RichTextEditorToolBar::setVAlignSuper(bool super)
 {
     const QTextCharFormat::VerticalAlignment align = super ?
-        QTextCharFormat::AlignSuperScript : QTextCharFormat::AlignNormal;
+            QTextCharFormat::AlignSuperScript : QTextCharFormat::AlignNormal;
 
     QTextCharFormat charFormat = m_editor->currentCharFormat();
     charFormat.setVerticalAlignment(align);
@@ -598,7 +615,7 @@ void RichTextEditorToolBar::setVAlignSuper(bool super)
 void RichTextEditorToolBar::setVAlignSub(bool sub)
 {
     const QTextCharFormat::VerticalAlignment align = sub ?
-        QTextCharFormat::AlignSubScript : QTextCharFormat::AlignNormal;
+            QTextCharFormat::AlignSubScript : QTextCharFormat::AlignNormal;
 
     QTextCharFormat charFormat = m_editor->currentCharFormat();
     charFormat.setVerticalAlignment(align);
@@ -617,12 +634,13 @@ void RichTextEditorToolBar::insertLink()
 void RichTextEditorToolBar::insertImage()
 {
     QString path = QFileDialog::getOpenFileName(this,
-                                                tr("Select Image"),
-                                                QDir::homePath(),
-                                                tr("Images (*.png *.bmp *.jpg);;ALl files (*.*)"));
+                   tr("Select Image"),
+                   QDir::homePath(),
+                   tr("Images (*.png *.bmp *.jpg);;ALl files (*.*)"));
 
-    if (!path.isEmpty())
+    if (!path.isEmpty()) {
         m_editor->insertHtml(QStringLiteral("<img src=\"") + path + QStringLiteral("\"/>"));
+    }
 }
 
 void RichTextEditorToolBar::layoutDirectionChanged()
@@ -674,8 +692,9 @@ void RichTextEditorToolBar::updateActions()
 
     const int size = font.pointSize();
     const int idx = m_font_size_input->findText(QString::number(size));
-    if (idx != -1)
+    if (idx != -1) {
         m_font_size_input->setCurrentIndex(idx);
+    }
 
     m_color_action->setColor(m_editor->textColor());
 }
@@ -696,10 +715,11 @@ QToolBar *RichTextEditor::createToolBar(QWidget *parent)
 
 void RichTextEditor::setFontBold(bool b)
 {
-    if (b)
+    if (b) {
         setFontWeight(QFont::Bold);
-    else
+    } else {
         setFontWeight(QFont::Normal);
+    }
 }
 
 void RichTextEditor::setFontPointSize(double d)
@@ -710,10 +730,11 @@ void RichTextEditor::setFontPointSize(double d)
 void RichTextEditor::setText(const QString &text)
 {
 
-    if (Qt::mightBeRichText(text))
+    if (Qt::mightBeRichText(text)) {
         setHtml(text);
-    else
+    } else {
         setPlainText(text);
+    }
 }
 
 void RichTextEditor::setSimplifyRichText(bool v)
@@ -735,10 +756,11 @@ void RichTextEditor::setDefaultFont(QFont font)
     }
 
     document()->setDefaultFont(font);
-    if (font.pointSize() > 0)
+    if (font.pointSize() > 0) {
         setFontPointSize(font.pointSize());
-    else
+    } else {
         setFontPointSize(QFontInfo(font).pointSize());
+    }
     emit textChanged();
 }
 
@@ -755,18 +777,19 @@ QString RichTextEditor::text(Qt::TextFormat format) const
     const QString html = toHtml();
     bool isPlainText;
     const QString simplifiedHtml = simplifyRichTextFilter(html, &isPlainText);
-    if (isPlainText)
+    if (isPlainText) {
         return toPlainText();
+    }
     return m_simplifyRichText ? simplifiedHtml : html;
 }
 
 RichTextEditorWidget::RichTextEditorWidget(QWidget *parent)
-    :QWidget(parent),
-    m_richTextEditor(new RichTextEditor()),
-    m_sourceCodeEditor(new HtmlTextEdit),
-    m_tab_widget(new QTabWidget),
-    m_state(Clean),
-    m_initialTab(RichTextIndex)
+    : QWidget(parent),
+      m_richTextEditor(new RichTextEditor()),
+      m_sourceCodeEditor(new HtmlTextEdit),
+      m_tab_widget(new QTabWidget),
+      m_state(Clean),
+      m_initialTab(RichTextIndex)
 {
     setWindowTitle(tr("Edit text"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -831,29 +854,32 @@ void RichTextEditorWidget::setText(const QString &text)
 QString RichTextEditorWidget::text(bool compactSRC, Qt::TextFormat format) const
 {
     // In autotext mode, if the user has changed the source, use that
-    if (format == Qt::AutoText && (m_state == Clean || m_state == SourceChanged))
+    if (format == Qt::AutoText && (m_state == Clean || m_state == SourceChanged)) {
         return m_sourceCodeEditor->toPlainText();
+    }
     // If the plain text HTML editor is selected, first copy its contents over
     // to the rich text editor so that it is converted to Qt-HTML or actual
     // plain text.
-    if (m_tab_widget->currentIndex() == SourceIndex && m_state == SourceChanged)
+    if (m_tab_widget->currentIndex() == SourceIndex && m_state == SourceChanged) {
         m_richTextEditor->setHtml(m_sourceCodeEditor->toPlainText());
+    }
 
-    if(compactSRC){
+    if(compactSRC) {
         return formatHTML(m_richTextEditor->text(format), compactSRC);
     }
 
     return m_richTextEditor->text(format);
 }
 
-void RichTextEditorWidget::setSourceCodeEditEnabled(bool enabled){
+void RichTextEditorWidget::setSourceCodeEditEnabled(bool enabled)
+{
     int idx = m_tab_widget->indexOf(m_sourceCodeWidget);
-    if(idx == -1){
-        if(enabled){
+    if(idx == -1) {
+        if(enabled) {
             m_tab_widget->addTab(m_sourceCodeWidget, tr("Source Code"));
         }
-    }else{
-        if(!enabled){
+    } else {
+        if(!enabled) {
             m_tab_widget->removeTab(idx);
         }
     }
@@ -863,19 +889,22 @@ void RichTextEditorWidget::setSourceCodeEditEnabled(bool enabled){
 void RichTextEditorWidget::tabIndexChanged(int newIndex)
 {
     // Anything changed, is there a need for a conversion?
-    if (newIndex == SourceIndex && m_state != RichTextChanged)
+    if (newIndex == SourceIndex && m_state != RichTextChanged) {
         return;
-    if (newIndex == RichTextIndex && m_state != SourceChanged)
+    }
+    if (newIndex == RichTextIndex && m_state != SourceChanged) {
         return;
+    }
     const State oldState = m_state;
     // Remember the cursor position, since it is invalidated by setPlainText
     QTextEdit *new_edit = (newIndex == SourceIndex) ? m_sourceCodeEditor : m_richTextEditor;
     const int position = new_edit->textCursor().position();
 
-    if (newIndex == SourceIndex)
+    if (newIndex == SourceIndex) {
         m_sourceCodeEditor->setPlainText(formatHTML(m_richTextEditor->text(Qt::RichText)));
-    else
+    } else {
         m_richTextEditor->setHtml(m_sourceCodeEditor->toPlainText());
+    }
 
     QTextCursor cursor = new_edit->textCursor();
     cursor.movePosition(QTextCursor::End);
@@ -897,32 +926,34 @@ void RichTextEditorWidget::sourceChanged()
     m_state = SourceChanged;
 }
 
-QString RichTextEditorWidget::formatHTML(const QString &html, bool compactSRC) const{
+QString RichTextEditorWidget::formatHTML(const QString &html, bool compactSRC) const
+{
 
     QString out;
     QXmlStreamReader reader(html);
     QXmlStreamWriter writer(&out);
-    if(compactSRC){
+    if(compactSRC) {
         writer.setAutoFormatting(false);
         writer.setAutoFormattingIndent(0);
-    }else{
+    } else {
         writer.setAutoFormatting(true);
     }
 
     while (!reader.atEnd()) {
         switch (reader.readNext()) {
-        case QXmlStreamReader::StartElement:
-        {
+        case QXmlStreamReader::StartElement: {
             const QStringRef name = reader.name();
             QXmlStreamAttributes attributes = reader.attributes();
             writer.writeStartElement(name.toString());
-            if (!attributes.isEmpty())
+            if (!attributes.isEmpty()) {
                 writer.writeAttributes(attributes);
+            }
         }
-            break;
+        break;
         case QXmlStreamReader::Characters:
-            if (!isWhiteSpace(reader.text()))
+            if (!isWhiteSpace(reader.text())) {
                 writer.writeCharacters(reader.text().toString());
+            }
             break;
         case QXmlStreamReader::EndElement:
             writer.writeEndElement();

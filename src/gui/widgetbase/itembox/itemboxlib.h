@@ -35,11 +35,11 @@
 
 #include <QtCore/QtGlobal>
 
- #if defined(ITEMBOX_LIBRARY_EXPORT)
- #  define ITEMBOX_LIB_API Q_DECL_EXPORT
- #else
- #  define ITEMBOX_LIB_API Q_DECL_IMPORT
- #endif
+#if defined(ITEMBOX_LIBRARY_EXPORT)
+    #define ITEMBOX_LIB_API Q_DECL_EXPORT
+#else
+    #define ITEMBOX_LIB_API Q_DECL_IMPORT
+#endif
 
 
 #endif // ITEMBOXLIB_H

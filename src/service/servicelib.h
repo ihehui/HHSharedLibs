@@ -36,11 +36,11 @@
 
 #include <QtCore/QtGlobal>
 
- #if defined(SERVICE_LIBRARY_EXPORT)
- #  define SERVICE_LIB_API Q_DECL_EXPORT
- #else
- #  define SERVICE_LIB_API Q_DECL_IMPORT
- #endif
+#if defined(SERVICE_LIBRARY_EXPORT)
+    #define SERVICE_LIB_API Q_DECL_EXPORT
+#else
+    #define SERVICE_LIB_API Q_DECL_IMPORT
+#endif
 
 
 /*

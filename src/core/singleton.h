@@ -38,49 +38,58 @@
 class CORE_LIB_API SingletonExpose
 {
 protected:
-	static QHash<const QMetaObject*, QObject*> mInstances;
+    static QHash<const QMetaObject *, QObject *> mInstances;
 };
 
 template <class T>
 class Singleton : public SingletonExpose
 {
 protected:
-	Singleton() {};
-	virtual ~Singleton()
-	{ mInstances.remove( &T::staticMetaObject ); }
+    Singleton() {};
+    virtual ~Singleton()
+    {
+        mInstances.remove( &T::staticMetaObject );
+    }
 
 public:
-	template <typename P>
-	static T* instance( P* );
-	static T* instance();
-	static bool instanceAvailable()
-	{ return mInstances.contains( &T::staticMetaObject ); }
-	static void cleanInstance()
-	{ if ( instanceAvailable() ) delete mInstances[ &T::staticMetaObject ]; }
+    template <typename P>
+    static T *instance( P * );
+    static T *instance();
+    static bool instanceAvailable()
+    {
+        return mInstances.contains( &T::staticMetaObject );
+    }
+    static void cleanInstance()
+    {
+        if ( instanceAvailable() ) {
+            delete mInstances[ &T::staticMetaObject ];
+        }
+    }
 
 };
 
 template <class T>
 template <typename P>
-T* Singleton<T>::instance( P* p )
+T *Singleton<T>::instance( P *p )
 {
-	T* t = qobject_cast<T*>( mInstances.value( &T::staticMetaObject ) );
-	if ( !t )
-		mInstances[&T::staticMetaObject] = ( t = new T( p ) );
-	return t;
+    T *t = qobject_cast<T *>( mInstances.value( &T::staticMetaObject ) );
+    if ( !t ) {
+        mInstances[&T::staticMetaObject] = ( t = new T( p ) );
+    }
+    return t;
 }
 
 template <class T>
-T* Singleton<T>::instance()
+T *Singleton<T>::instance()
 {
-	T* t = qobject_cast<T*>( mInstances.value( &T::staticMetaObject ) );
-	if ( !t )
+    T *t = qobject_cast<T *>( mInstances.value( &T::staticMetaObject ) );
+    if ( !t )
 #ifdef Q_CC_GNU
-		mInstances[&T::staticMetaObject] = ( t = new T );
+        mInstances[&T::staticMetaObject] = ( t = new T );
 #else
-		mInstances[&T::staticMetaObject] = ( t = new T( 0 ) );
+        mInstances[&T::staticMetaObject] = ( t = new T( 0 ) );
 #endif
-	return t;
+    return t;
 }
 
 #endif // QSINGLETON_H

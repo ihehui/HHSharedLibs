@@ -41,7 +41,7 @@
 #define QAXTYPEFUNCTIONS_P_H
 
 #if !defined(_WINDOWS_) && !defined(_WINDOWS_H) && !defined(__WINDOWS__)
-#error Must include windows.h first!
+    #error Must include windows.h first!
 #endif
 
 #include <QtGui/qcolor.h>
@@ -52,11 +52,10 @@
 QT_BEGIN_NAMESPACE
 
 extern GUID IID_IAxServerBase;
-struct IAxServerBase : public IUnknown
-{
+struct IAxServerBase : public IUnknown {
     virtual IUnknown *clientSite() const = 0;
-    virtual void emitPropertyChanged(const char*) = 0;
-    virtual bool emitRequestPropertyChange(const char*) = 0;
+    virtual void emitPropertyChanged(const char *) = 0;
+    virtual bool emitRequestPropertyChange(const char *) = 0;
     virtual QObject *qObject() const = 0;
     virtual void reportError(int code, const QString &src, const QString &desc, const QString &context) = 0;
 };
@@ -68,7 +67,7 @@ struct IAxServerBase : public IUnknown
 
 static inline BSTR QStringToBSTR(const QString &str)
 {
-    return SysAllocStringLen((OLECHAR*)str.unicode(), str.length());
+    return SysAllocStringLen((OLECHAR *)str.unicode(), str.length());
 }
 
 static inline uint QColorToOLEColor(const QColor &col)

@@ -38,20 +38,24 @@
 
 #include "networkutilities.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-NetworkUtilities::NetworkUtilities() {
+NetworkUtilities::NetworkUtilities()
+{
     // TODO Auto-generated constructor stub
 
 }
 
-NetworkUtilities::~NetworkUtilities() {
+NetworkUtilities::~NetworkUtilities()
+{
     // TODO Auto-generated destructor stub
 }
 
 
 
-QList<QHostAddress> NetworkUtilities::broadcastAddresses(){
+QList<QHostAddress> NetworkUtilities::broadcastAddresses()
+{
     QList<QHostAddress> broadcastAddresses;
     //QList<QHostAddress> ipAddresses;
     foreach (QNetworkInterface nic, QNetworkInterface::allInterfaces()) {
@@ -59,7 +63,7 @@ QList<QHostAddress> NetworkUtilities::broadcastAddresses(){
             QHostAddress broadcastAddress = entry.broadcast();
             if (broadcastAddress != QHostAddress::Null && entry.ip() != QHostAddress::LocalHost) {
                 broadcastAddresses << broadcastAddress;
-                qDebug()<<"----NetworkUtilities::broadcastAddresses()~~broadcastAddress:"<<broadcastAddress.toString();
+                qDebug() << "----NetworkUtilities::broadcastAddresses()~~broadcastAddress:" << broadcastAddress.toString();
                 //ipAddresses << entry.ip();
             }
         }
@@ -69,11 +73,12 @@ QList<QHostAddress> NetworkUtilities::broadcastAddresses(){
 
 }
 
-QList<QHostAddress> NetworkUtilities::validIPAddresses(){
+QList<QHostAddress> NetworkUtilities::validIPAddresses()
+{
     QList<QHostAddress> ipAddresses;
     foreach (QNetworkInterface nic, QNetworkInterface::allInterfaces()) {
         foreach (QNetworkAddressEntry entry, nic.addressEntries()) {
-            qDebug()<<"entry.ip():"<<entry.ip().toString();
+            qDebug() << "entry.ip():" << entry.ip().toString();
             QHostAddress broadcastAddress = entry.broadcast();
             if (broadcastAddress != QHostAddress::Null && entry.ip() != QHostAddress::LocalHost) {
                 ipAddresses << entry.ip();
@@ -85,8 +90,11 @@ QList<QHostAddress> NetworkUtilities::validIPAddresses(){
 }
 
 
-QString NetworkUtilities::hardwareAddress(const QHostAddress &ipAddress){
-    if(ipAddress.isNull()){return "";}
+QString NetworkUtilities::hardwareAddress(const QHostAddress &ipAddress)
+{
+    if(ipAddress.isNull()) {
+        return "";
+    }
 
     foreach (QNetworkInterface nic, QNetworkInterface::allInterfaces()) {
         foreach (QNetworkAddressEntry entry, nic.addressEntries()) {
@@ -101,29 +109,32 @@ QString NetworkUtilities::hardwareAddress(const QHostAddress &ipAddress){
 
 }
 
-QString NetworkUtilities::hardwareAddress(const QString &ipAddress){
+QString NetworkUtilities::hardwareAddress(const QString &ipAddress)
+{
 
     return hardwareAddress(QHostAddress(ipAddress));
 
 }
 
-bool NetworkUtilities::isLocalAddress(const QHostAddress &address){
+bool NetworkUtilities::isLocalAddress(const QHostAddress &address)
+{
 
     QList<QHostAddress> addresses = validIPAddresses();
-    foreach(QHostAddress add, addresses){
-        if(add == address){
+    foreach(QHostAddress add, addresses) {
+        if(add == address) {
             return true;
         }
     }
 
-    if(address == QHostAddress::LocalHost){
+    if(address == QHostAddress::LocalHost) {
         return true;
     }
 
     return false;
 }
 
-bool NetworkUtilities::isLocalAddress(const QString &address){
+bool NetworkUtilities::isLocalAddress(const QString &address)
+{
     return isLocalAddress(QHostAddress(address));
 }
 

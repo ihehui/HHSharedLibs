@@ -48,7 +48,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 SheetDelegate::SheetDelegate(QTreeView *view, QWidget *parent)
@@ -79,8 +80,9 @@ void SheetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
         painter->save();
         QColor buttonColor(230, 230, 230);
         QBrush buttonBrush = option.palette.button();
-        if (!buttonBrush.gradient() && buttonBrush.texture().isNull())
+        if (!buttonBrush.gradient() && buttonBrush.texture().isNull()) {
             buttonColor = buttonBrush.color();
+        }
         QColor outlineColor = buttonColor.darker(150);
         QColor highlightColor = buttonColor.lighter(130);
 
@@ -100,29 +102,31 @@ void SheetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
         painter->drawLine(option.rect.topLeft() + QPoint(0, highlightOffset),
                           option.rect.topRight() + QPoint(0, highlightOffset));
         painter->setPen(outlineColor);
-        if (drawTopline)
+        if (drawTopline) {
             painter->drawLine(option.rect.topLeft(), option.rect.topRight());
+        }
         painter->drawLine(option.rect.bottomLeft(), option.rect.bottomRight());
         painter->restore();
 
         QStyleOption branchOption;
         static const int i = 9; // ### hardcoded in qcommonstyle.cpp
         QRect r = option.rect;
-        branchOption.rect = QRect(r.left() + i/2, r.top() + (r.height() - i)/2, i, i);
+        branchOption.rect = QRect(r.left() + i / 2, r.top() + (r.height() - i) / 2, i, i);
         branchOption.palette = option.palette;
         branchOption.state = QStyle::State_Children;
 
-        if (m_view->isExpanded(index))
+        if (m_view->isExpanded(index)) {
             branchOption.state |= QStyle::State_Open;
+        }
 
         m_view->style()->drawPrimitive(QStyle::PE_IndicatorBranch, &branchOption, painter, m_view);
 
         // draw text
-        QRect textrect = QRect(r.left() + i*2, r.top(), r.width() - ((5*i)/2), r.height());
-        QString text = elidedText(option.fontMetrics, textrect.width(), Qt::ElideMiddle, 
-            model->data(index, Qt::DisplayRole).toString());
+        QRect textrect = QRect(r.left() + i * 2, r.top(), r.width() - ((5 * i) / 2), r.height());
+        QString text = elidedText(option.fontMetrics, textrect.width(), Qt::ElideMiddle,
+                                  model->data(index, Qt::DisplayRole).toString());
         m_view->style()->drawItemText(painter, textrect, Qt::AlignCenter,
-            option.palette, m_view->isEnabled(), text);
+                                      option.palette, m_view->isEnabled(), text);
 
     } else {
         QItemDelegate::paint(painter, option, index);

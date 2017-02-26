@@ -37,7 +37,8 @@
 #include <QFile>
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 Cryptography::Cryptography()
 {
@@ -46,19 +47,22 @@ Cryptography::Cryptography()
 
 }
 
-QByteArray Cryptography::MD5(const QByteArray &data){
+QByteArray Cryptography::MD5(const QByteArray &data)
+{
     return QCryptographicHash::hash(data, QCryptographicHash::Md5);
 }
 
-QByteArray Cryptography::SHA1(const QByteArray &data){
+QByteArray Cryptography::SHA1(const QByteArray &data)
+{
     return QCryptographicHash::hash(data, QCryptographicHash::Sha1);
 }
 
-QByteArray Cryptography::getFileMD5(const QString &fileName, QString * errorString){
+QByteArray Cryptography::getFileMD5(const QString &fileName, QString *errorString)
+{
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly)) {
         qCritical("ERROR! Failed to open file!");
-        if(errorString){
+        if(errorString) {
             *errorString = file.errorString();
         }
         return QByteArray();
@@ -67,9 +71,9 @@ QByteArray Cryptography::getFileMD5(const QString &fileName, QString * errorStri
     QCryptographicHash md5Hash(QCryptographicHash::Md5);
     while (!file.atEnd()) {
         QByteArray block = file.read(1024);
-        if(block.isEmpty()){
+        if(block.isEmpty()) {
             qCritical("ERROR! Failed to read file!");
-            if(errorString){
+            if(errorString) {
                 *errorString = file.errorString();
             }
             return QByteArray();
@@ -80,7 +84,8 @@ QByteArray Cryptography::getFileMD5(const QString &fileName, QString * errorStri
     return md5Hash.result();
 }
 
-QString Cryptography::getFileMD5HexString(const QString &fileName, QString * errorString){
+QString Cryptography::getFileMD5HexString(const QString &fileName, QString *errorString)
+{
     return QString(getFileMD5(fileName, errorString).toHex());
 }
 
@@ -107,33 +112,36 @@ int Cryptography::stringToByte(unsigned char* destination, string &source) {
 }
 */
 
-void Cryptography::charToByte(unsigned char* destination, const char *source, int sourceLength){
+void Cryptography::charToByte(unsigned char *destination, const char *source, int sourceLength)
+{
 
     for (int i = 0; i < sourceLength; i++) {
-            if (source[i] < 0) {
-            	destination[i] = source[i] + 256;
-            } else {
-            	destination[i] = source[i];
-            }
+        if (source[i] < 0) {
+            destination[i] = source[i] + 256;
+        } else {
+            destination[i] = source[i];
+        }
     }
 
 }
 
-void  Cryptography::byteToChar(char *destination, const unsigned char* source, int sourceLength){
+void  Cryptography::byteToChar(char *destination, const unsigned char *source, int sourceLength)
+{
 
     for (int i = 0; i < sourceLength; i++) {
-            if (source[i] > 127) {
-                destination[i] = source[i] - 256;
-            } else {
-                destination[i] = source[i];
-            }
+        if (source[i] > 127) {
+            destination[i] = source[i] - 256;
+        } else {
+            destination[i] = source[i];
+        }
     }
 
 }
 
-int Cryptography::teaCrypto(QByteArray *destination, const QByteArray &source, const QByteArray &key, bool encrypt){
+int Cryptography::teaCrypto(QByteArray *destination, const QByteArray &source, const QByteArray &key, bool encrypt)
+{
 
-    if(source.size() >= maxBufferSize){
+    if(source.size() >= maxBufferSize) {
         qCritical("Critical Error! Source data too long! Source data size:%d Bytes! Accepted size:%d Bytes!", source.size(), maxBufferSize);
         return 0;
     }
@@ -146,12 +154,12 @@ int Cryptography::teaCrypto(QByteArray *destination, const QByteArray &source, c
 
     //Key for TEA is 16 Bytes
     QByteArray tempKeyArray = key;
-    if(key.size() < 16){
-        tempKeyArray.append("0123456789ABCDEF");   
+    if(key.size() < 16) {
+        tempKeyArray.append("0123456789ABCDEF");
     }
     tempKeyArray.resize(16);
 
-    unsigned char * keyUCharArray = new unsigned char[16];
+    unsigned char *keyUCharArray = new unsigned char[16];
     charToByte(keyUCharArray, tempKeyArray.data(), 16);
 
 //        qDebug(" ");
@@ -159,64 +167,66 @@ int Cryptography::teaCrypto(QByteArray *destination, const QByteArray &source, c
 //            qDebug("keyChar[%d]:%d", i, keyUCharArray[i]);
 //        }
 
-        int sourceLength = source.size();
-        unsigned char * sourceUCharArray = new unsigned char[sourceLength + 1];
-        charToByte(sourceUCharArray, source.data(), sourceLength);
+    int sourceLength = source.size();
+    unsigned char *sourceUCharArray = new unsigned char[sourceLength + 1];
+    charToByte(sourceUCharArray, source.data(), sourceLength);
 
 //        qDebug("----source.size():%d", sourceLength);
 //        for(int i = 0; i<sourceLength; i++){
 //            qDebug("sourceChar[%d]:%d", i, sourceUCharArray[i]);
 //        }
 
-        int destLength = maxBufferSize;
-        unsigned char * destUCharArray = new unsigned char[maxBufferSize];
-        if(encrypt){
-            TEACrypt::encrypt(sourceUCharArray, sourceLength, keyUCharArray, destUCharArray, &destLength);
-        }else{
-            bool ok = TEACrypt::decrypt(sourceUCharArray, sourceLength, keyUCharArray, destUCharArray, &destLength);
-            if(!ok){
-                qCritical("Critical Error! Data Decryption Failed!");
-                delete [] destUCharArray;
-                delete [] sourceUCharArray;
-                delete [] keyUCharArray;
-                return 0;
-            }
+    int destLength = maxBufferSize;
+    unsigned char *destUCharArray = new unsigned char[maxBufferSize];
+    if(encrypt) {
+        TEACrypt::encrypt(sourceUCharArray, sourceLength, keyUCharArray, destUCharArray, &destLength);
+    } else {
+        bool ok = TEACrypt::decrypt(sourceUCharArray, sourceLength, keyUCharArray, destUCharArray, &destLength);
+        if(!ok) {
+            qCritical("Critical Error! Data Decryption Failed!");
+            delete [] destUCharArray;
+            delete [] sourceUCharArray;
+            delete [] keyUCharArray;
+            return 0;
         }
- 
+    }
+
 
 //        qDebug("----destLength:%d", destLength);
 //        for(int i = 0; i<destLength; i++){
 //            qDebug("destChar[%d]:%d", i, destUCharArray[i]);
 //        }
 
-        char * tempDestCharArray = new char[destLength];
-        byteToChar(tempDestCharArray, destUCharArray, destLength);
+    char *tempDestCharArray = new char[destLength];
+    byteToChar(tempDestCharArray, destUCharArray, destLength);
 
 
-        destination->clear();
-        destination->resize(0);
-        destination->append(tempDestCharArray, destLength);
+    destination->clear();
+    destination->resize(0);
+    destination->append(tempDestCharArray, destLength);
 
 //        for(int i = 0; i<destLength; i++){
 //            qDebug("temp[%d]:%d", i, tempDestCharArray[i]);
 //        }
 //        qDebug("destination->size():%d", destination->size());
 
-        delete [] destUCharArray;
-        delete [] sourceUCharArray;
-        delete [] keyUCharArray;
-        delete [] tempDestCharArray;
+    delete [] destUCharArray;
+    delete [] sourceUCharArray;
+    delete [] keyUCharArray;
+    delete [] tempDestCharArray;
 
-        return destLength;
+    return destLength;
 
 }
 
 
-void Cryptography::setMaxBufferSize(int size){
+void Cryptography::setMaxBufferSize(int size)
+{
     this->maxBufferSize = size;
 }
 
-int Cryptography::getMaxBufferSize() const{
+int Cryptography::getMaxBufferSize() const
+{
     return this->maxBufferSize;
 
 }

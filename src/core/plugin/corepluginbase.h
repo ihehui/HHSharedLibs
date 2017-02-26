@@ -39,7 +39,8 @@
 #include "coreinterface.h"
 #include "../core_lib.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class CORE_LIB_API CorePluginBase : public QObject, public CoreInterface
 {

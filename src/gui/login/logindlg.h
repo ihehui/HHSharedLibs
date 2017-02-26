@@ -8,11 +8,13 @@
 #include "../guilib.h"
 
 
-namespace Ui {
+namespace Ui
+{
 class LoginDlgUI;
 }
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class GUI_LIB_API LoginDlg : public QDialog /*, public Singleton<LoginDlg>*/
 {
@@ -31,7 +33,7 @@ private:
 
 
 protected:
-    void closeEvent(QCloseEvent * event);
+    void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *);
     void languageChange();
 

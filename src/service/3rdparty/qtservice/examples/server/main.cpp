@@ -54,7 +54,7 @@ class HttpDaemon : public QTcpServer
 {
     Q_OBJECT
 public:
-    HttpDaemon(quint16 port, QObject* parent = 0)
+    HttpDaemon(quint16 port, QObject *parent = 0)
         : QTcpServer(parent), disabled(false)
     {
         listen(QHostAddress::Any, port);
@@ -62,14 +62,15 @@ public:
 
     void incomingConnection(int socket)
     {
-        if (disabled)
+        if (disabled) {
             return;
+        }
 
         // When a new client connects, the server constructs a QTcpSocket and all
         // communication with the client is done over this QTcpSocket. QTcpSocket
         // works asynchronously, this means that all the communication is done
         // in the two slots readClient() and discardClient().
-        QTcpSocket* s = new QTcpSocket(this);
+        QTcpSocket *s = new QTcpSocket(this);
         connect(s, SIGNAL(readyRead()), this, SLOT(readClient()));
         connect(s, SIGNAL(disconnected()), this, SLOT(discardClient()));
         s->setSocketDescriptor(socket);
@@ -90,23 +91,24 @@ public:
 private slots:
     void readClient()
     {
-        if (disabled)
+        if (disabled) {
             return;
+        }
 
         // This slot is called when the client sent data to the server. The
         // server looks if it was a get request and sends a very simple HTML
         // document back.
-        QTcpSocket* socket = (QTcpSocket*)sender();
+        QTcpSocket *socket = (QTcpSocket *)sender();
         if (socket->canReadLine()) {
             QStringList tokens = QString(socket->readLine()).split(QRegExp("[ \r\n][ \r\n]*"));
             if (tokens[0] == "GET") {
                 QTextStream os(socket);
                 os.setAutoDetectUnicode(true);
                 os << "HTTP/1.0 200 Ok\r\n"
-                    "Content-Type: text/html; charset=\"utf-8\"\r\n"
-                    "\r\n"
-                    "<h1>Nothing to see here</h1>\n"
-                    << QDateTime::currentDateTime().toString() << "\n";
+                   "Content-Type: text/html; charset=\"utf-8\"\r\n"
+                   "\r\n"
+                   "<h1>Nothing to see here</h1>\n"
+                   << QDateTime::currentDateTime().toString() << "\n";
                 socket->close();
 
                 QtServiceBase::instance()->logMessage("Wrote to client");
@@ -120,7 +122,7 @@ private slots:
     }
     void discardClient()
     {
-        QTcpSocket* socket = (QTcpSocket*)sender();
+        QTcpSocket *socket = (QTcpSocket *)sender();
         socket->deleteLater();
 
         QtServiceBase::instance()->logMessage("Connection closed");
@@ -134,7 +136,7 @@ class HttpService : public QtService<QCoreApplication>
 {
 public:
     HttpService(int argc, char **argv)
-	: QtService<QCoreApplication>(argc, argv, "Qt HTTP Daemon")
+        : QtService<QCoreApplication>(argc, argv, "Qt HTTP Daemon")
     {
         setServiceDescription("A dummy HTTP service implemented with Qt");
         setServiceFlags(QtServiceBase::CanBeSuspended);
@@ -147,11 +149,11 @@ protected:
 
 #if QT_VERSION < 0x040100
         quint16 port = (app->argc() > 1) ?
-                QString::fromLocal8Bit(app->argv()[1]).toUShort() : 8080;
+                       QString::fromLocal8Bit(app->argv()[1]).toUShort() : 8080;
 #else
         const QStringList arguments = QCoreApplication::arguments();
         quint16 port = (arguments.size() > 1) ?
-                arguments.at(1).toUShort() : 8080;
+                       arguments.at(1).toUShort() : 8080;
 #endif
         daemon = new HttpDaemon(port, app);
 
@@ -163,12 +165,12 @@ protected:
 
     void pause()
     {
-	daemon->pause();
+        daemon->pause();
     }
 
     void resume()
     {
-	daemon->resume();
+        daemon->resume();
     }
 
 private:

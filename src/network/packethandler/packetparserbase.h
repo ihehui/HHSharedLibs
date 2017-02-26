@@ -43,10 +43,12 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
-class NETWORK_LIB_API PacketsParserBase : public QObject{
+class NETWORK_LIB_API PacketsParserBase : public QObject
+{
     Q_OBJECT
 
 public:

@@ -85,22 +85,25 @@ void ProgressDlg::slotUpdateProgress(const QString &progressMessage, int progres
     ui->labelDescription->setText(progressMessage);
     ui->textBrowserDetails->append(progressMessage);
 
-    if(progressValue){
+    if(progressValue) {
         ui->progressBar->setValue(progressValue);
     }
 
     QCoreApplication::processEvents();
 }
 
-void ProgressDlg::slotUpdateProcessOutput(const QString &message){
+void ProgressDlg::slotUpdateProcessOutput(const QString &message)
+{
     ui->textBrowserDetails->append(message);
 }
 
-void ProgressDlg::showDetails(bool show){
+void ProgressDlg::showDetails(bool show)
+{
     on_toolButtonShowDetails_toggled(show);
 }
 
-void ProgressDlg::closeWidget(){
+void ProgressDlg::closeWidget()
+{
     ui->labelDescription->clear();
     ui->progressBar->setValue(0);
     ui->textBrowserDetails->clear();
@@ -113,9 +116,9 @@ void ProgressDlg::closeWidget(){
 
 void ProgressDlg::on_toolButtonShowDetails_toggled ( bool checked )
 {
-    if(checked){
+    if(checked) {
         ui->textBrowserDetails->show();
-    }else{
+    } else {
         ui->textBrowserDetails->hide();
     }
 }

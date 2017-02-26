@@ -61,7 +61,8 @@
 
 #include <QHash>
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 enum TopLevelRole  { NORMAL_ITEM, SCRATCHPAD_ITEM, CUSTOM_ITEM };
@@ -99,22 +100,24 @@ ItemBoxTreeWidget::ItemBoxTreeWidget(ItemBoxEventHandler *core, QWidget *parent)
 
     setItemDelegate(new SheetDelegate(this, this));
 
-    connect(this, SIGNAL(itemPressed(QTreeWidgetItem*,int)), this, SLOT(handleMousePress(QTreeWidgetItem*)));
+    connect(this, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this, SLOT(handleMousePress(QTreeWidgetItem *)));
 }
 
 //void ItemBoxTreeWidget::setLoadMode(ItemBoxWidgetBase::LoadMode loadMode){
 //    m_loadMode = loadMode;
 //}
 
-bool ItemBoxTreeWidget::updateItemName(const QString &cat_id, const QString &item_id, const QString &itemName){
+bool ItemBoxTreeWidget::updateItemName(const QString &cat_id, const QString &item_id, const QString &itemName)
+{
     ItemBoxCategoryListView *cat = categoryView(cat_id);
-    if(!cat){
+    if(!cat) {
         return false;
     }
     return cat->updateItemName(item_id, itemName);
 }
 
-bool ItemBoxTreeWidget::updateItemIcon(const QString &cat_id, const QString &item_id, const QIcon &icon){
+bool ItemBoxTreeWidget::updateItemIcon(const QString &cat_id, const QString &item_id, const QIcon &icon)
+{
     ItemBoxCategoryListView *cat = categoryView(cat_id);
     return cat->updateItemIcon(item_id, icon);
 }
@@ -128,27 +131,29 @@ ItemBoxCategoryListView *ItemBoxTreeWidget::categoryViewAt(int idx) const
 {
     ItemBoxCategoryListView *rc = 0;
     if (QTreeWidgetItem *cat_item = topLevelItem(idx))
-        if (QTreeWidgetItem *embedItem = cat_item->child(0))
-            rc = qobject_cast<ItemBoxCategoryListView*>(itemWidget(embedItem, 0));
+        if (QTreeWidgetItem *embedItem = cat_item->child(0)) {
+            rc = qobject_cast<ItemBoxCategoryListView *>(itemWidget(embedItem, 0));
+        }
     Q_ASSERT(rc);
     return rc;
 }
 
-ItemBoxCategoryListView *ItemBoxTreeWidget::categoryView(const QString &cat_id) const{
+ItemBoxCategoryListView *ItemBoxTreeWidget::categoryView(const QString &cat_id) const
+{
 
     ItemBoxCategoryListView *rc = 0;
-    if(cat_id.isEmpty()){
-        qCritical()<<"Empty cat_name!";
+    if(cat_id.isEmpty()) {
+        qCritical() << "Empty cat_name!";
         return rc;
     }
 
     int topItemCount = topLevelItemCount();
-    for (int i = 0;  i< topItemCount; i++) {
+    for (int i = 0;  i < topItemCount; i++) {
         QTreeWidgetItem *cat_item = topLevelItem(i);
         //if(cat_item && cat_item->text(0) == cat_id){
-        if(cat_item && cat_item->data(0, Qt::UserRole).toString() == cat_id){
-            if(QTreeWidgetItem *embedItem = cat_item->child(0)){
-                rc = qobject_cast<ItemBoxCategoryListView*>(itemWidget(embedItem, 0));
+        if(cat_item && cat_item->data(0, Qt::UserRole).toString() == cat_id) {
+            if(QTreeWidgetItem *embedItem = cat_item->child(0)) {
+                rc = qobject_cast<ItemBoxCategoryListView *>(itemWidget(embedItem, 0));
                 //qDebug()<<"----ItemBoxTreeWidget::categoryView(...)~~cat_item->text(0):"<<cat_item->text(0);
                 break;
             }
@@ -245,11 +250,13 @@ ItemBoxTreeWidget::~ItemBoxTreeWidget()
 
 void ItemBoxTreeWidget::handleMousePress(QTreeWidgetItem *item)
 {
-    if (item == 0)
+    if (item == 0) {
         return;
+    }
 
-    if (QApplication::mouseButtons() != Qt::LeftButton)
+    if (QApplication::mouseButtons() != Qt::LeftButton) {
         return;
+    }
 
     if (item->parent() == 0) {
         setItemExpanded(item, !isItemExpanded(item));
@@ -260,8 +267,9 @@ void ItemBoxTreeWidget::handleMousePress(QTreeWidgetItem *item)
 int ItemBoxTreeWidget::ensureScratchpad()
 {
     const int existingIndex = indexOfScratchpad();
-    if (existingIndex != -1)
-         return existingIndex;
+    if (existingIndex != -1) {
+        return existingIndex;
+    }
 
     QTreeWidgetItem *scratch_item = new QTreeWidgetItem(this);
     scratch_item->setText(0, tr("Scratchpad"));
@@ -296,8 +304,9 @@ int ItemBoxTreeWidget::indexOfScratchpad() const
 {
     if (const int numTopLevels =  topLevelItemCount()) {
         for (int i = numTopLevels - 1; i >= 0; --i) {
-            if (topLevelRole(topLevelItem(i)) == SCRATCHPAD_ITEM)
+            if (topLevelRole(topLevelItem(i)) == SCRATCHPAD_ITEM) {
                 return i;
+            }
         }
     }
     return -1;
@@ -308,8 +317,9 @@ int ItemBoxTreeWidget::indexOfCategory(const QString &cat_id) const
     const int topLevelCount = topLevelItemCount();
     for (int i = 0; i < topLevelCount; ++i) {
         //if (topLevelItem(i)->text(0) == name)
-        if (topLevelItem(i)->data(0, Qt::UserRole).toString() == cat_id)
+        if (topLevelItem(i)->data(0, Qt::UserRole).toString() == cat_id) {
             return i;
+        }
     }
     return -1;
 }
@@ -619,8 +629,9 @@ static int findCategory(const QString &name, const ItemBoxTreeWidget::CategoryLi
 {
     int idx = 0;
     foreach (const ItemBoxTreeWidget::Category &cat, list) {
-        if (cat.name() == name)
+        if (cat.name() == name) {
             return idx;
+        }
         ++idx;
     }
     return -1;
@@ -630,8 +641,9 @@ static inline bool isValidIcon(const QIcon &icon)
 {
     if (!icon.isNull()) {
         const QList<QSize> availableSizes = icon.availableSizes();
-        if (!availableSizes.empty())
+        if (!availableSizes.empty()) {
             return !availableSizes.front().isEmpty();
+        }
     }
     return false;
 }
@@ -695,16 +707,17 @@ void ItemBoxTreeWidget::adjustSubListSize(QTreeWidgetItem *cat_item)
 {
 
     QTreeWidgetItem *embedItem = cat_item->child(0);
-    if (embedItem == 0)
+    if (embedItem == 0) {
         return;
+    }
 
-    ItemBoxCategoryListView *list_widget = static_cast<ItemBoxCategoryListView*>(itemWidget(embedItem, 0));
+    ItemBoxCategoryListView *list_widget = static_cast<ItemBoxCategoryListView *>(itemWidget(embedItem, 0));
     list_widget->setFixedWidth(header()->width());
     list_widget->doItemsLayout();
     const int height = qMax(list_widget->contentsSize().height(), 1);
     list_widget->setFixedHeight(height);
     //list_widget->setFlow(QListView::TopToBottom);
-    list_widget->setFlow((list_widget->viewMode() == QListView::ListMode) ? QListView::TopToBottom:QListView::LeftToRight);
+    list_widget->setFlow((list_widget->viewMode() == QListView::ListMode) ? QListView::TopToBottom : QListView::LeftToRight);
 
 
     embedItem->setSizeHint(0, QSize(-1, height - 1));
@@ -719,13 +732,14 @@ int ItemBoxTreeWidget::categoryCount() const
 
 ItemBoxTreeWidget::Category ItemBoxTreeWidget::category(int cat_idx) const
 {
-    if (cat_idx >= topLevelItemCount())
+    if (cat_idx >= topLevelItemCount()) {
         return Category();
+    }
 
     QTreeWidgetItem *cat_item = topLevelItem(cat_idx);
 
     QTreeWidgetItem *embedItem = cat_item->child(0);
-    ItemBoxCategoryListView *categoryView = static_cast<ItemBoxCategoryListView*>(itemWidget(embedItem, 0));
+    ItemBoxCategoryListView *categoryView = static_cast<ItemBoxCategoryListView *>(itemWidget(embedItem, 0));
 
     Category result = categoryView->category();
     result.setName(cat_item->text(0));
@@ -741,7 +755,8 @@ ItemBoxTreeWidget::Category ItemBoxTreeWidget::category(int cat_idx) const
     return result;
 }
 
-ItemBoxTreeWidget::Category ItemBoxTreeWidget::category(const QString &cat_id) const{
+ItemBoxTreeWidget::Category ItemBoxTreeWidget::category(const QString &cat_id) const
+{
     return category(indexOfCategory(cat_id));
 }
 
@@ -749,8 +764,9 @@ int ItemBoxTreeWidget::findCategory(const QString &cat_id, const ItemBoxTreeWidg
 {
     int idx = 0;
     foreach (const ItemBoxTreeWidget::Category &cat, list) {
-        if (cat.id() == cat_id)
+        if (cat.id() == cat_id) {
             return idx;
+        }
         ++idx;
     }
     return -1;
@@ -779,9 +795,9 @@ void ItemBoxTreeWidget::addCategory(const Category &cat, int index)
             // insert before scratchpad
             const int scratchPadIndex = indexOfScratchpad();
             if (scratchPadIndex == -1) {
-                if(index == -1){
+                if(index == -1) {
                     addTopLevelItem(cat_item);
-                }else{
+                } else {
                     insertTopLevelItem(index, cat_item);
                 }
 
@@ -799,8 +815,9 @@ void ItemBoxTreeWidget::addCategory(const Category &cat, int index)
     const int widgetCount = cat.itemCount();
     for (int i = 0; i < widgetCount; ++i) {
         const Item w = cat.item(i);
-        if (!categoryView->containsItem(w.name()))
+        if (!categoryView->containsItem(w.name())) {
             categoryView->addItem(w, w.icon(), isScratchPad);
+        }
     }
     adjustSubListSize(cat_item);
 
@@ -808,56 +825,71 @@ void ItemBoxTreeWidget::addCategory(const Category &cat, int index)
 
 void ItemBoxTreeWidget::removeCategory(int cat_idx)
 {
-    if (cat_idx >= topLevelItemCount())
+    if (cat_idx >= topLevelItemCount()) {
         return;
+    }
     delete takeTopLevelItem(cat_idx);
 }
 
-void ItemBoxTreeWidget::removeCategory(const QString &cat_id){
+void ItemBoxTreeWidget::removeCategory(const QString &cat_id)
+{
 
     int cat_idx = indexOfCategory(cat_id);
-    if (cat_idx >= topLevelItemCount() || cat_idx < 0){return;}
+    if (cat_idx >= topLevelItemCount() || cat_idx < 0) {
+        return;
+    }
 
     removeCategory(cat_idx);
 
 }
 
-void ItemBoxTreeWidget::setCategoryHidden(int cat_idx, bool hide){
+void ItemBoxTreeWidget::setCategoryHidden(int cat_idx, bool hide)
+{
     setRowHidden(cat_idx, QModelIndex(), hide);
 }
 
-void ItemBoxTreeWidget::setCategoryHidden(const QString &cat_id, bool hide){
+void ItemBoxTreeWidget::setCategoryHidden(const QString &cat_id, bool hide)
+{
     int cat_idx = indexOfCategory(cat_id);
-    if (cat_idx >= topLevelItemCount() || cat_idx < 0){return;}
+    if (cat_idx >= topLevelItemCount() || cat_idx < 0) {
+        return;
+    }
 
     setCategoryHidden(cat_idx, hide);
 
 }
 
-void ItemBoxTreeWidget::setCategoryExpanded(int cat_idx, bool expand){
+void ItemBoxTreeWidget::setCategoryExpanded(int cat_idx, bool expand)
+{
 
     QTreeWidgetItem *cat_item = topLevelItem(cat_idx);
-    if(expand){
+    if(expand) {
         expandItem(cat_item);
-    }else{
+    } else {
         collapseItem(cat_item);
     }
 
 }
 
-void ItemBoxTreeWidget::setCategoryExpanded(const QString &cat_id, bool expand){
+void ItemBoxTreeWidget::setCategoryExpanded(const QString &cat_id, bool expand)
+{
 
     int cat_idx = indexOfCategory(cat_id);
-    if (cat_idx >= topLevelItemCount() || cat_idx < 0){return;}
+    if (cat_idx >= topLevelItemCount() || cat_idx < 0) {
+        return;
+    }
 
     setCategoryExpanded(cat_idx, expand);
 
 }
 
-void ItemBoxTreeWidget::updateCategoryName(const QString &cat_id, const QString &new_cat_name){
+void ItemBoxTreeWidget::updateCategoryName(const QString &cat_id, const QString &new_cat_name)
+{
 
     int cat_idx = indexOfCategory(cat_id);
-    if (cat_idx >= topLevelItemCount() || cat_idx < 0){return;}
+    if (cat_idx >= topLevelItemCount() || cat_idx < 0) {
+        return;
+    }
 
     QTreeWidgetItem *cat_item = topLevelItem(cat_idx);
     cat_item->setText(0, new_cat_name);
@@ -869,16 +901,18 @@ void ItemBoxTreeWidget::updateCategoryName(const QString &cat_id, const QString 
 
 int ItemBoxTreeWidget::itemCount(int cat_idx) const
 {
-    if (cat_idx >= topLevelItemCount())
+    if (cat_idx >= topLevelItemCount()) {
         return 0;
+    }
     // SDK functions want unfiltered access
     return categoryViewAt(cat_idx)->count(ItemBoxCategoryListView::UnfilteredAccess);
 }
 
 ItemBoxTreeWidget::Item ItemBoxTreeWidget::item(int cat_idx, int item_idx) const
 {
-    if (cat_idx >= topLevelItemCount())
+    if (cat_idx >= topLevelItemCount()) {
         return Item();
+    }
     // SDK functions want unfiltered access
     ItemBoxCategoryListView *categoryView = categoryViewAt(cat_idx);
     return categoryView->itemAt(ItemBoxCategoryListView::UnfilteredAccess, item_idx);
@@ -886,8 +920,9 @@ ItemBoxTreeWidget::Item ItemBoxTreeWidget::item(int cat_idx, int item_idx) const
 
 ItemBoxTreeWidget::Item ItemBoxTreeWidget::item(const QString &cat_id, const QString &item_id) const
 {
-    if (cat_id.trimmed().isEmpty())
+    if (cat_id.trimmed().isEmpty()) {
         return Item();
+    }
     // SDK functions want unfiltered access
     ItemBoxCategoryListView *cv = categoryView(cat_id);
     return cv->item(item_id);
@@ -895,10 +930,10 @@ ItemBoxTreeWidget::Item ItemBoxTreeWidget::item(const QString &cat_id, const QSt
 
 void ItemBoxTreeWidget::addItem(int cat_idx, const Item &item)
 {
-    qDebug()<<"--ItemBoxTreeWidget::addItem(...) cat_idx:"<<cat_idx<<" item.id():"<<item.id();
+    qDebug() << "--ItemBoxTreeWidget::addItem(...) cat_idx:" << cat_idx << " item.id():" << item.id();
 
-    if (cat_idx >= topLevelItemCount() || cat_idx < 0){
-        qCritical()<<"ERROR! Invalid category index!";
+    if (cat_idx >= topLevelItemCount() || cat_idx < 0) {
+        qCritical() << "ERROR! Invalid category index!";
         return;
     }
 
@@ -909,11 +944,11 @@ void ItemBoxTreeWidget::addItem(int cat_idx, const Item &item)
     //const bool scratch = topLevelRole(cat_item) == NORMAL_ITEM;
 
     // The same categories are read from the file $HOME, avoid duplicates
-    if (!categoryView->containsItem(item.id())){
+    if (!categoryView->containsItem(item.id())) {
         categoryView->addItem(item, item.icon(), scratch);
         categoryView->updateGeometry();
-    }else{
-        qWarning()<<"ERROR! Item "<<item.id()<<" already exists!";
+    } else {
+        qWarning() << "ERROR! Item " << item.id() << " already exists!";
     }
 
     adjustSubListSize(cat_item);
@@ -922,11 +957,12 @@ void ItemBoxTreeWidget::addItem(int cat_idx, const Item &item)
 
 }
 
-void ItemBoxTreeWidget::addItem(const QString &cat_id, const Item &item){
-    qDebug()<<"--ItemBoxTreeWidget::addItem(...) cat_id:"<<cat_id<<" item.id():"<<item.id();
+void ItemBoxTreeWidget::addItem(const QString &cat_id, const Item &item)
+{
+    qDebug() << "--ItemBoxTreeWidget::addItem(...) cat_id:" << cat_id << " item.id():" << item.id();
 
-    if(cat_id.trimmed().isEmpty()){
-        qDebug()<<"ERROR! Empty cat_id!";
+    if(cat_id.trimmed().isEmpty()) {
+        qDebug() << "ERROR! Empty cat_id!";
         return;
     }
 
@@ -936,27 +972,32 @@ void ItemBoxTreeWidget::addItem(const QString &cat_id, const Item &item){
 
 void ItemBoxTreeWidget::removeItem(int cat_idx, int wgt_idx)
 {
-    if (cat_idx >= topLevelItemCount())
+    if (cat_idx >= topLevelItemCount()) {
         return;
+    }
 
     ItemBoxCategoryListView *categoryView = categoryViewAt(cat_idx);
 
     // SDK functions want unfiltered access
     const ItemBoxCategoryListView::AccessMode am = ItemBoxCategoryListView::UnfilteredAccess;
-    if (wgt_idx >= categoryView->count(am))
+    if (wgt_idx >= categoryView->count(am)) {
         return;
+    }
 
     categoryView->removeRow(am, wgt_idx);
     categoryView->updateGeometry();
 
 }
 
-void ItemBoxTreeWidget::removeItem(const QString &cat_id, const QString &item_id){
+void ItemBoxTreeWidget::removeItem(const QString &cat_id, const QString &item_id)
+{
 
-    qDebug()<<"--ItemBoxTreeWidget::removeObjectItem()";
+    qDebug() << "--ItemBoxTreeWidget::removeObjectItem()";
 
     int cat_Idx = indexOfCategory(cat_id);
-    if (cat_Idx >= topLevelItemCount() || cat_Idx < 0){return ;}
+    if (cat_Idx >= topLevelItemCount() || cat_Idx < 0) {
+        return ;
+    }
 
     // unfiltered access
     const ItemBoxCategoryListView::AccessMode am = ItemBoxCategoryListView::UnfilteredAccess;
@@ -966,7 +1007,9 @@ void ItemBoxTreeWidget::removeItem(const QString &cat_id, const QString &item_id
     //TreeWidget::ObjectItem objItem = old_categoryView->objectItemAt(am, item_idx);
     //if(objItem.isNull()){return;}
 
-    if (item_idx >= categoryview->count(am)){return;}
+    if (item_idx >= categoryview->count(am)) {
+        return;
+    }
     categoryview->removeRow(am, item_idx);
     categoryview->updateGeometry();
     adjustSubListSize(topLevelItem(cat_Idx));
@@ -976,12 +1019,13 @@ void ItemBoxTreeWidget::removeItem(const QString &cat_id, const QString &item_id
 
 }
 
-void ItemBoxTreeWidget::moveItem(int old_cat_idx, int new_cat_idx, const QString &item_id){
+void ItemBoxTreeWidget::moveItem(int old_cat_idx, int new_cat_idx, const QString &item_id)
+{
 
-    qDebug()<<"--ItemBoxTreeWidget::moveObjectItem()";
+    qDebug() << "--ItemBoxTreeWidget::moveObjectItem()";
 
-    if (old_cat_idx >= topLevelItemCount() || new_cat_idx >= topLevelItemCount()){
-        qCritical()<<"ERROR! Invalid old_cat_idx or new_cat_idx!";
+    if (old_cat_idx >= topLevelItemCount() || new_cat_idx >= topLevelItemCount()) {
+        qCritical() << "ERROR! Invalid old_cat_idx or new_cat_idx!";
         return ;
     }
 
@@ -991,7 +1035,9 @@ void ItemBoxTreeWidget::moveItem(int old_cat_idx, int new_cat_idx, const QString
     ItemBoxCategoryListView *old_categoryView = categoryViewAt(old_cat_idx);
     int item_idx = old_categoryView->indexOfItem(item_id);
     ItemBoxTreeWidget::Item objItem = old_categoryView->itemAt(am, item_idx);
-    if(objItem.isNull()){return;}
+    if(objItem.isNull()) {
+        return;
+    }
 
     //if (item_idx >= old_categoryView->count(am)){return;}
     old_categoryView->removeRow(am, item_idx);
@@ -1021,7 +1067,8 @@ void ItemBoxTreeWidget::moveItem(int old_cat_idx, int new_cat_idx, const QString
 
 }
 
-void ItemBoxTreeWidget::moveItem(const QString &old_cat_id, const QString &new_cat_id, const QString &item_id){
+void ItemBoxTreeWidget::moveItem(const QString &old_cat_id, const QString &new_cat_id, const QString &item_id)
+{
 
     int old_cat_idx = indexOfCategory(old_cat_id);
     int new_cat_idx = indexOfCategory(new_cat_id);
@@ -1048,15 +1095,17 @@ void ItemBoxTreeWidget::slotLastScratchPadItemDeleted()
         m_scratchPadDeleteTimer->setInterval(0);
         connect(m_scratchPadDeleteTimer, SIGNAL(timeout()), this, SLOT(deleteScratchpad()));
     }
-    if (!m_scratchPadDeleteTimer->isActive())
+    if (!m_scratchPadDeleteTimer->isActive()) {
         m_scratchPadDeleteTimer->start();
+    }
 }
 
 void ItemBoxTreeWidget::deleteScratchpad()
 {
     const int idx = indexOfScratchpad();
-    if (idx == -1)
+    if (idx == -1) {
         return;
+    }
     delete takeTopLevelItem(idx);
     //save();
 }
@@ -1098,7 +1147,7 @@ void ItemBoxTreeWidget::resizeEvent(QResizeEvent *e)
     if (const int numTopLevels = topLevelItemCount()) {
         //        for (int i = numTopLevels - 1; i >= 0; --i)
         //            adjustSubListSize(topLevelItem(i));
-        for (int i = 0; i < numTopLevels; i++){
+        for (int i = 0; i < numTopLevels; i++) {
             adjustSubListSize(topLevelItem(i));
         }
     }
@@ -1108,11 +1157,13 @@ void ItemBoxTreeWidget::resizeEvent(QResizeEvent *e)
 void ItemBoxTreeWidget::contextMenuEvent(QContextMenuEvent *e)
 {
     QTreeWidgetItem *item = itemAt(e->pos());
-    if(!item){return;}
+    if(!item) {
+        return;
+    }
 
     const bool scratchpad_menu = item != 0
-                            && item->parent() != 0
-                            && topLevelRole(item->parent()) ==  SCRATCHPAD_ITEM;
+                                 && item->parent() != 0
+                                 && topLevelRole(item->parent()) ==  SCRATCHPAD_ITEM;
 
     QMenu menu;
     menu.addAction(tr("Expand all"), this, SLOT(expandAll()));
@@ -1126,18 +1177,20 @@ void ItemBoxTreeWidget::contextMenuEvent(QContextMenuEvent *e)
     QActionGroup *viewModeGroup = new QActionGroup(&menu);
     viewModeGroup->addAction(listModeAction);
     viewModeGroup->addAction(iconModeAction);
-    if (m_iconMode)
+    if (m_iconMode) {
         iconModeAction->setChecked(true);
-    else
+    } else {
         listModeAction->setChecked(true);
+    }
     connect(listModeAction, SIGNAL(triggered()), SLOT(slotListMode()));
     connect(iconModeAction, SIGNAL(triggered()), SLOT(slotIconMode()));
 
     if (scratchpad_menu) {
         menu.addSeparator();
         menu.addAction(tr("Remove"), itemWidget(item, 0), SLOT(removeCurrentItem()));
-        if (!m_iconMode)
+        if (!m_iconMode) {
             menu.addAction(tr("Edit name"), itemWidget(item, 0), SLOT(editCurrentItem()));
+        }
     }
     e->accept();
 //    menu.exec(mapToGlobal(e->pos()));
@@ -1199,8 +1252,9 @@ void ItemBoxTreeWidget::filter(const QString &f)
             setRowHidden (i, QModelIndex(), !categoryEnabled);
         }
     }
-    if (changed)
+    if (changed) {
         updateGeometries();
+    }
 }
 
 

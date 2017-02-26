@@ -40,20 +40,22 @@
 
 
 WidgetBase::WidgetBase(QWidget *parent, Qt::WindowFlags flags)
-    :QWidget(parent, flags)
+    : QWidget(parent, flags)
 {
     // TODO Auto-generated constructor stub
 
 }
 
-WidgetBase::~WidgetBase() {
+WidgetBase::~WidgetBase()
+{
     // TODO Auto-generated destructor stub
 }
 
 
-void WidgetBase::moveWindow(HEHUI::WindowPosition positon) {
+void WidgetBase::moveWindow(HEHUI::WindowPosition positon)
+{
     // Get the size of screen
-    QDesktopWidget* desktop = QApplication::desktop();
+    QDesktopWidget *desktop = QApplication::desktop();
     QRect rect = desktop->availableGeometry(this);
     int desktopWidth = rect.width();
     int desktopHeight = rect.height();
@@ -78,7 +80,8 @@ void WidgetBase::moveWindow(HEHUI::WindowPosition positon) {
 
 
 void WidgetBase::updateSystemTray(const QString &toolTip,
-                                  const QIcon &icon, QMenu *menu) {
+                                  const QIcon &icon, QMenu *menu)
+{
     QSystemTrayIcon *tray = SystemTrayIcon();
 
     if (!tray) {
@@ -98,9 +101,10 @@ void WidgetBase::updateSystemTray(const QString &toolTip,
 
 }
 
-void WidgetBase::showSystemTrayMsg(const QString & title,
-                                   const QString & message, QSystemTrayIcon::MessageIcon iconType,
-                                   int secondsTimeoutHint) {
+void WidgetBase::showSystemTrayMsg(const QString &title,
+                                   const QString &message, QSystemTrayIcon::MessageIcon iconType,
+                                   int secondsTimeoutHint)
+{
     QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::MessageIcon(iconType);
     SystemTrayIcon()->showMessage(title, message, icon, secondsTimeoutHint
                                   * 1000);

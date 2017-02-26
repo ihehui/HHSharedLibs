@@ -39,11 +39,12 @@
 //#include "./packethandler/packetstreamoperator.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 UDPSocket::UDPSocket(QObject *parent)
-    :QUdpSocket(parent)
+    : QUdpSocket(parent)
 {
 
     datagram = new QByteArray();
@@ -61,8 +62,9 @@ UDPSocket::UDPSocket(QObject *parent)
 
 }
 
-UDPSocket::~UDPSocket() {
-    qDebug()<<"UDPSocket::~UDPSocket()";
+UDPSocket::~UDPSocket()
+{
+    qDebug() << "UDPSocket::~UDPSocket()";
 
 //    if(ipMulticastSocket){
 //        delete ipMulticastSocket;
@@ -82,11 +84,13 @@ UDPSocket::~UDPSocket() {
 //    return ipMulticastSocket;
 //}
 
-UDPSocket::ListeningState UDPSocket::getListeningState() const{
+UDPSocket::ListeningState UDPSocket::getListeningState() const
+{
     return this->listeningState;
 }
 
-bool UDPSocket::startSimpleListening(const QHostAddress &localAddress, quint16 localPort){
+bool UDPSocket::startSimpleListening(const QHostAddress &localAddress, quint16 localPort)
+{
 
 //    if(ipMulticastSocket){
 //        if((ipMulticastSocket->getUdpSocket()->localAddress() == localAddress) && (ipMulticastSocket->getPort() == localPort)){
@@ -102,14 +106,14 @@ bool UDPSocket::startSimpleListening(const QHostAddress &localAddress, quint16 l
     close();
 
     QHostAddress address = localAddress;
-    if(localAddress == QHostAddress::Null){
+    if(localAddress == QHostAddress::Null) {
         address = QHostAddress::Any;
     }
 
     bool bound = bind(address, localPort);
-    if(bound){
+    if(bound) {
         listeningState = SimpleListening;
-    }else{
+    } else {
         listeningState = NotListening;
     }
 
@@ -117,7 +121,8 @@ bool UDPSocket::startSimpleListening(const QHostAddress &localAddress, quint16 l
 
 }
 
-bool UDPSocket::startIPMulticastListening(const QHostAddress &ipMulticastGroupAddress, quint16 ipMulticastGroupPort){
+bool UDPSocket::startIPMulticastListening(const QHostAddress &ipMulticastGroupAddress, quint16 ipMulticastGroupPort)
+{
 
 //    if(!ipMulticastSocket){
 //        ipMulticastSocket = new IPMulticastSocket(this);
@@ -140,12 +145,12 @@ bool UDPSocket::startIPMulticastListening(const QHostAddress &ipMulticastGroupAd
 
     //bool bound = bind(ipMulticastGroupPort, QUdpSocket::ShareAddress);
     bool bound = bind(QHostAddress::AnyIPv4, ipMulticastGroupPort, QUdpSocket::ShareAddress);
-    if(!bound){
+    if(!bound) {
         return bound;
     }
 
     bound = joinMulticastGroup(ipMulticastGroupAddress);
-    if(bound){
+    if(bound) {
         listeningState = IPMulticastListening;
     }
 
@@ -153,47 +158,51 @@ bool UDPSocket::startIPMulticastListening(const QHostAddress &ipMulticastGroupAd
 
 }
 
-bool UDPSocket::sendDatagram(const QByteArray &data, const QHostAddress &targetAddress, quint16 targetPort, QString *errorString){
+bool UDPSocket::sendDatagram(const QByteArray &data, const QHostAddress &targetAddress, quint16 targetPort, QString *errorString)
+{
     //qWarning()<<"UDPSocket::sendDatagram(...)-targetAddress:"<<targetAddress.toString()<<" targetPort:"<<targetPort;
 
     qint64 size = writeDatagram(data, targetAddress, targetPort);
-    if(errorString){
+    if(errorString) {
         *errorString = this->errorString();
     }
 
-    if(size == -1){
-        qCritical()<<QString("UDP Datagram Sent Failed! Target Address:%1, Port:%2, %3").arg(targetAddress.toString()).arg(targetPort).arg(this->errorString());
+    if(size == -1) {
+        qCritical() << QString("UDP Datagram Sent Failed! Target Address:%1, Port:%2, %3").arg(targetAddress.toString()).arg(targetPort).arg(this->errorString());
         return false;
     }
 
-    return (size == data.size())?true:false;;
+    return (size == data.size()) ? true : false;;
 
 }
 
 
-bool UDPSocket::sendUDPDatagramWithAnyPort(const QString &targetAddress, quint16 targetPort, const QByteArray &data, QString *errorString){
+bool UDPSocket::sendUDPDatagramWithAnyPort(const QString &targetAddress, quint16 targetPort, const QByteArray &data, QString *errorString)
+{
     return sendUDPDatagramWithAnyPort(QHostAddress(targetAddress), targetPort, data, errorString);
 }
 
-bool UDPSocket::sendUDPDatagramWithAnyPort(const QHostAddress &targetAddress, quint16 targetPort, const QByteArray &data, QString *errorString){
-    qDebug()<<"UDPSocket::sendUDPDatagram(...)-targetAddress:"<<targetAddress.toString()<<" targetPort:"<<targetPort;
+bool UDPSocket::sendUDPDatagramWithAnyPort(const QHostAddress &targetAddress, quint16 targetPort, const QByteArray &data, QString *errorString)
+{
+    qDebug() << "UDPSocket::sendUDPDatagram(...)-targetAddress:" << targetAddress.toString() << " targetPort:" << targetPort;
 
     QUdpSocket udpSocket;
     qint64 size = udpSocket.writeDatagram(data, targetAddress, targetPort);
-    if(errorString){
+    if(errorString) {
         *errorString = udpSocket.errorString();
     }
 
-    if(size == -1){
-        qCritical()<<QString("UDP Datagram Sent Failed! Target Address:%1, Port:%2, %3").arg(targetAddress.toString()).arg(targetPort).arg(udpSocket.errorString());
+    if(size == -1) {
+        qCritical() << QString("UDP Datagram Sent Failed! Target Address:%1, Port:%2, %3").arg(targetAddress.toString()).arg(targetPort).arg(udpSocket.errorString());
         return false;
-    } 
+    }
 
-    return (size == data.size())?true:false;;
+    return (size == data.size()) ? true : false;;
 
 }
 
-void UDPSocket::readPendingDatagrams() {
+void UDPSocket::readPendingDatagrams()
+{
     //qDebug()<<"----UDPSocket::readPendingDatagrams()";
 
     while (hasPendingDatagrams()) {
@@ -204,8 +213,8 @@ void UDPSocket::readPendingDatagrams() {
         quint16 peerPort;
 
         qint64 readSize = readDatagram(datagram->data(), datagramSize, &peerAddress, &peerPort);
-        if(readSize == -1){
-            qWarning()<<"Can not read datagram!";
+        if(readSize == -1) {
+            qWarning() << "Can not read datagram!";
             break;
         }
         //qDebug()<<"~~datagramSize:"<<datagramSize;
@@ -231,7 +240,7 @@ void UDPSocket::readPendingDatagrams() {
 //        }
 
         PacketBase packet;
-        if(packet.fromByteArray(datagram)){
+        if(packet.fromByteArray(datagram)) {
             packet.setPeerHostAddress(peerAddress);
             packet.setPeerHostPort(peerPort);
             emit packetReceived(packet);

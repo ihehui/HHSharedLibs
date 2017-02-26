@@ -52,7 +52,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class ItemBoxEventHandler;
 

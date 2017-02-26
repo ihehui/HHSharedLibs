@@ -45,7 +45,8 @@ class QTabWidget;
 class QToolBar;
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class RichTextEditor;
 

@@ -37,7 +37,8 @@
 #include "../../core/global_core.h"
 #include "../guilib.h"
 
-class GUI_LIB_API DatabaseConnecter: public QObject {
+class GUI_LIB_API DatabaseConnecter: public QObject
+{
 
     Q_OBJECT
 
@@ -72,9 +73,9 @@ private:
                              const QString &databaseName, HEHUI::DatabaseType databaseType);
 
     QSqlDatabase getDatabase2(const QString &connectionName,
-                             const QString &driver, const QString &host, int port,
-                             const QString &user, const QString &passwd,
-                             const QString &databaseName, HEHUI::DatabaseType databaseType);
+                              const QString &driver, const QString &host, int port,
+                              const QString &user, const QString &passwd,
+                              const QString &databaseName, HEHUI::DatabaseType databaseType);
 
 
 

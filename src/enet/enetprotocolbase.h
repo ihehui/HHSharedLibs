@@ -8,13 +8,14 @@
 
 
 #if defined(ENET_LIBRARY_EXPORT)
-#  define ENET_LIB_API  Q_DECL_EXPORT
+    #define ENET_LIB_API  Q_DECL_EXPORT
 #else
-#  define ENET_LIB_API Q_DECL_IMPORT
+    #define ENET_LIB_API Q_DECL_IMPORT
 #endif
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class ENETProtocolBasePrivate;
 
@@ -40,7 +41,7 @@ signals:
 
 public slots:
     //Start the server to listen,  implement the virtual function startWaitingForIO()
-    bool listen(quint16 port, const QHostAddress &localAddress= QHostAddress::Any, unsigned int maximumNumberOfPeers = 0xFFF);
+    bool listen(quint16 port, const QHostAddress &localAddress = QHostAddress::Any, unsigned int maximumNumberOfPeers = 0xFFF);
     //Close the server
     void close();
 

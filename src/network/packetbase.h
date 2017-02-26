@@ -42,7 +42,8 @@
 #include "networklib.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class PacketBase;
 
@@ -63,7 +64,7 @@ public:
     PacketBase(quint8 m_packetType);
 
     PacketBase(const PacketBase &packet);
-    PacketBase & operator = (const PacketBase &packet);
+    PacketBase &operator = (const PacketBase &packet);
     virtual ~PacketBase();
 
     static void registerMetaTypeStreamOperators();
@@ -122,7 +123,7 @@ class NETWORK_LIB_API Packet : public PacketBase
 public:
     Packet(quint8 packetType);
     Packet(const PacketBase &base);
-    Packet & operator = (const PacketBase &base);
+    Packet &operator = (const PacketBase &base);
     ~Packet();
 
     virtual QByteArray toByteArray();
