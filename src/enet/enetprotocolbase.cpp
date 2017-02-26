@@ -129,7 +129,7 @@ void * ENETProtocolBasePrivate::getPeerPrivateData(quint32 peerID){
     if(!peer){
         m_errorString = tr("Failed to get peer private data. No such peer.");
         qDebug()<<"ERROR! getPeerPrivateData failed. No such peer.";
-        return false;
+        return 0;
     }
 
     return peer->data;

@@ -37,7 +37,7 @@ int SystemUtilities::getCPULoad(){
     if(!process.waitForReadyRead()){
             return 0;
     }
-    QString idle = QString::fromLocal8Bit(process->readAllStandardOutput());
+    QString idle = QString::fromLocal8Bit(process.readAllStandardOutput());
     if(!idle.endsWith("%id")){
         return 0;
     }
@@ -79,7 +79,7 @@ QString SystemUtilities::getHardDriveSerialNumber(unsigned int driveIndex){
 }
 
 
-bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage){
+bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, float *loadPercentage){
 
 #ifdef Q_OS_WIN32
 
@@ -105,8 +105,10 @@ bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage){
     memString = memString.replace("Mem:", "").simplified();
     QStringList list = memString.split(",");
     if(list.size() != 4){return false;}
-    unsigned int totalMem = list.at(0).replace("total", "").simplified().toUInt();
-    unsigned int usedMem = list.at(1).replace("used", "").simplified().toUInt();
+    QString str = list.at(0);
+    quint64 totalMem = str.replace("total", "").simplified().toULongLong();
+    str = list.at(0);
+    quint64 usedMem = str.replace("used", "").simplified().toULongLong();
     if(!totalMem || !usedMem){
         return false;
     }
@@ -116,7 +118,7 @@ bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage){
     }
 
     if(loadPercentage){
-        *loadPercentage = usedMem/totalBytes;
+        *loadPercentage = (float)usedMem/(*totalBytes);
     }
 
 
@@ -149,7 +151,7 @@ bool SystemUtilities::getDiskPartionStatus(const QString &partionRootPath, float
 
     QString diskString = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
     QStringList list = diskString.split(" ");
-    list = list.removeAll(" ");
+    list.removeAll(" ");
     if(list.size() != 5){return false;}
     unsigned int total = list.at(0).toUInt();
     unsigned int free = list.at(2).toUInt();
@@ -202,10 +204,10 @@ QString SystemUtilities::getDisksInfo(){
 
     process.start(cmdString);
     if(!process.waitForFinished()){
-        return false;
+        return "";
     }
     if(!process.waitForReadyRead()){
-            return false;
+            return "";
     }
 
     disksInfo = QString::fromLocal8Bit(process.readAllStandardOutput());
@@ -229,7 +231,7 @@ QString SystemUtilities::getOSVersionInfo(){
 #else
 
     QProcess process;
-    QString cmdString = QString("lsb_release  -a | grep Description | cut -d ":" -f 2");
+    QString cmdString = QString("lsb_release  -a | grep Description | cut -d \":\" -f 2");
 
     process.start(cmdString);
     if(!process.waitForFinished()){
@@ -238,7 +240,7 @@ QString SystemUtilities::getOSVersionInfo(){
     if(!process.waitForReadyRead()){
         return QSysInfo::prettyProductName();
     }
-    osInfo = QString::fromLocal8Bit(process->readAllStandardOutput()).trimmed();
+    osInfo = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
 
 
 #endif

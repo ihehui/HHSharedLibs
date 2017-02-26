@@ -33,6 +33,7 @@
 
 #include <QFile>
 #include <QPixmap>
+#include <cmath>
 
 #include "imageresourcebase.h"
 
