@@ -42,99 +42,120 @@
 #include "../guilib.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-class GUI_LIB_API TrayIconData : public QObject{
+class GUI_LIB_API TrayIconData : public QObject
+{
     Q_OBJECT
-    
+
 public :
-    enum TrayIconType{TRAYICON_Normal, TRAYICON_Flash, TRAYICON_Animation};
-    
+    enum TrayIconType {TRAYICON_Normal, TRAYICON_Flash, TRAYICON_Animation};
+
     TrayIconData(QObject *parent = 0);
     TrayIconData(int dataType, const QString &id, const QString &owner,
                  const QString &toolTip = "", QMenu *menu = 0, const QVariant &data = QVariant(),
                  TrayIconType trayIconType = TRAYICON_Normal, QList<QIcon> iconList = QList<QIcon>(),
                  QObject *parent = 0);
     TrayIconData(const TrayIconData &trayIconData);
-    TrayIconData & operator =(const TrayIconData &trayIconData);
-    
+    TrayIconData &operator =(const TrayIconData &trayIconData);
+
     ~TrayIconData();
-    
+
     bool isNull() const;
-    
-    void setDataType(int dataType){
+
+    void setDataType(int dataType)
+    {
         this->dataType = dataType;
     }
-    int getDataType() const{
+    int getDataType() const
+    {
         return dataType;
     }
-    
-    void setID(const QString &id){
+
+    void setID(const QString &id)
+    {
         this->id = id;
     }
-    QString getID() const{
+    QString getID() const
+    {
         return id;
     }
 
-    void setOwner(const QString &owner){
+    void setOwner(const QString &owner)
+    {
         this->owner = owner;
     }
-    QString getOwner() const{
+    QString getOwner() const
+    {
         return owner;
     }
-    
-    void setToolTip(const QString &toolTip){
+
+    void setToolTip(const QString &toolTip)
+    {
         this->toolTip = toolTip;
     }
-    QString getToolTip() const{
+    QString getToolTip() const
+    {
         return toolTip;
     }
-    
-    void setMenu(QMenu *menu){
+
+    void setMenu(QMenu *menu)
+    {
         this->menu = menu;
     }
-    QMenu * getMenu() const{
+    QMenu *getMenu() const
+    {
         return menu;
     }
-    
-    void setData(const QVariant &data){
+
+    void setData(const QVariant &data)
+    {
         this->data = data;
     }
-    QVariant getData() const{
+    QVariant getData() const
+    {
         return data;
     }
-    
-    void settrayIconType(const TrayIconType trayIconType){
+
+    void settrayIconType(const TrayIconType trayIconType)
+    {
         this->trayIconType = trayIconType;
     }
-    TrayIconType getTrayIconType() const{
+    TrayIconType getTrayIconType() const
+    {
         return trayIconType;
     }
-    
-    void setIconList(const QList<QIcon> &iconList){
+
+    void setIconList(const QList<QIcon> &iconList)
+    {
         this->iconList = iconList;
     }
-    QList<QIcon> getIconList() const{
+    QList<QIcon> getIconList() const
+    {
         return iconList;
     }
-    
-    void appendIcon(const QIcon &icon){
+
+    void appendIcon(const QIcon &icon)
+    {
         this->iconList.append(icon);
     }
-    
-    void setFirstIcon(const QIcon &icon){
-        if(this->iconList.size()){
+
+    void setFirstIcon(const QIcon &icon)
+    {
+        if(this->iconList.size()) {
             this->iconList.removeFirst();
         }
         this->iconList.insert(0, icon);
     }
-    QIcon getFirstIcon() const{
-        if(iconList.isEmpty()){
+    QIcon getFirstIcon() const
+    {
+        if(iconList.isEmpty()) {
             return QIcon();
         }
         return iconList[0];
     }
-    
+
 private:
     int dataType;
     QString id;
@@ -142,20 +163,21 @@ private:
     QString toolTip;
     QMenu *menu;
     QVariant data;
-    
+
     TrayIconType trayIconType;
     QList<QIcon> iconList;
-    
+
 
 };
 
 
-class GUI_LIB_API SystemTrayIconBase :public QSystemTrayIcon{
+class GUI_LIB_API SystemTrayIconBase : public QSystemTrayIcon
+{
     Q_OBJECT
 public:
-    SystemTrayIconBase(QObject * parent = 0);
-    SystemTrayIconBase(const TrayIconData &defaultData, QObject * parent = 0);
-    SystemTrayIconBase(const QIcon & icon, QObject * parent = 0);
+    SystemTrayIconBase(QObject *parent = 0);
+    SystemTrayIconBase(const TrayIconData &defaultData, QObject *parent = 0);
+    SystemTrayIconBase(const QIcon &icon, QObject *parent = 0);
 
     virtual ~SystemTrayIconBase();
 
@@ -184,7 +206,7 @@ public:
     void stop();
 
     void resetAll(const TrayIconData &defaultData = TrayIconData());
-    void resetTrayIcon(const QIcon & icon);
+    void resetTrayIcon(const QIcon &icon);
     void resetContexMenu(QMenu *contextMenu);
     void resetToolTip(const QString &tooltip);
     //        void setDefault(const QIcon &defaultIcon = QIcon(), const TrayIconData &defaultData = TrayIconData());

@@ -1,29 +1,27 @@
-/** 
+/**
  @file  list.h
- @brief ENet list management 
+ @brief ENet list management
 */
 #ifndef __ENET_LIST_H__
 #define __ENET_LIST_H__
 
 #include <stdlib.h>
 
-typedef struct _ENetListNode
-{
-   struct _ENetListNode * next;
-   struct _ENetListNode * previous;
+typedef struct _ENetListNode {
+    struct _ENetListNode *next;
+    struct _ENetListNode *previous;
 } ENetListNode;
 
-typedef ENetListNode * ENetListIterator;
+typedef ENetListNode *ENetListIterator;
 
-typedef struct _ENetList
-{
-   ENetListNode sentinel;
+typedef struct _ENetList {
+    ENetListNode sentinel;
 } ENetList;
 
 extern void enet_list_clear (ENetList *);
 
 extern ENetListIterator enet_list_insert (ENetListIterator, void *);
-extern void * enet_list_remove (ENetListIterator);
+extern void *enet_list_remove (ENetListIterator);
 extern ENetListIterator enet_list_move (ENetListIterator, void *, void *);
 
 extern size_t enet_list_size (ENetList *);

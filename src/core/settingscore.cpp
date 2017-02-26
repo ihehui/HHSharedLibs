@@ -40,11 +40,12 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 
-SettingsCore::SettingsCore(const QString fileBaseName, const QString fileDirPath, QObject* parent )
+SettingsCore::SettingsCore(const QString fileBaseName, const QString fileDirPath, QObject *parent )
     : QSettings( QDir::toNativeSeparators( QString( "%1/%2.ini" ).arg( fileDirPath, fileBaseName) ), QSettings::IniFormat, parent )
 
 {
@@ -52,7 +53,7 @@ SettingsCore::SettingsCore(const QString fileBaseName, const QString fileDirPath
 
 }
 
-SettingsCore::SettingsCore(const QString fileName, Format format, QObject* parent )
+SettingsCore::SettingsCore(const QString fileName, Format format, QObject *parent )
     : QSettings( fileName, format, parent )
 {
 
@@ -75,16 +76,18 @@ QString SettingsCore::getLanguage() const
     return value("MainWindow/Language", QLocale::system().name()).toString();
 }
 
-void SettingsCore::setValueWithEncryption(const QString &settingsKey, const QVariant &value, const QByteArray &encryptionKey){
+void SettingsCore::setValueWithEncryption(const QString &settingsKey, const QVariant &value, const QByteArray &encryptionKey)
+{
     QByteArray destination;
     Cryptography cryptography;
     cryptography.teaCrypto(&destination, value.toByteArray(), encryptionKey, true);
     setValue(settingsKey, QVariant(destination));
 }
 
-QVariant SettingsCore::getValueWithDecryption(const QString &settingsKey, const QByteArray &encryptionKey, const QVariant &defaultValue, bool *ok) const{
-    if(!contains(settingsKey)){
-        if(ok){
+QVariant SettingsCore::getValueWithDecryption(const QString &settingsKey, const QByteArray &encryptionKey, const QVariant &defaultValue, bool *ok) const
+{
+    if(!contains(settingsKey)) {
+        if(ok) {
             *ok = false;
         }
         return defaultValue;
@@ -94,10 +97,10 @@ QVariant SettingsCore::getValueWithDecryption(const QString &settingsKey, const 
     QByteArray destination;
     Cryptography cryptography;
     int ret = cryptography.teaCrypto(&destination, array, encryptionKey, false);
-    if(ok){
+    if(ok) {
         *ok = ret;
     }
-    if(!ret){
+    if(!ret) {
         return defaultValue;
     }
     return QVariant(destination);

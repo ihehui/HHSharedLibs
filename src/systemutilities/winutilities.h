@@ -42,13 +42,14 @@
 #include <Windows.h>
 
 #ifdef __GNUC__
-#define __out
+    #define __out
 #endif
 
 #include "systemutilitieslib.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 //class WM_LIB_API ServiceInfo : public QObject{
 //public:
@@ -70,7 +71,8 @@ namespace HEHUI {
 
 //} ;
 
-class SYSUTIL_LIB_API WinUtilities {
+class SYSUTIL_LIB_API WinUtilities
+{
 
 public:
     WinUtilities();
@@ -136,7 +138,7 @@ public:
     static void regCloseKey(HKEY hKey);
 
     static bool windowsVersionName(QString *versionName);
-    static bool windowsVersionName(wchar_t* str, int bufferSize);
+    static bool windowsVersionName(wchar_t *str, int bufferSize);
     static bool is64BitApplication();
     static void SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo);
     static bool is64BitOS();
@@ -152,7 +154,7 @@ public:
     static bool deleteLocalUser(LPWSTR userName, DWORD *errorCode = 0);
     static bool updateUserPassword(const QString &userName = "", const QString &password = "", DWORD *errorCode = 0, bool activeIfAccountDisabled = false);
 
-    enum UserAccountState{UAS_Unknown, UAS_Disabled, UAS_Enabled};
+    enum UserAccountState {UAS_Unknown, UAS_Disabled, UAS_Enabled};
     static bool setupUserAccountState(const QString &userName,  bool enableAccount, DWORD *errorCode = 0);
     static UserAccountState getUserAccountState(const QString &userName, DWORD *errorCode = 0);
 
@@ -219,8 +221,9 @@ public:
 
 
     //Service
-    typedef struct SERVICE_INFO{
-        SERVICE_INFO(){
+    typedef struct SERVICE_INFO {
+        SERVICE_INFO()
+        {
             processID = 0;
             serviceType = 0xFFFFFFFF;
             startType = 0xFFFFFFFF;
@@ -274,7 +277,7 @@ public:
 
     //GDI+
     //Get image format Clsid
-    static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid);
+    static int GetEncoderClsid(const WCHAR *format, CLSID *pClsid);
     static QByteArray ConvertHBITMAPToJpeg(HBITMAP hbitmap);
     //static QPixmap WinHBITMAPToPixmap(HBITMAP bitmap, bool noAlpha = true);
     //HBITMAP PixmapToWinHBITMAP(const QImage &image, bool noAlpha = true);

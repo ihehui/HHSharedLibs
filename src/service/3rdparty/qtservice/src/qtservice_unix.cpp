@@ -63,14 +63,16 @@ static QString encodeName(const QString &name, bool allowUpper = false)
 {
     QString n = name.toLower();
     QString legal = QLatin1String("abcdefghijklmnopqrstuvwxyz1234567890");
-    if (allowUpper)
+    if (allowUpper) {
         legal += QLatin1String("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    }
     int pos = 0;
     while (pos < n.size()) {
-	if (legal.indexOf(n[pos]) == -1)
-	    n.remove(pos, 1);
-	else
-	    ++pos;
+        if (legal.indexOf(n[pos]) == -1) {
+            n.remove(pos, 1);
+        } else {
+            ++pos;
+        }
     }
     return n;
 }
@@ -80,8 +82,9 @@ static QString login()
     QString l;
     uid_t uid = getuid();
     passwd *pw = getpwuid(uid);
-    if (pw)
+    if (pw) {
         l = QString(pw->pw_name);
+    }
     return l;
 }
 
@@ -96,13 +99,14 @@ static bool sendCmd(const QString &serviceName, const QString &cmd)
     bool retValue = false;
     QtUnixSocket sock;
     if (sock.connectTo(socketPath(serviceName))) {
-        sock.write(QString(cmd+"\r\n").toLatin1().constData());
-	sock.flush();
+        sock.write(QString(cmd + "\r\n").toLatin1().constData());
+        sock.flush();
         sock.waitForReadyRead(-1);
         QString reply = sock.readAll();
-        if (reply == QLatin1String("true"))
+        if (reply == QLatin1String("true")) {
             retValue = true;
-	sock.close();
+        }
+        sock.close();
     }
     return retValue;
 }
@@ -139,8 +143,9 @@ static QString absPath(const QString &path)
 QString QtServiceBasePrivate::filePath() const
 {
     QString ret;
-    if (args.isEmpty())
+    if (args.isEmpty()) {
         return ret;
+    }
     QFileInfo fi(args[0]);
     QDir dir(absPath(args[0]));
     return dir.absoluteFilePath(fi.fileName());
@@ -211,10 +216,12 @@ bool QtServiceController::uninstall()
 
 bool QtServiceController::start(const QStringList &arguments)
 {
-    if (!isInstalled())
+    if (!isInstalled()) {
         return false;
-    if (isRunning())
+    }
+    if (isRunning()) {
         return false;
+    }
     return QProcess::startDetached(serviceFilePath(), arguments);
 }
 
@@ -249,8 +256,9 @@ bool QtServiceController::isInstalled() const
 
     QStringListIterator it(list);
     while (it.hasNext()) {
-        if (it.next() == serviceName())
+        if (it.next() == serviceName()) {
             return true;
+        }
     }
 
     return false;
@@ -259,8 +267,9 @@ bool QtServiceController::isInstalled() const
 bool QtServiceController::isRunning() const
 {
     QtUnixSocket sock;
-    if (sock.connectTo(socketPath(serviceName())))
-	return true;
+    if (sock.connectTo(socketPath(serviceName()))) {
+        return true;
+    }
     return false;
 }
 
@@ -299,8 +308,9 @@ QtServiceSysPrivate::QtServiceSysPrivate()
 
 QtServiceSysPrivate::~QtServiceSysPrivate()
 {
-    if (ident)
-	delete[] ident;
+    if (ident) {
+        delete[] ident;
+    }
 }
 
 void QtServiceSysPrivate::incomingConnection(int socketDescriptor)
@@ -318,7 +328,7 @@ void QtServiceSysPrivate::slotReady()
     QString cmd = getCommand(s);
     while (!cmd.isEmpty()) {
         bool retValue = false;
-	if (cmd == QLatin1String("terminate")) {
+        if (cmd == QLatin1String("terminate")) {
             if (!(serviceFlags & QtServiceBase::CannotBeStopped)) {
                 QtServiceBase::instance()->stop();
                 QCoreApplication::instance()->quit();
@@ -337,18 +347,19 @@ void QtServiceSysPrivate::slotReady()
         } else if (cmd == QLatin1String("alive")) {
             retValue = true;
         } else if (cmd.length() > 4 && cmd.left(4) == QLatin1String("num:")) {
-	    cmd = cmd.mid(4);
+            cmd = cmd.mid(4);
             QtServiceBase::instance()->processCommand(cmd.toInt());
             retValue = true;
-	}
+        }
         QString retString;
-        if (retValue)
+        if (retValue) {
             retString = QLatin1String("true");
-        else
+        } else {
             retString = QLatin1String("false");
+        }
         s->write(retString.toLatin1().constData());
         s->flush();
-	cmd = getCommand(s);
+        cmd = getCommand(s);
     }
 }
 
@@ -362,9 +373,9 @@ QString QtServiceSysPrivate::getCommand(const QTcpSocket *socket)
 {
     int pos = cache[socket].indexOf("\r\n");
     if (pos >= 0) {
-	QString ret = cache[socket].left(pos);
-	cache[socket].remove(0, pos+2);
-	return ret;
+        QString ret = cache[socket].left(pos);
+        cache[socket].remove(0, pos + 2);
+        return ret;
     }
     return "";
 }
@@ -383,8 +394,9 @@ bool QtServiceBasePrivate::sysInit()
 
 void QtServiceBasePrivate::sysSetPath()
 {
-    if (sysd)
+    if (sysd) {
         sysd->setPath(socketPath(controller.serviceName()));
+    }
 }
 
 void QtServiceBasePrivate::sysCleanup()
@@ -435,40 +447,44 @@ bool QtServiceBasePrivate::install(const QString &account, const QString &passwo
 }
 
 void QtServiceBase::logMessage(const QString &message, QtServiceBase::MessageType type,
-			    int, uint, const QByteArray &)
+                               int, uint, const QByteArray &)
 {
-    if (!d_ptr->sysd)
+    if (!d_ptr->sysd) {
         return;
+    }
     int st;
     switch(type) {
-        case QtServiceBase::Error:
-	    st = LOG_ERR;
-	    break;
-        case QtServiceBase::Warning:
-            st = LOG_WARNING;
-	    break;
-        default:
-	    st = LOG_INFO;
+    case QtServiceBase::Error:
+        st = LOG_ERR;
+        break;
+    case QtServiceBase::Warning:
+        st = LOG_WARNING;
+        break;
+    default:
+        st = LOG_INFO;
     }
     if (!d_ptr->sysd->ident) {
         QString tmp = encodeName(serviceName(), true);
-	int len = tmp.toLocal8Bit().size();
-	d_ptr->sysd->ident = new char[len+1];
-	d_ptr->sysd->ident[len] = '\0';
-	::memcpy(d_ptr->sysd->ident, tmp.toLocal8Bit().constData(), len);
+        int len = tmp.toLocal8Bit().size();
+        d_ptr->sysd->ident = new char[len + 1];
+        d_ptr->sysd->ident[len] = '\0';
+        ::memcpy(d_ptr->sysd->ident, tmp.toLocal8Bit().constData(), len);
     }
     openlog(d_ptr->sysd->ident, LOG_PID, LOG_DAEMON);
-    foreach(QString line, message.split('\n'))
+    foreach(QString line, message.split('\n')) {
         syslog(st, "%s", line.toLocal8Bit().constData());
+    }
     closelog();
 }
 
 void QtServiceBase::setServiceFlags(QtServiceBase::ServiceFlags flags)
 {
-    if (d_ptr->serviceFlags == flags)
+    if (d_ptr->serviceFlags == flags) {
         return;
+    }
     d_ptr->serviceFlags = flags;
-    if (d_ptr->sysd)
+    if (d_ptr->sysd) {
         d_ptr->sysd->serviceFlags = flags;
+    }
 }
 

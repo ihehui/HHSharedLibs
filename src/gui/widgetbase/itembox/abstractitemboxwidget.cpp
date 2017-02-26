@@ -41,7 +41,8 @@
 
 #include "abstractitemboxwidget.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 ItemBoxWidgetInterface::ItemBoxWidgetInterface(QWidget *parent, Qt::WindowFlags flags)

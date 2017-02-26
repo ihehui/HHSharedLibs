@@ -29,10 +29,12 @@
 
 #include "user.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-User::User(const QString &userID, const QString & userName, const QString &password, QObject *parent) :
-    UserBase(userID, userName, password, parent) {
+User::User(const QString &userID, const QString &userName, const QString &password, QObject *parent) :
+    UserBase(userID, userName, password, parent)
+{
 
     setVerified(false);
 
@@ -73,7 +75,8 @@ User::User(const QString &userID, const QString & userName, const QString &passw
 
 }
 
-User::~User() {
+User::~User()
+{
     // TODO Auto-generated destructor stub
 }
 

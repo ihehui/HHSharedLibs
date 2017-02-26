@@ -56,7 +56,8 @@
 #include "abstractitemboxwidget.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 // A widget box with a load mode that allows for updating custom widgets.
@@ -77,9 +78,9 @@ public:
 
     // Convenience to find a widget by class name. Empty category matches all
     static bool findItem(const ItemBoxWidgetInterface *ibox,
-                           const QString &itemID,
-                           const QString &category /* = QString()  */,
-                           Item *itemData);
+                         const QString &itemID,
+                         const QString &category /* = QString()  */,
+                         Item *itemData);
 
 private:
     LoadMode m_loadMode;

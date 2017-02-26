@@ -40,19 +40,26 @@
 
 #include "core_lib.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class CORE_LIB_API User : public UserBase
 {
     Q_OBJECT
 
 public:
-    enum Gender{GENDER_UNKNOWN = 0, MALE = 1, FEMALE = 2 };
+    enum Gender {GENDER_UNKNOWN = 0, MALE = 1, FEMALE = 2 };
     User(const QString &userID = "", const QString &userName = "", const QString &password = "", QObject *parent = 0);
     virtual ~User();
 
-    bool isRootMode() const {return rootMode;}
-    void setRootMode(bool rootMode) {this->rootMode = rootMode;}
+    bool isRootMode() const
+    {
+        return rootMode;
+    }
+    void setRootMode(bool rootMode)
+    {
+        this->rootMode = rootMode;
+    }
 
 
 
@@ -60,8 +67,9 @@ public:
     {
         return answerForSecurity;
     }
-    
-    QString getEmailForSecurity() const{
+
+    QString getEmailForSecurity() const
+    {
         return emailForSecurity;
     }
 
@@ -104,13 +112,14 @@ public:
     {
         return gender;
     }
-    
+
     quint8 getAge() const
     {
         return age;
     }
 
-    QDate getBirthday() const{
+    QDate getBirthday() const
+    {
         return birthday;
     }
 
@@ -166,7 +175,7 @@ public:
 
     QString getNickName() const
     {
-        if(nickName.isEmpty()){
+        if(nickName.isEmpty()) {
             return getUserID();
         }
         return nickName;
@@ -202,7 +211,8 @@ public:
         return trueName;
     }
 
-    QString getdescription() const{
+    QString getdescription() const
+    {
         return this->description;
     }
 
@@ -210,42 +220,43 @@ public:
     {
         this->answerForSecurity = answerForSecurity;
     }
-    
-    void setEmailForSecurity(const QString & emailForSecurity){
+
+    void setEmailForSecurity(const QString &emailForSecurity)
+    {
         this->emailForSecurity = emailForSecurity;
     }
 
-    void setBusinessAddress(const QString & businessAddress)
+    void setBusinessAddress(const QString &businessAddress)
     {
         this->businessAddress = businessAddress;
     }
 
-    void setBusinessEmailAddress(const QString & businessEmailAddress)
+    void setBusinessEmailAddress(const QString &businessEmailAddress)
     {
         this->businessEmailAddress = businessEmailAddress;
     }
 
-    void setBusinessFaxNumber(const QString & businessFaxNumber)
+    void setBusinessFaxNumber(const QString &businessFaxNumber)
     {
         this->businessFaxNumber = businessFaxNumber;
     }
 
-    void setBusinessHomepage(const QString & businessHomepage)
+    void setBusinessHomepage(const QString &businessHomepage)
     {
         this->businessHomepage = businessHomepage;
     }
 
-    void setBusinessPhoneNumber(const QString & businessPhoneNumber)
+    void setBusinessPhoneNumber(const QString &businessPhoneNumber)
     {
         this->businessPhoneNumber = businessPhoneNumber;
     }
 
-    void setBusinessZipCode(const QString & businessZipCode)
+    void setBusinessZipCode(const QString &businessZipCode)
     {
         this->businessZipCode = businessZipCode;
     }
 
-    void setCompanyName(const QString & companyName)
+    void setCompanyName(const QString &companyName)
     {
         this->companyName = companyName;
     }
@@ -254,27 +265,28 @@ public:
     {
         this->gender = gender;
     }
-    
+
     void setAge(quint8 age)
     {
         this->age = age;
     }
 
-    void setBirthday(const QDate &date){
+    void setBirthday(const QDate &date)
+    {
         this->birthday = date;
     }
 
-    void setHomeAddress(const QString & homeAddress)
+    void setHomeAddress(const QString &homeAddress)
     {
         this->homeAddress = homeAddress;
     }
 
-    void setHomePhoneNumber(const QString & homePhoneNumber)
+    void setHomePhoneNumber(const QString &homePhoneNumber)
     {
         this->homePhoneNumber = homePhoneNumber;
     }
 
-    void setHomeZipCode(const QString & homeZipCode)
+    void setHomeZipCode(const QString &homeZipCode)
     {
         this->homeZipCode = homeZipCode;
     }
@@ -284,12 +296,12 @@ public:
         this->face = face;
     }
 
-    void setJobTitle(const QString & jobTitle)
+    void setJobTitle(const QString &jobTitle)
     {
         this->jobTitle = jobTitle;
     }
 
-    void setLastLoginExternalHostAddress(const QString & lastLoginHostAddress)
+    void setLastLoginExternalHostAddress(const QString &lastLoginHostAddress)
     {
         this->lastLoginExternalHostAddress = lastLoginHostAddress;
     }
@@ -313,22 +325,22 @@ public:
         this->loginTimes = loginTimes;
     }
 
-    void setNickName(const QString & nickName)
+    void setNickName(const QString &nickName)
     {
         this->nickName = nickName;
     }
 
-    void setPersonalEmailAddress(const QString & personalEmailAddress)
+    void setPersonalEmailAddress(const QString &personalEmailAddress)
     {
         this->personalEmailAddress = personalEmailAddress;
     }
 
-    void setPersonalHomepage(const QString & personalHomepage)
+    void setPersonalHomepage(const QString &personalHomepage)
     {
         this->personalHomepage = personalHomepage;
     }
 
-    void setQuestionForSecurity(const QString & questionForSecurity)
+    void setQuestionForSecurity(const QString &questionForSecurity)
     {
         this->questionForSecurity = questionForSecurity;
     }
@@ -338,12 +350,13 @@ public:
         this->registrationTime = registrationTime;
     }
 
-    void setTrueName(const QString & trueName)
+    void setTrueName(const QString &trueName)
     {
         this->trueName = trueName;
     }
 
-    void setDescription(const QString & description){
+    void setDescription(const QString &description)
+    {
         this->description = description;
     }
 

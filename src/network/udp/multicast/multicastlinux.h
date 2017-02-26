@@ -49,7 +49,8 @@
 #include "ipmulticastsocketbase.h"
 
 
-class IPMulticastLinux: public IPMulticastSocketBase {
+class IPMulticastLinux: public IPMulticastSocketBase
+{
     Q_OBJECT
 public:
     IPMulticastLinux(QObject *parent);
@@ -73,11 +74,11 @@ private slots:
 
 private:
     //	QUdpSocket * udpSocket;
-    long count,Receivedpackets;
+    long count, Receivedpackets;
 
 
 
-    char* ip;
+    char *ip;
     int listenPort;
     int socket_descriptor;
     struct ip_mreq command;

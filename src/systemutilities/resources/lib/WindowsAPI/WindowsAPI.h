@@ -73,13 +73,13 @@ extern int runAsForDesktopApplication(LPWSTR lpszUsername, LPWSTR lpszDomain, LP
 //
 // result: 成功时返回字符串的长度（一般为12）。失败时返回0.
 // pvendor: 接收厂商信息的字符串缓冲区。至少为13字节.
-extern int cpu_getVendor(char* pvendor);
+extern int cpu_getVendor(char *pvendor);
 
 // 取得CPU商标（Brand）.
 //
 // result: 成功时返回字符串的长度（一般为48）。失败时返回0.
 // pbrand: 接收商标信息的字符串缓冲区。至少为49字节.
-extern int cpu_getName(char* pbrand);
+extern int cpu_getName(char *pbrand);
 
 // 取得CPU序列号（PSN）.
 extern void cpu_getPSN(char *pPSN);
@@ -88,7 +88,7 @@ extern void cpu_getPSN(char *pPSN);
 
 
 //取得物理硬盘型号和序列号
-extern BOOL GetPhysicDriveSerialNumber(char* pModelNo, char* pSerialNo, unsigned int driveIndex = 0);
+extern BOOL GetPhysicDriveSerialNumber(char *pModelNo, char *pSerialNo, unsigned int driveIndex = 0);
 
 
 

@@ -51,22 +51,22 @@
 
 #ifdef Q_OS_WIN32
 
-#include <Lm.h>
-#include <Tlhelp32.h>
-#include <Lmjoin.h>
+    #include <Lm.h>
+    #include <Tlhelp32.h>
+    #include <Lmjoin.h>
 
-#include <Userenv.h>
+    #include <Userenv.h>
 
-//#include "autoit3.h"
+    //#include "autoit3.h"
 
-const int MaxUserAccountNameLength = 20;
-const int MaxUserPasswordLength = LM20_PWLEN;
-const int MaxUserCommentLength = 256;
-const int MaxGroupNameLength = 256;
+    const int MaxUserAccountNameLength = 20;
+    const int MaxUserPasswordLength = LM20_PWLEN;
+    const int MaxUserCommentLength = 256;
+    const int MaxGroupNameLength = 256;
 
-#include "WindowsAPI.h"
+    #include "WindowsAPI.h"
 
-#include "winutilities.h"
+    #include "winutilities.h"
 
 #endif
 
@@ -76,7 +76,8 @@ using namespace std;
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 WindowsManagement::WindowsManagement(QObject *parent) :
@@ -104,7 +105,8 @@ WindowsManagement::WindowsManagement(QObject *parent) :
 }
 
 
-bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, const QString &userPassword, const QString &userComment, const QString &emails, const QString &dept){
+bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, const QString &userPassword, const QString &userComment, const QString &emails, const QString &dept)
+{
 
     QMutexLocker locker(&mutex);
 
@@ -119,25 +121,25 @@ bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, co
 
 
 
-    wchar_t id[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+    wchar_t id[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
     wcscpy(id, userid.c_str());
 
-    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+    wchar_t pwd[MaxUserPasswordLength * sizeof(wchar_t) + 1];
     wcscpy(pwd, password.c_str());
 
-    wchar_t cmt[MaxUserCommentLength*sizeof(wchar_t)+1];
+    wchar_t cmt[MaxUserCommentLength * sizeof(wchar_t) + 1];
     wcscpy(cmt, comment.c_str());
 
     emit signalProgressUpdate(QString(tr("Adding user %1 to local system...").arg(userName)), 0);
     QCoreApplication::processEvents();
-    if(!WinUtilities::createLocalUser(id, pwd, cmt)){
+    if(!WinUtilities::createLocalUser(id, pwd, cmt)) {
         emit signalAddingUserJobDone(false);
         return false;
     }
 
     emit signalProgressUpdate(QString(tr("Adding user %1 to local 'Administrators' group...").arg(userName)), 15);
     QCoreApplication::processEvents();
-    if(!WinUtilities::addUserToLocalGroup(id, L"Administrators")){
+    if(!WinUtilities::addUserToLocalGroup(id, L"Administrators")) {
         emit signalAddingUserJobDone(false);
         return false;
     }
@@ -149,14 +151,14 @@ bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, co
     settings.beginGroup(userName);
     settings.setValue("Dept", dept);
     settings.setValue("EmailAccount", emails.section("@", 0, 0));
-    if(emails.contains("sitoydg.com", Qt::CaseInsensitive)){
+    if(emails.contains("sitoydg.com", Qt::CaseInsensitive)) {
         settings.setValue("IntEmail", 1);
-    }else{
+    } else {
         settings.setValue("IntEmail", 0);
     }
-    if(emails.contains("sitoy.com", Qt::CaseInsensitive)){
+    if(emails.contains("sitoy.com", Qt::CaseInsensitive)) {
         settings.setValue("ExtEmail", 1);
-    }else{
+    } else {
         settings.setValue("ExtEmail", 0);
     }
     settings.setValue("Location", quint16(location));
@@ -179,24 +181,24 @@ bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, co
     emit signalProgressUpdate(QString(tr("Join workgroup ...")), 70);
     QCoreApplication::processEvents();
     ok = WinUtilities::joinWorkgroup(dept);
-    if(!ok){
+    if(!ok) {
         m_outputMsgs.append(m_lastErrorString);
     }
 
     emit signalProgressUpdate(QString(tr("Set Starting up with M$ windows ...")), 85);
     QCoreApplication::processEvents();
     ok = setUserAutoLogin(userName, userPassword, true);
-    if(!ok){
+    if(!ok) {
         m_outputMsgs.append(m_lastErrorString);
     }
 
     QString outlookInstalledPathString = outlookInstalledPath();
-    if(QFileInfo(outlookInstalledPathString).exists()){
+    if(QFileInfo(outlookInstalledPathString).exists()) {
         ok = setStartupWithWin(outlookInstalledPathString, "", "Email", true);
-    }else{
-        ok = setStartupWithWin(runningNT6OS?"wlmail.exe":"msimn.exe" , "", "Email", true);
+    } else {
+        ok = setStartupWithWin(runningNT6OS ? "wlmail.exe" : "msimn.exe" , "", "Email", true);
     }
-    if(!ok){
+    if(!ok) {
         m_outputMsgs.append(m_lastErrorString);
     }
     //    ok = setStartupWithWin(QCoreApplication::applicationFilePath(), "", "", true);
@@ -225,13 +227,15 @@ bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, co
 
 
 
-QStringList WindowsManagement::outputMessages() const{
+QStringList WindowsManagement::outputMessages() const
+{
     return m_outputMsgs;
 }
 
 
 #ifdef Q_OS_WIN32
-bool WindowsManagement::enablePrivilege(LPCTSTR privilegeName){
+bool WindowsManagement::enablePrivilege(LPCTSTR privilegeName)
+{
     m_lastErrorString = "";
 
     HANDLE hToken;
@@ -247,7 +251,7 @@ bool WindowsManagement::enablePrivilege(LPCTSTR privilegeName){
     rv = (GetLastError() == ERROR_SUCCESS);
     CloseHandle(hToken);
 
-    if(!rv){
+    if(!rv) {
         m_lastErrorString = tr("Can Not Adjust Token Privileges!");
     }
 
@@ -262,7 +266,7 @@ bool WindowsManagement::isNT6OS()
     OSVERSIONINFO  osvi;
     osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
     GetVersionEx (&osvi);
-    if(osvi.dwMajorVersion > 5){
+    if(osvi.dwMajorVersion > 5) {
         return true;
     }
 
@@ -271,7 +275,8 @@ bool WindowsManagement::isNT6OS()
 
 }
 
-void WindowsManagement::freeMemory(){
+void WindowsManagement::freeMemory()
+{
 
 #if defined(Q_OS_WIN32)
     //SetProcessWorkingSetSize(GetCurrentProcess(), 0xFFFFFFFF, 0xFFFFFFFF);
@@ -302,26 +307,24 @@ void WindowsManagement::freeMemory(){
 //}
 
 
-QString WindowsManagement::getExeFileVersion(const QString &exeFileName){
+QString WindowsManagement::getExeFileVersion(const QString &exeFileName)
+{
     QString versionString = "0.0.0.0";
 
-    if(!QFileInfo(exeFileName).exists()){
+    if(!QFileInfo(exeFileName).exists()) {
         return versionString;
     }
 
     VS_FIXEDFILEINFO *VInfo;
-    unsigned int i=GetFileVersionInfoSizeW(exeFileName.toStdWString().c_str() ,0);
-    if (i)
-    {
-        wchar_t *ver=new wchar_t [i+1];
-        int ok= GetFileVersionInfoW(exeFileName.toStdWString().c_str(), 0, i, ver);
+    unsigned int i = GetFileVersionInfoSizeW(exeFileName.toStdWString().c_str() , 0);
+    if (i) {
+        wchar_t *ver = new wchar_t [i + 1];
+        int ok = GetFileVersionInfoW(exeFileName.toStdWString().c_str(), 0, i, ver);
 
-        if (ok)
-        {
+        if (ok) {
             wchar_t nameBuffer[4];
             wcscpy(nameBuffer, L"\\");
-            if (VerQueryValueW(ver, nameBuffer, (LPVOID*)&VInfo, &i))
-            {
+            if (VerQueryValueW(ver, nameBuffer, (LPVOID *)&VInfo, &i)) {
                 QStringList versionStrings;
                 versionStrings.append(QString::number(VInfo->dwFileVersionMS >> 16));
                 versionStrings.append(QString::number(VInfo->dwFileVersionMS & 0x00ff));
@@ -428,15 +431,16 @@ QString WindowsManagement::getExeFileVersion(const QString &exeFileName){
 
 
 
-bool WindowsManagement::isUserAutoLogin(){
+bool WindowsManagement::isUserAutoLogin()
+{
     m_lastErrorString = "";
 
     QString value = "0";
     bool ok = WinUtilities::regRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AutoAdminLogon", &value, true);
-    if(!ok){
+    if(!ok) {
         return false;
     }
-    qDebug()<<"value:"<<value;
+    qDebug() << "value:" << value;
     return value.toInt();
 }
 
@@ -445,32 +449,33 @@ bool WindowsManagement::setUserAutoLogin(const QString &userName, const QString 
 
     m_lastErrorString = "";
 
-    if(!m_isAdmin){
+    if(!m_isAdmin) {
         m_lastErrorString = tr("Administrator Privilege Required!");
         return false;
     }
 
     QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon";
 
-    bool ok = WinUtilities::regSetValue(key, "AutoAdminLogon", autoLogin?"1":"0", REG_SZ, true);
-    if(!ok){
+    bool ok = WinUtilities::regSetValue(key, "AutoAdminLogon", autoLogin ? "1" : "0", REG_SZ, true);
+    if(!ok) {
         m_lastErrorString = tr("Can not set 'AutoAdminLogon' for 'AutoAdminLogon'!");
     }
 
-    ok = WinUtilities::regSetValue(key, "DefaultUserName", autoLogin?userName:"", REG_SZ, true);
-    if(!ok){
+    ok = WinUtilities::regSetValue(key, "DefaultUserName", autoLogin ? userName : "", REG_SZ, true);
+    if(!ok) {
         m_lastErrorString = tr("Can not set 'DefaultUserName' for 'AutoAdminLogon'!");
     }
 
-    ok = WinUtilities::regSetValue(key, "DefaultPassword", autoLogin?password:"", REG_SZ, true);
-    if(!ok){
+    ok = WinUtilities::regSetValue(key, "DefaultPassword", autoLogin ? password : "", REG_SZ, true);
+    if(!ok) {
         m_lastErrorString = tr("Can not set 'DefaultPassword' for 'AutoAdminLogon'!");
     }
 
     return ok;
 }
 
-bool WindowsManagement::initNewSitoyUser(){
+bool WindowsManagement::initNewSitoyUser()
+{
     QMutexLocker locker(&mutex);
 
     qApp->processEvents();
@@ -484,7 +489,7 @@ bool WindowsManagement::initNewSitoyUser(){
 
     QSettings *ini = new QSettings(userInfoFilePath(), QSettings::IniFormat, this);
     ini->beginGroup(userName);
-    if(!ini->contains("Dept")){
+    if(!ini->contains("Dept")) {
         m_lastErrorString = tr("Can not find user info!");
         emit signalInitializingUserJobDone(false);
         return false;
@@ -506,23 +511,27 @@ bool WindowsManagement::initNewSitoyUser(){
     emit signalProgressUpdate(tr( "Setting up email accounts ..."), 20);
 
     QString outlookInstalledPathString = outlookInstalledPath();
-    if(QFileInfo(outlookInstalledPathString).exists()){
+    if(QFileInfo(outlookInstalledPathString).exists()) {
         emit signalProcessOutputUpdated(tr("Setting Up Outlook Mail Account"));
 
-        if(hasIntEmail){addOutlookMailAccount(userName, dept, true, "", emailAccount);}
-        if(hasExeEmail){addOutlookMailAccount(userName, dept, false, "", emailAccount);}
-    }else{
+        if(hasIntEmail) {
+            addOutlookMailAccount(userName, dept, true, "", emailAccount);
+        }
+        if(hasExeEmail) {
+            addOutlookMailAccount(userName, dept, false, "", emailAccount);
+        }
+    } else {
         QString storeRoot;
         //if(homeDrive.UpperCase() == "C:\\" ){
-        if(getDiskFreeSpace("G:\\")/(1024*1024*1024) > 5){
+        if(getDiskFreeSpace("G:\\") / (1024 * 1024 * 1024) > 5) {
             storeRoot = "G:\\Email";
-        }else if(getDiskFreeSpace("F:\\")/(1024*1024*1024) >= 5){
+        } else if(getDiskFreeSpace("F:\\") / (1024 * 1024 * 1024) >= 5) {
             storeRoot = "F:\\Email";
-        }else if(getDiskFreeSpace("E:\\")/(1024*1024*1024) >= 5){
+        } else if(getDiskFreeSpace("E:\\") / (1024 * 1024 * 1024) >= 5) {
             storeRoot = "E:\\Email";
-        }else if(getDiskFreeSpace("D:\\")/(1024*1024*1024) >= 5){
+        } else if(getDiskFreeSpace("D:\\") / (1024 * 1024 * 1024) >= 5) {
             storeRoot = "D:\\Email";
-        }else{
+        } else {
             storeRoot = "C:\\Email";
         }
 
@@ -533,24 +542,32 @@ bool WindowsManagement::initNewSitoyUser(){
         emit signalProcessOutputUpdated(tr("Email Store Root:'%1'").arg(storeRoot));
 
 
-        if(runningNT6OS){
+        if(runningNT6OS) {
             emit signalProcessOutputUpdated(tr("Setting Up Live Mail Account"));
 
-            if(hasIntEmail){addLiveMailAccount(userName, dept, true, storeRoot, emailAccount);}
-            if(hasExeEmail){addLiveMailAccount(userName, dept, false, storeRoot, emailAccount);}
-        }else{
+            if(hasIntEmail) {
+                addLiveMailAccount(userName, dept, true, storeRoot, emailAccount);
+            }
+            if(hasExeEmail) {
+                addLiveMailAccount(userName, dept, false, storeRoot, emailAccount);
+            }
+        } else {
             emit signalProcessOutputUpdated(tr("Setting Up OE Mail Account"));
 
-            if(hasIntEmail){addOEMailAccount(userName, dept, true, storeRoot, emailAccount);}
-            if(hasExeEmail){addOEMailAccount(userName, dept, false, storeRoot, emailAccount);}
+            if(hasIntEmail) {
+                addOEMailAccount(userName, dept, true, storeRoot, emailAccount);
+            }
+            if(hasExeEmail) {
+                addOEMailAccount(userName, dept, false, storeRoot, emailAccount);
+            }
         }
 
-        if(getFileSystemName(storeRoot).toUpper() == "NTFS"){
+        if(getFileSystemName(storeRoot).toUpper() == "NTFS") {
             emit signalProcessOutputUpdated(tr("Setting Up File Permissions"));
 
             QProcess process(this);
             process.setProcessChannelMode(QProcess::MergedChannels);
-            if(runningNT6OS){
+            if(runningNT6OS) {
                 process.start(QString("takeown.exe /R /D Y /F %1").arg(storeRoot));
                 process.waitForFinished();
             }
@@ -564,7 +581,7 @@ bool WindowsManagement::initNewSitoyUser(){
 
     emit signalProgressUpdate(tr( "Setting up IME ..."), 30);
 
-    if(!setupIME()){
+    if(!setupIME()) {
         //m_outputMsgs.append(tr("Can not setup IME"));
         m_outputMsgs.append(m_lastErrorString);
     }
@@ -618,11 +635,12 @@ bool WindowsManagement::initNewSitoyUser(){
 
 }
 
-bool WindowsManagement::userNeedInit(const QString &userName){
+bool WindowsManagement::userNeedInit(const QString &userName)
+{
 
     QString m_userName = userName;
 
-    if(m_userName.isEmpty()){
+    if(m_userName.isEmpty()) {
         m_userName = m_currentUserName;
     }
 
@@ -632,26 +650,27 @@ bool WindowsManagement::userNeedInit(const QString &userName){
     //        return false;
     //     }
     m_lastErrorString = "";
-    return ini.contains(m_userName+"/Dept");
+    return ini.contains(m_userName + "/Dept");
 }
 
-float WindowsManagement::getDiskFreeSpace(const QString &directoryName){
+float WindowsManagement::getDiskFreeSpace(const QString &directoryName)
+{
 
     m_lastErrorString = "";
 
     ULARGE_INTEGER freeBytesAvailableToUser, totalBytes, totalFreeBytes;
 
-    if(GetDiskFreeSpaceExW(directoryName.toStdWString().c_str(), &freeBytesAvailableToUser, &totalBytes, &totalFreeBytes))
-    {
+    if(GetDiskFreeSpaceExW(directoryName.toStdWString().c_str(), &freeBytesAvailableToUser, &totalBytes, &totalFreeBytes)) {
         return (float)freeBytesAvailableToUser.QuadPart;
-    }else{
+    } else {
         m_lastErrorString = tr("Can not get disk free space!");
         return 0.0;
     }
 
 }
 
-QString WindowsManagement::lastError() const{
+QString WindowsManagement::lastError() const
+{
     return m_lastErrorString;
 }
 
@@ -678,10 +697,10 @@ QString WindowsManagement::lastError() const{
 //    QStringList groups;
 //    WinUtilities::getLocalGroupsTheUserBelongs(&groups, userName);
 //    //qWarning()<<QString("User:%1 Groups:%2").arg(userName).arg(groups.join(","));
-    
+
 //    bool userIsAdmin = groups.contains("Administrators", Qt::CaseInsensitive);
 //    //qWarning()<<QString(" %1 is admin? %2").arg(name).arg(userIsAdmin);
-    
+
 //    return userIsAdmin;
 
 //}
@@ -1236,12 +1255,13 @@ QString WindowsManagement::lastError() const{
 
 //}
 
-QString WindowsManagement::userInfoFilePath(){
+QString WindowsManagement::userInfoFilePath()
+{
     DWORD nSize = 256;
     LPWSTR windowsDir = new wchar_t[nSize];
 
     int result = GetEnvironmentVariableW (L"WINDIR", windowsDir, nSize);
-    if(result == 0){
+    if(result == 0) {
         QString("c:/windows").toWCharArray(windowsDir);
         //windowsDir = L"c:/windows";
     }
@@ -1255,7 +1275,8 @@ QString WindowsManagement::userInfoFilePath(){
     return path;
 }
 
-QStringList WindowsManagement::localGroups() {
+QStringList WindowsManagement::localGroups()
+{
     QStringList groups;
 
     //DWORD dwLevel = 0;
@@ -1271,29 +1292,24 @@ QStringList WindowsManagement::localGroups() {
     LPLOCALGROUP_INFO_0 pBuf = NULL;
     LPLOCALGROUP_INFO_0 pTmpBuf;
 
-    do // begin do
-    {
+    do { // begin do
         //
         nStatus = NetLocalGroupEnum(
-                    NULL,
-                    0,
-                    (LPBYTE*)&pBuf,
-                    dwPrefMaxLen,
-                    &dwEntriesRead,
-                    &dwTotalEntries,
-                    &dwResumeHandle);
+                      NULL,
+                      0,
+                      (LPBYTE *)&pBuf,
+                      dwPrefMaxLen,
+                      &dwEntriesRead,
+                      &dwTotalEntries,
+                      &dwResumeHandle);
         //
-        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA))
-        {
-            if ((pTmpBuf = pBuf) != NULL)
-            {
+        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)) {
+            if ((pTmpBuf = pBuf) != NULL) {
                 //
-                for (i = 0; (i < dwEntriesRead); i++)
-                {
+                for (i = 0; (i < dwEntriesRead); i++) {
                     Q_ASSERT(pTmpBuf != NULL);
 
-                    if (pTmpBuf == NULL)
-                    {
+                    if (pTmpBuf == NULL) {
                         fprintf(stderr, "An access violation has occurred\n");
                         break;
                     }
@@ -1307,14 +1323,13 @@ QStringList WindowsManagement::localGroups() {
             }
         }
 
-        else{
-            qDebug()<<"A system error has occurred!";
+        else {
+            qDebug() << "A system error has occurred!";
             //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
         }
 
         //
-        if (pBuf != NULL)
-        {
+        if (pBuf != NULL) {
             NetApiBufferFree(pBuf);
             pBuf = NULL;
         }
@@ -1322,8 +1337,9 @@ QStringList WindowsManagement::localGroups() {
 
     while (nStatus == ERROR_MORE_DATA); // end do
 
-    if (pBuf != NULL)
+    if (pBuf != NULL) {
         NetApiBufferFree(pBuf);
+    }
 
     //fprintf(stderr, "Total of %d groups\n\n", dwTotalCount);
 
@@ -1509,7 +1525,7 @@ QStringList WindowsManagement::localGroups() {
 //        return true;
 //        break;
 //    case ERROR_NO_SUCH_MEMBER:
-        
+
 //        //qWarning()<<"User '"<<userName<<"' does not exist.";
 //        //printf("User does not exist.\n");
 //        m_lastErrorString = tr("User '%1' does not exist!").arg(QString::fromWCharArray(userName));
@@ -2059,12 +2075,13 @@ QStringList WindowsManagement::localGroups() {
 //}
 
 
-bool WindowsManagement::addConnectionToNetDrive(){
+bool WindowsManagement::addConnectionToNetDrive()
+{
 
     QString labelStr = "";
     QString pathStr = "";
 
-    switch(location){
+    switch(location) {
     case No1_Branch_Factory:
     case No2_Branch_Factory:
     case No3_Branch_Factory:
@@ -2083,11 +2100,11 @@ bool WindowsManagement::addConnectionToNetDrive(){
     }
 
     //           QString labelStr = QString("S:");
-    wchar_t label[3*sizeof(wchar_t)+1];
+    wchar_t label[3 * sizeof(wchar_t) + 1];
     wcscpy(label, labelStr.toStdWString().c_str());
 
     //           QString pathStr = QString("\\\\200.200.200.21\\Sys");
-    wchar_t path[MAX_PATH*sizeof(wchar_t)+1];
+    wchar_t path[MAX_PATH * sizeof(wchar_t) + 1];
     wcscpy(path, pathStr.toStdWString().c_str());
 
 
@@ -2105,31 +2122,31 @@ bool WindowsManagement::addConnectionToNetDrive(){
         //printf("Net Drive successfully connected.\n");
         m_lastErrorString = "";
         return true;
-        // break;
+    // break;
     case ERROR_ACCESS_DENIED:
         //printf("ACCESS DENIED.\n");
-        qDebug()<<"ACCESS DENIED";
+        qDebug() << "ACCESS DENIED";
         m_lastErrorString = tr("ACCESS DENIED");
         return false;
-        // break;
+    // break;
     case ERROR_NO_NETWORK:
         //printf("NO NETWORK.\n");
-        qDebug()<<"NO NETWORK";
+        qDebug() << "NO NETWORK";
         m_lastErrorString = tr("NO NETWORK");
         return false;
     case ERROR_NO_NET_OR_BAD_PATH:
         //printf("NO NET OR BAD PATH.\n");
-        qDebug()<<"NO NET OR BAD PATH";
+        qDebug() << "NO NET OR BAD PATH";
         m_lastErrorString = tr("NO NET OR BAD PATH");
         return false;
     case ERROR_BAD_NET_NAME:
         //printf("BAD NET NAME.\n");
-        qDebug()<<"BAD NET NAME";
+        qDebug() << "BAD NET NAME";
         m_lastErrorString = tr("BAD NET NAME");
         return false;
     default:
         //printf("An error occured while connecting to network drive: %d\n", err);
-        qDebug()<<"An error occured while connecting to network drive: " <<err;
+        qDebug() << "An error occured while connecting to network drive: " << err;
 
         m_lastErrorString = tr("An error occured while connecting to network drive! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
         return false;
@@ -2138,7 +2155,8 @@ bool WindowsManagement::addConnectionToNetDrive(){
 
 }
 
-bool WindowsManagement::addPrinterConnections(const QString &department){
+bool WindowsManagement::addPrinterConnections(const QString &department)
+{
 
     m_lastErrorString = "";
 
@@ -2146,45 +2164,43 @@ bool WindowsManagement::addPrinterConnections(const QString &department){
     QString printer1 = "";
     QString printer2 = "";
 
-    if(location == LEATHER_PRODUCTS_FACTORY_YD){
+    if(location == LEATHER_PRODUCTS_FACTORY_YD) {
         printerServer = QString("\\\\193.168.2.1\\");
-    }else{
+    } else {
         printerServer = QString("\\\\200.200.200.3\\");
     }
 
-    switch(location){
-    case No1_Branch_Factory:
-    {
-        if(department.toLower() == "sales"){
+    switch(location) {
+    case No1_Branch_Factory: {
+        if(department.toLower() == "sales") {
             printer1 = "RICOHAfi2F01";
             printer2 = "RICOHAfi2F02";
-        }else{
+        } else {
             QString deptPrefix = department.left(3).toLower();
-            if(deptPrefix == "pmc" || deptPrefix == "acc" || deptPrefix == "pla" || deptPrefix == "pur"){
+            if(deptPrefix == "pmc" || deptPrefix == "acc" || deptPrefix == "pla" || deptPrefix == "pur") {
                 printer1 = "RICOHA1045(3F)";
             }
-            if(deptPrefix == "adm"){
+            if(deptPrefix == "adm") {
                 printer1 = "RICOHAfi(1f)";
                 printer2 = "RICOHA2238c";
             }
 
         }
     }
-        break;
-    case No2_Branch_Factory:
-    {
+    break;
+    case No2_Branch_Factory: {
         printer1 = "RICOHAfi(new)";
         //            if(deptPrefix == "acc"){
         //              printer2 = "RICOHA2238c";
         //            }
     }
-        break;
+    break;
     case No3_Branch_Factory:
         printer1 = "RICOHAfiYQ";
         break;
-        //case No4_Branch_Factory:
-        //    printer1 = "RICOHAfiYQ";
-        //    break;
+    //case No4_Branch_Factory:
+    //    printer1 = "RICOHAfiYQ";
+    //    break;
     case LEATHER_PRODUCTS_FACTORY_YD:
         printer1 = "ar-350";
         break;
@@ -2195,27 +2211,27 @@ bool WindowsManagement::addPrinterConnections(const QString &department){
     //    qDebug()<<"printerServer:"<<printerServer<<" printer1:"<<printer1;
 
     bool ok = false;
-    if(!printer1.isEmpty()){
+    if(!printer1.isEmpty()) {
         QString printerStr = printerServer + printer1;
-        wchar_t printer[MAX_PATH*sizeof(wchar_t)+1];
+        wchar_t printer[MAX_PATH * sizeof(wchar_t) + 1];
         wcscpy(printer, printerStr.toStdWString().c_str());
         ok = AddPrinterConnectionW(printer);
-        if(!ok){
+        if(!ok) {
             //printf("Error occured while connecting to network printer '%s'! Error code: %d\n", printer, GetLastError());
-            qDebug()<< QString("An error occured while connecting to network printer '%1'! Error code:%2").arg(printer1).arg(GetLastError());
+            qDebug() << QString("An error occured while connecting to network printer '%1'! Error code:%2").arg(printer1).arg(GetLastError());
             m_lastErrorString = tr("An error occured while connecting to network printer '%1'! Error code: %2").arg(printer1).arg(GetLastError());
         }
 
     }
 
-    if(!printer2.isEmpty()){
+    if(!printer2.isEmpty()) {
         QString printerStr = printerServer + printer2;
-        wchar_t printer[MAX_PATH*sizeof(wchar_t)+1];
+        wchar_t printer[MAX_PATH * sizeof(wchar_t) + 1];
         wcscpy(printer, printerStr.toStdWString().c_str());
         ok = AddPrinterConnectionW(printer);
-        if(!ok){
+        if(!ok) {
             //printf("An error occured while connecting to network printer '%s'! %d\n", printer, GetLastError());
-            qDebug()<< QString("An error occured while connecting to network printer '%1'! Error code:%2").arg(printer2).arg(GetLastError());
+            qDebug() << QString("An error occured while connecting to network printer '%1'! Error code:%2").arg(printer2).arg(GetLastError());
             m_lastErrorString += tr("\nAn error occured while connecting to network printer '%1'! Error code: %2").arg(printer2).arg(GetLastError());
         }
 
@@ -2224,11 +2240,12 @@ bool WindowsManagement::addPrinterConnections(const QString &department){
     return ok;
 }
 
-bool WindowsManagement::setupIME(){
+bool WindowsManagement::setupIME()
+{
     qApp->processEvents();
     m_lastErrorString = "";
 
-    if(QLocale::system().name() == "zh_CN"){
+    if(QLocale::system().name() == "zh_CN") {
         return true;
     }
 
@@ -2242,20 +2259,20 @@ bool WindowsManagement::setupIME(){
     QStringList imeKeys;
     WinUtilities::regEnumKey(keyName, &imeKeys);
     foreach (QString imeKey, imeKeys) {
-        if(imeKey.length() != 8){
+        if(imeKey.length() != 8) {
             continue;
         }
         QString imeKey2 = keyName + "\\" + imeKey;
         imeFileValue = "";
         WinUtilities::regRead(imeKey2, imeFileKey, &imeFileValue);
-        if(imeFileValue == "WB.IME"){
+        if(imeFileValue == "WB.IME") {
             wbID = imeKey;
-            qDebug()<<"wbID:"<<wbID;
+            qDebug() << "wbID:" << wbID;
             break;
         }
     }
 
-    if(wbID.isEmpty()){
+    if(wbID.isEmpty()) {
         m_lastErrorString = tr("Can Not Find WB IME Key");
         return false;
     }
@@ -2275,9 +2292,9 @@ bool WindowsManagement::isStartupWithWin(const QString &applicationFilePath, con
 
     QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
     QString valueName = "";
-    if(valueNameString.trimmed().isEmpty()){
+    if(valueNameString.trimmed().isEmpty()) {
         valueName = applicationFilePath;
-    }else{
+    } else {
         valueName = valueNameString;
     }
 
@@ -2285,13 +2302,13 @@ bool WindowsManagement::isStartupWithWin(const QString &applicationFilePath, con
     WinUtilities::regRead(key, valueName, &valueString, true);
 
     QString targetString = QDir::toNativeSeparators(applicationFilePath);
-    if(!parameters.trimmed().isEmpty()){
+    if(!parameters.trimmed().isEmpty()) {
         targetString += QString(" " + parameters);
     }
 
-    if(valueString == targetString){
+    if(valueString == targetString) {
         return true;
-    }else{
+    } else {
         return false;
     }
 
@@ -2301,7 +2318,7 @@ bool WindowsManagement::setStartupWithWin(const QString &applicationFilePath, co
 {
     m_lastErrorString = "";
 
-    if(!m_isAdmin){
+    if(!m_isAdmin) {
         m_lastErrorString = tr("Administrator Privilege Required!");
         return false;
     }
@@ -2310,25 +2327,25 @@ bool WindowsManagement::setStartupWithWin(const QString &applicationFilePath, co
 
     QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
     QString valueName;
-    if(valueNameString.trimmed().isEmpty()){
+    if(valueNameString.trimmed().isEmpty()) {
         valueName = nativeApplicationFilePath;
-    }else{
+    } else {
         valueName = valueNameString;
     }
 
     bool ok = false;
-    if(startupWithWin){
+    if(startupWithWin) {
         QString valueString = nativeApplicationFilePath;
-        if(!parameters.trimmed().isEmpty()){
+        if(!parameters.trimmed().isEmpty()) {
             valueString += QString(" " + parameters);
         }
         ok = WinUtilities::regSetValue(key, valueName, valueString, REG_SZ, true);
-    }else{
+    } else {
         ok = WinUtilities::regDeleteValue(key, valueName, true);
     }
 
-    if(!ok){
-        m_lastErrorString = tr("Failure writing to the system registry! Can not %1 '%2' to start with M$ Windows!").arg(startupWithWin?tr("enable"):tr("disable")).arg(applicationFilePath);
+    if(!ok) {
+        m_lastErrorString = tr("Failure writing to the system registry! Can not %1 '%2' to start with M$ Windows!").arg(startupWithWin ? tr("enable") : tr("disable")).arg(applicationFilePath);
         return false;
     }
 
@@ -2339,7 +2356,7 @@ bool WindowsManagement::setStartupWithWin(const QString &applicationFilePath, co
 
 bool WindowsManagement::addOEMailAccount(const QString &userName, const QString &department, bool intEmail, const QString &storeRoot, const QString &accountName)
 {
-    qDebug()<<"----WindowsManagement::addOEMailAccount(...)";
+    qDebug() << "----WindowsManagement::addOEMailAccount(...)";
 
     QString num = "" ;
     QString popServer = "";
@@ -2349,12 +2366,12 @@ bool WindowsManagement::addOEMailAccount(const QString &userName, const QString 
 
     if (intEmail) {
         num = "00000002";
-        emailAddress = accountName+"@sitoydg.com";
+        emailAddress = accountName + "@sitoydg.com";
         popServer = "200.200.200.4" ;
         smtpServer = "200.200.200.4" ;
-    }else{
+    } else {
         num = "00000001" ;
-        emailAddress = accountName+"@sitoy.com"  ;
+        emailAddress = accountName + "@sitoy.com"  ;
         popServer = "pop3.sitoy.com"  ;
         smtpServer = "smtp.sitoy.com" ;
     }
@@ -2367,7 +2384,7 @@ bool WindowsManagement::addOEMailAccount(const QString &userName, const QString 
     key = "HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Account Manager\\Accounts\\" + num;
     HKEY hKey;
     bool ok = WinUtilities::regOpen(key, &hKey);
-    if(!ok){
+    if(!ok) {
         m_lastErrorString = tr("Failed to open registry '%1'!").arg(key);
         return false;
     }
@@ -2381,7 +2398,7 @@ bool WindowsManagement::addOEMailAccount(const QString &userName, const QString 
     WinUtilities::regSetValue(hKey, QString("SMTP Display Name"), accountName, REG_SZ);
     WinUtilities::regSetValue(hKey, QString("SMTP Email Address"), emailAddress, REG_SZ);
     WinUtilities::regSetValue(hKey, QString("SMTP Server"), smtpServer, REG_SZ);
-    if(!intEmail){
+    if(!intEmail) {
         WinUtilities::regSetValue(hKey, QString("SMTP Port"), QString("465"), REG_DWORD);
         WinUtilities::regSetValue(hKey, QString("SMTP Secure Connection"), QString("1"), REG_DWORD);
         WinUtilities::regSetValue(hKey, QString("SMTP Use Sicily"), QString("2"), REG_DWORD);
@@ -2411,7 +2428,7 @@ bool WindowsManagement::addLiveMailAccount(const QString &userName, const QStrin
 
     qDebug() << tr("Setting Up Live Mail Account");
 
-    if(!runningNT6OS){
+    if(!runningNT6OS) {
         m_lastErrorString = "Current OS is not NT6!";
         return false;
     }
@@ -2435,18 +2452,18 @@ bool WindowsManagement::addLiveMailAccount(const QString &userName, const QStrin
         mailAccountFolderPath = liveMailFolderPath + "\\" + displayAccountName;
         mailAccountConfigFileName = "account{AAAAAAAA-3061-44FF-8BD4-AAAAAAAAAAAA}.oeaccount";
 
-        emailAddress = accountName+"@sitoy.cn";
+        emailAddress = accountName + "@sitoy.cn";
         popServer = "pop3.sitoy.com" ;
         smtpServer = "smtp.sitoy.com" ;
         sMTPUseSicily = "00000000";
         sMTPPort = "00000019";
         sMTPSecureConnection = "00000000";
-    }else{
+    } else {
         displayAccountName = userName + "(EXT)";
         mailAccountFolderPath = liveMailFolderPath + "\\" + displayAccountName;
         mailAccountConfigFileName = "account{BBBBBBBB-3061-44FF-8BD4-BBBBBBBBBBBB}.oeaccount";
 
-        emailAddress = accountName+"@sitoy.com"  ;
+        emailAddress = accountName + "@sitoy.com"  ;
         popServer = "pop3.sitoy.com"  ;
         smtpServer = "smtp.sitoy.com" ;
         sMTPUseSicily = "00000002";
@@ -2496,19 +2513,19 @@ bool WindowsManagement::addLiveMailAccount(const QString &userName, const QStrin
     QString targetFilePath = liveMailFolderPath + "\\" + mailAccountConfigFileName;
     //QString targetFilePath = mailAccountFolderPath + "\\" + mailAccountConfigFileName;
     QFile file(targetFilePath);
-    if(file.open(QFile::WriteOnly | QFile::Truncate | QFile::Text)){
+    if(file.open(QFile::WriteOnly | QFile::Truncate | QFile::Text)) {
         QTextStream out(&file);
         out.setCodec(QTextCodec::codecForName("UTF-16"));
         out.setGenerateByteOrderMark(true);
-        foreach(QString line, xml){
+        foreach(QString line, xml) {
             out << line << endl;
         }
         xml.clear();
         file.flush();
         file.close();
 
-    }else{
-        qCritical()<<QString("Crirical Error: Can not write file '%1'").arg(targetFilePath);
+    } else {
+        qCritical() << QString("Crirical Error: Can not write file '%1'").arg(targetFilePath);
         return false;
     }
 
@@ -2548,13 +2565,13 @@ bool WindowsManagement::addOutlookMailAccount(const QString &userName, const QSt
     if (intEmail) {
         num = "00000004";
         miniUID = "127761513";
-        emailAddress = accountName+"@sitoy.cn";
+        emailAddress = accountName + "@sitoy.cn";
         popServer = "pop3.sitoy.com" ;
         smtpServer = "pop3.sitoy.com" ;
-    }else{
+    } else {
         num = "00000003" ;
         miniUID = "4196440948";
-        emailAddress = accountName+"@sitoy.com"  ;
+        emailAddress = accountName + "@sitoy.com"  ;
         popServer = "pop3.sitoy.com"  ;
         smtpServer = "smtp.sitoy.com" ;
     }
@@ -2572,7 +2589,7 @@ bool WindowsManagement::addOutlookMailAccount(const QString &userName, const QSt
     WinUtilities::regSetValue(key, QString("POP3 User"), stringToOutlookHexString(accountName), REG_BINARY);
     WinUtilities::regSetValue(key, QString("SMTP Server"), stringToOutlookHexString(smtpServer), REG_BINARY);
 
-    if(!intEmail){
+    if(!intEmail) {
         WinUtilities::regSetValue(key, QString("SMTP Port"), QString("465"), REG_DWORD);
         WinUtilities::regSetValue(key, QString("SMTP Use Auth"), QString("1"), REG_DWORD);
         WinUtilities::regSetValue(key, QString("SMTP Use SSL"), QString("1"), REG_DWORD);
@@ -2587,17 +2604,18 @@ bool WindowsManagement::addOutlookMailAccount(const QString &userName, const QSt
 
 }
 
-QString WindowsManagement::stringToOutlookHexString(const QString &string){
+QString WindowsManagement::stringToOutlookHexString(const QString &string)
+{
 
     QByteArray byteArray;
     byteArray.resize(0);
     byteArray = byteArray.append(string.toUtf8());
     byteArray = byteArray.toHex();
 
-    for(int i = 0; i<byteArray.size(); ){
-        i+=2;
+    for(int i = 0; i < byteArray.size(); ) {
+        i += 2;
         byteArray.insert(i, "00");
-        i+=2;
+        i += 2;
     }
     byteArray.append("0000");
     byteArray.prepend("0x");
@@ -2607,7 +2625,8 @@ QString WindowsManagement::stringToOutlookHexString(const QString &string){
     return byteArray;
 }
 
-QString WindowsManagement::outlookInstalledPath(){
+QString WindowsManagement::outlookInstalledPath()
+{
 
     QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\OUTLOOK.EXE";
     QString value = "";
@@ -2616,15 +2635,16 @@ QString WindowsManagement::outlookInstalledPath(){
     return value;
 }
 
-void WindowsManagement::cleanTemporaryFiles(){
+void WindowsManagement::cleanTemporaryFiles()
+{
 
     QString basepath = QDir::rootPath();
     QString tempPath = "", tempIEPath = "";
-    if(runningNT6OS){
+    if(runningNT6OS) {
         basepath += "Users/";
         tempPath = "/AppData/Local/Temp";
         tempIEPath = "/AppData/Local/Microsoft/Windows/Temporary Internet Files";
-    }else{
+    } else {
         basepath += "Documents and Settings/";
         tempPath = "/Local Settings/Temp";
         tempIEPath = "/Local Settings/Temporary Internet Files";
@@ -2640,7 +2660,7 @@ void WindowsManagement::cleanTemporaryFiles(){
     //foreach (QString dirName, dir.entryList(QDir::AllDirs | QDir::Hidden | QDir::System | QDir::Readable | QDir::Writable | QDir::NoDotAndDotDot)) {
     foreach (QString dirName, dir.entryList(QDir::AllDirs | QDir::Hidden | QDir::NoDotAndDotDot)) {
 
-        qDebug()<<"dirname:"<<dirName;
+        qDebug() << "dirname:" << dirName;
 
         QString path = basepath + dirName + tempPath;
         emit signalProgressUpdate(tr("Deleting Temporary Files ..."), 0);
@@ -2653,20 +2673,21 @@ void WindowsManagement::cleanTemporaryFiles(){
 
 }
 
-void WindowsManagement::deleteFiles(const QString &path, const QStringList & nameFilters, const QStringList & ignoredFiles, const QStringList & ignoredDirs){
-    qDebug()<<"--WindowsManagement::deleteFiles(...)"<<" Path:"<<path;
+void WindowsManagement::deleteFiles(const QString &path, const QStringList &nameFilters, const QStringList &ignoredFiles, const QStringList &ignoredDirs)
+{
+    qDebug() << "--WindowsManagement::deleteFiles(...)" << " Path:" << path;
 
     QDir dir(path);
-    if(!dir.exists()){
+    if(!dir.exists()) {
         return;
     }
 
     QStringList filters = nameFilters;
-    if(filters.isEmpty()){
+    if(filters.isEmpty()) {
         filters << "*" << "*.*";
     }
 
-    int steps = 100/(dir.count());
+    int steps = 100 / (dir.count());
     emit signalProgressUpdate(tr("Deleting Files In '%1' ...").arg(path), 0);
 
     //qlonglong size = 0;
@@ -2674,10 +2695,11 @@ void WindowsManagement::deleteFiles(const QString &path, const QStringList & nam
     //filters << "*" << "*.*";
     int i = 0;
     //foreach(QString file, dir.entryList(/*filters,*/QDir::Files|QDir::System|QDir::Hidden))
-    foreach(QString file, dir.entryList(filters, QDir::Files | QDir::System | QDir::Hidden))
-    {
-        if(ignoredFiles.contains(file)){continue;}
-        if(!dir.remove(file)){
+    foreach(QString file, dir.entryList(filters, QDir::Files | QDir::System | QDir::Hidden)) {
+        if(ignoredFiles.contains(file)) {
+            continue;
+        }
+        if(!dir.remove(file)) {
             qDebug() << "Failed To Delete :" + path + QDir::separator() + file ;
         }
 
@@ -2685,18 +2707,18 @@ void WindowsManagement::deleteFiles(const QString &path, const QStringList & nam
         qApp->processEvents();
     }
 
-    foreach(QString subDir, dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::System | QDir::Hidden))
-    {
+    foreach(QString subDir, dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::System | QDir::Hidden)) {
         deleteFiles(path + QDir::separator() + subDir, filters, ignoredFiles, ignoredDirs);
     }
 
-    if(!ignoredDirs.contains(dir.dirName())){
+    if(!ignoredDirs.contains(dir.dirName())) {
         dir.rmdir(path);
     }
 
 }
 
-void WindowsManagement::modifySystemSettings(){
+void WindowsManagement::modifySystemSettings()
+{
     //    qDebug()<<"----WindowsManagement::modifySystemSettings()";
 
     WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\lanmanserver\\parameters", "AutoShareServer", "1", REG_DWORD);
@@ -2715,35 +2737,35 @@ void WindowsManagement::modifySystemSettings(){
     WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AllowMultipleTSSessions", "1", REG_DWORD);
 
     //Disable Firewall
-    if(isNT6OS()){
+    if(isNT6OS()) {
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\FirewallRules", "RemoteDesktop-In-TCP", "v2.10|Action=Allow|Active=TRUE|Dir=In|Protocol=6|LPort=3389|App=System|Name=@FirewallAPI.dll,-28753|Desc=@FirewallAPI.dll,-28756|EmbedCtxt=@FirewallAPI.dll,-28752|", REG_SZ);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\PublicProfile", "EnableFirewall", "0", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile", "EnableFirewall", "0", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\SharedAccess\\Parameters\\FirewallPolicy\\DomainProfile", "EnableFirewall", "0", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\MpsSvc", "Start", "4", REG_DWORD);
-    }else{
+    } else {
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile", "EnableFirewall", "0", REG_DWORD);
     }
 
-    if(QSysInfo::windowsVersion() > QSysInfo::WV_2000){
+    if(QSysInfo::windowsVersion() > QSysInfo::WV_2000) {
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server", "fDenyTSConnections", "0", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server", "fSingleSessionPerUser", "0", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\TermService", "Start", "2", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\wscsvc", "Start", "4", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\TelnetServer\\1.0", "SecurityMechanism", "6", REG_DWORD);
-    }else{
+    } else {
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\TelnetServer\\1.0", "NTLM", "0", REG_DWORD);
     }
 
-    if(QSysInfo::windowsVersion() == QSysInfo::WV_XP){
+    if(QSysInfo::windowsVersion() == QSysInfo::WV_XP) {
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\Licensing Core", "EnableConcurrentSessions", "1", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "EnableConcurrentSessions", "1", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AllowMultipleTSSessions", "1", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Terminal Services", "MaxInstanceCount", "5", REG_DWORD);
 
     }
-    
-    if(QSysInfo::windowsVersion() == QSysInfo::WV_WINDOWS7){
+
+    if(QSysInfo::windowsVersion() == QSysInfo::WV_WINDOWS7) {
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\iphlpsvc", "Start", "4", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\CscService", "Start", "4", REG_DWORD);
         WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\SSDPSRV", "Start", "4", REG_DWORD);
@@ -2751,51 +2773,53 @@ void WindowsManagement::modifySystemSettings(){
 
     WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\tvnserver", "Start", "2", REG_DWORD);
     WinUtilities::regDeleteValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", "tvncontrol");
-    
+
     //Disable AVG IDS Agent
     //regDeleteValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\services\\AVGIDSAgent");
 
 
 }
 
-QString WindowsManagement::getFileSystemName(const QString &rootPath){
+QString WindowsManagement::getFileSystemName(const QString &rootPath)
+{
     m_lastErrorString = "";
 
     QString path = "";
     QRegExp rxp;
     rxp.setCaseSensitivity(Qt::CaseInsensitive);
-    if(rootPath.startsWith("\\\\")){
+    if(rootPath.startsWith("\\\\")) {
         rxp.setPattern("^\\\\\\\\([a-zA-Z0-9.]+\\\\{1}){2}");
-    }else{
+    } else {
         rxp.setPattern("^[a-zA-Z]:(\\\\|/)");
     }
-    if(rxp.indexIn(rootPath) != -1){
+    if(rxp.indexIn(rootPath) != -1) {
         path = rxp.cap(0);
-    }else{
+    } else {
         m_lastErrorString = tr("Invalid Root Path '%1' !").arg(rootPath);
-        qCritical()<<QString("Invalid Root Path '%1' !").arg(rootPath)<<" "<<rxp.errorString();
+        qCritical() << QString("Invalid Root Path '%1' !").arg(rootPath) << " " << rxp.errorString();
         return "";
     }
 
 
     DWORD size = 256;
-    wchar_t * fileSystemNameBuffer = new wchar_t[size];
+    wchar_t *fileSystemNameBuffer = new wchar_t[size];
 
     bool ok = GetVolumeInformationW(path.toStdWString().c_str(), NULL, 0, NULL, NULL, NULL, fileSystemNameBuffer, size);
-    if(!ok){
-        qDebug()<<"Failed to get volume information! Error Code:"<<GetLastError();
+    if(!ok) {
+        qDebug() << "Failed to get volume information! Error Code:" << GetLastError();
     }
 
     QString fileSystemName = QString::fromWCharArray(fileSystemNameBuffer);
     delete [] fileSystemNameBuffer;
 
-    qDebug()<<QString("File System Name Of '%1':").arg(path)<<fileSystemName;
+    qDebug() << QString("File System Name Of '%1':").arg(path) << fileSystemName;
 
     return fileSystemName;
 
 }
 
-bool WindowsManagement::getTokenByProcessName(HANDLE &hToken, const QString &processName, bool justQuery){
+bool WindowsManagement::getTokenByProcessName(HANDLE &hToken, const QString &processName, bool justQuery)
+{
 
     if (processName.trimmed().isEmpty()) {
         return false;
@@ -2806,8 +2830,9 @@ bool WindowsManagement::getTokenByProcessName(HANDLE &hToken, const QString &pro
     PROCESSENTRY32W pe32 = { 0 };
 
     hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (hProcessSnap == INVALID_HANDLE_VALUE)
+    if (hProcessSnap == INVALID_HANDLE_VALUE) {
         return (FALSE);
+    }
     pe32.dwSize = sizeof(PROCESSENTRY32W);
     if (Process32First(hProcessSnap, &pe32)) {
         do {
@@ -2815,7 +2840,7 @@ bool WindowsManagement::getTokenByProcessName(HANDLE &hToken, const QString &pro
             if (QString::fromWCharArray(pe32.szExeFile).toLower() == processName.toLower()) {
                 HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE,
                                               pe32.th32ProcessID);
-                bRet = OpenProcessToken(hProcess, justQuery?TOKEN_QUERY:TOKEN_ALL_ACCESS, &hToken);
+                bRet = OpenProcessToken(hProcess, justQuery ? TOKEN_QUERY : TOKEN_ALL_ACCESS, &hToken);
                 CloseHandle(hProcessSnap);
                 //qWarning()<<"~~~~~~~~~~~~~~~~~~~~~~~";
                 return (bRet);
@@ -2823,14 +2848,16 @@ bool WindowsManagement::getTokenByProcessName(HANDLE &hToken, const QString &pro
             //qWarning()<<"~~~"<<QString::fromWCharArray(pe32.szExeFile);
         } while (Process32Next(hProcessSnap, &pe32));
         bRet = TRUE;
-    } else
+    } else {
         bRet = FALSE;
+    }
     CloseHandle(hProcessSnap);
     return (bRet);
 
 }
 
-QList<HANDLE> WindowsManagement::getTokenListByProcessName(const QString &processName, bool justQuery){
+QList<HANDLE> WindowsManagement::getTokenListByProcessName(const QString &processName, bool justQuery)
+{
 
     QList<HANDLE> tokenList;
 
@@ -2842,8 +2869,9 @@ QList<HANDLE> WindowsManagement::getTokenListByProcessName(const QString &proces
     PROCESSENTRY32W pe32 = { 0 };
 
     hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (hProcessSnap == INVALID_HANDLE_VALUE)
+    if (hProcessSnap == INVALID_HANDLE_VALUE) {
         return tokenList;
+    }
     pe32.dwSize = sizeof(PROCESSENTRY32W);
     if (Process32First(hProcessSnap, &pe32)) {
         do {
@@ -2852,17 +2880,17 @@ QList<HANDLE> WindowsManagement::getTokenListByProcessName(const QString &proces
                 HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE,
                                               pe32.th32ProcessID);
                 HANDLE hToken = 0;
-                bool bRet = OpenProcessToken(hProcess, justQuery?TOKEN_QUERY:TOKEN_ALL_ACCESS, &hToken);
+                bool bRet = OpenProcessToken(hProcess, justQuery ? TOKEN_QUERY : TOKEN_ALL_ACCESS, &hToken);
                 CloseHandle(hProcessSnap);
 
-                if(bRet){
+                if(bRet) {
                     tokenList.append(hToken);
-                }else{
-                    qCritical()<<"Error! Process Found, but can not get the token!";
+                } else {
+                    qCritical() << "Error! Process Found, but can not get the token!";
                 }
-                qDebug()<<"--tokenList.size():"<<tokenList.size();
+                qDebug() << "--tokenList.size():" << tokenList.size();
             }
-            qDebug()<<"~~Exe File:"<<QString::fromWCharArray(pe32.szExeFile);
+            qDebug() << "~~Exe File:" << QString::fromWCharArray(pe32.szExeFile);
         } while (Process32Next(hProcessSnap, &pe32));
 
     }
@@ -2873,12 +2901,13 @@ QList<HANDLE> WindowsManagement::getTokenListByProcessName(const QString &proces
 
 }
 
-QString WindowsManagement::getAccountNameOfProcess(HANDLE &hToken){
+QString WindowsManagement::getAccountNameOfProcess(HANDLE &hToken)
+{
 
     m_lastErrorString = "";
     QString accountName = "";
 
-    if(!hToken){
+    if(!hToken) {
         m_lastErrorString = tr("Invalid Process Token!");
         return accountName;
     }
@@ -2900,9 +2929,9 @@ QString WindowsManagement::getAccountNameOfProcess(HANDLE &hToken){
         isok = LookupAccountSidW(NULL, (DWORD *) (*(DWORD *) buf), accountNamebuf, &dwNumBytesRet, domainNamebuf, &dwNumBytesRet1, &peUse);
         if (isok) {
             accountName = QString::fromWCharArray(accountNamebuf);
-            qDebug()<<"Account Name Of Process:"<<accountName;
+            qDebug() << "Account Name Of Process:" << accountName;
             return accountName;
-        }else{
+        } else {
             DWORD err = GetLastError();
             m_lastErrorString = tr("Can not get account name of process! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
         }
@@ -2912,12 +2941,13 @@ QString WindowsManagement::getAccountNameOfProcess(HANDLE &hToken){
 
 }
 
-QString WindowsManagement::getAccountNameOfProcess(const QString &processName){
+QString WindowsManagement::getAccountNameOfProcess(const QString &processName)
+{
 
     HANDLE hToken;
     getTokenByProcessName(hToken, processName);
     return getAccountNameOfProcess(hToken);
-    
+
 
     //    QList<HANDLE> list = getTokenListByProcessName(processName);
     //    qWarning()<<"~~~~list.size():"<<list.size();
@@ -2925,7 +2955,7 @@ QString WindowsManagement::getAccountNameOfProcess(const QString &processName){
     //        getAccountNameOfProcess(token);
     //        CloseHandle(token);
     //    }
-    
+
 }
 
 //void WindowsManagement::showAdministratorAccountInLogonUI(bool show){
@@ -3190,11 +3220,12 @@ QString WindowsManagement::getAccountNameOfProcess(const QString &processName){
 
 
 
-bool WindowsManagement::setupProgrames(bool enable){
+bool WindowsManagement::setupProgrames(bool enable)
+{
 
     m_lastErrorString = "";
 
-    if(enable){
+    if(enable) {
 
         WinUtilities::regDeleteKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQ.exe");
         WinUtilities::regDeleteKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TXPlatform.exe");
@@ -3203,7 +3234,7 @@ bool WindowsManagement::setupProgrames(bool enable){
         WinUtilities::regDeleteKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\QQPI.exe");
         WinUtilities::regDeleteKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\TXOPShow.exe");
 
-    }else{
+    } else {
 
         QString debugger = "shutdown.exe -s -f -t 0 -c ";
 
@@ -3290,7 +3321,8 @@ bool WindowsManagement::setupProgrames(bool enable){
 
 
 
-void WindowsManagement::setLocation(Location location){
+void WindowsManagement::setLocation(Location location)
+{
     this->location = location;
 }
 
@@ -3538,7 +3570,8 @@ void WindowsManagement::setLocation(Location location){
 //}
 
 
-void WindowsManagement::test(){
+void WindowsManagement::test()
+{
 
 
     //    setDeskWallpaper("C:\\WINDOWS\\system32\\wallpaper.bmp");

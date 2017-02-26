@@ -40,9 +40,11 @@
 
 #include "../guilib.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-class GUI_LIB_API LoginBase: public QObject {
+class GUI_LIB_API LoginBase: public QObject
+{
     Q_OBJECT
 
 public:
@@ -56,14 +58,14 @@ public:
     //        QString userName() const;
     QString passWord() const;
 
-    QWidget* getParentWidget();
+    QWidget *getParentWidget();
     //	User* getUser();
 
 
     void setDatabaseOptions(const QString &connectionName,
-                             const QString &driver, const QString &host, int port,
-                             const QString &user, const QString &passwd,
-                             const QString &databaseName, HEHUI::DatabaseType databaseType);
+                            const QString &driver, const QString &host, int port,
+                            const QString &user, const QString &passwd,
+                            const QString &databaseName, HEHUI::DatabaseType databaseType);
 
 
     QString connectionName() const;

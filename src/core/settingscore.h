@@ -38,21 +38,22 @@
 #include "core_lib.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class CORE_LIB_API SettingsCore : public QSettings
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-    SettingsCore(const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject* parent= 0 );
-    SettingsCore(const QString fileName, Format format, QObject* parent= 0 );
+    SettingsCore(const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject *parent = 0 );
+    SettingsCore(const QString fileName, Format format, QObject *parent = 0 );
 
     ~SettingsCore();
 
 
-	void setLanguage(const QString &language);
-	QString getLanguage() const;
+    void setLanguage(const QString &language);
+    QString getLanguage() const;
 
     void setValueWithEncryption(const QString &key, const QVariant &value, const QByteArray &encryptionKey);
     QVariant getValueWithDecryption(const QString &key, const QByteArray &encryptionKey, const QVariant &defaultValue = QVariant(), bool *ok = 0) const;

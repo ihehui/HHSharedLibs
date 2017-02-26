@@ -39,13 +39,14 @@
 #include <QUdpSocket>
 
 
-class IPMulticastSocketBase : public QObject{
+class IPMulticastSocketBase : public QObject
+{
     Q_OBJECT
 public:
     IPMulticastSocketBase(QObject *parent = 0);
     virtual ~IPMulticastSocketBase();
 
-    QUdpSocket * getUdpSocket() const;
+    QUdpSocket *getUdpSocket() const;
     void setUdpSocket(QUdpSocket *udpSocket);
     bool isBound();
     void setBound(bool bound);

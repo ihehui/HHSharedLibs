@@ -58,7 +58,8 @@
 #include <QtWidgets/QItemDelegate>
 #include <QtWidgets/QTreeView>
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class SheetDelegate: public QItemDelegate

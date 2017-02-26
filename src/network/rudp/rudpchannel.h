@@ -14,7 +14,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class NETWORK_LIB_API RUDPChannel : public QObject
 {
@@ -31,19 +32,37 @@ public:
 
 
 
-    void setPeerHostAddress(const QHostAddress &hostAddress){m_peerAddress = hostAddress;}
-    QHostAddress getPeerHostAddress() const{return m_peerAddress;}
-    void setPeerHostPort(quint16 port){m_peerPort = port;}
-    quint16 getPeerHostPort()const{return m_peerPort;}
+    void setPeerHostAddress(const QHostAddress &hostAddress)
+    {
+        m_peerAddress = hostAddress;
+    }
+    QHostAddress getPeerHostAddress() const
+    {
+        return m_peerAddress;
+    }
+    void setPeerHostPort(quint16 port)
+    {
+        m_peerPort = port;
+    }
+    quint16 getPeerHostPort()const
+    {
+        return m_peerPort;
+    }
 
-    void setKeepAliveTimerInterval(int msec){this->m_keepAliveTimerInterval = msec;}
-    int getKeepAliveTimerInterval(){return m_keepAliveTimerInterval;}
+    void setKeepAliveTimerInterval(int msec)
+    {
+        this->m_keepAliveTimerInterval = msec;
+    }
+    int getKeepAliveTimerInterval()
+    {
+        return m_keepAliveTimerInterval;
+    }
 
     //    bool canSendData(qint64 size);
 
     bool isConnected();
 
-    static RUDPPacket * getUnusedPacket();
+    static RUDPPacket *getUnusedPacket();
     void recylePacket(RUDPPacket *packet);
     static void cleanAllUnusedPackets();
     static void setMaxCachedUnusedPacketsCount(int count);
@@ -157,7 +176,7 @@ private:
 
     //    RUDPPacket * takedWaitingForACKPacket(quint16 packetID);
 
-    RUDPPacket * takeToBeSentPacket(quint16 packetID);
+    RUDPPacket *takeToBeSentPacket(quint16 packetID);
     void addToBeSentPacket(RUDPPacket *packet);
 
 
@@ -191,8 +210,8 @@ private:
     //QTimer *sendPacketTimer; //发送包定时器
     int sendPacketInterval; //包发送周期
     quint16 LSSN; //Last Sent Data packet
-    QHash<quint16/*Packet SN*/, RUDPPacket*> m_ToBeSentPacketsHash; //To Be Sent Packets
-    QHash<quint16/*Packet SN*/, RUDPPacket*> sentPackets; //Already Sent Packets
+    QHash<quint16/*Packet SN*/, RUDPPacket *> m_ToBeSentPacketsHash; //To Be Sent Packets
+    QHash<quint16/*Packet SN*/, RUDPPacket *> sentPackets; //Already Sent Packets
     QList<quint16/*Packet SN*/> lostPacketsInSenderSide; //Sender's Loss List
     QList<quint16/*Packet SN*/> waitingForACKPackets; //waiting for ACK
 
@@ -225,19 +244,19 @@ private:
 
 
 
-    struct LostPacketInfo{
+    struct LostPacketInfo {
         quint16 packetSN;
         int feedbacktimes;
         QDateTime latestFeedbackTime;
     };
-    QHash<quint16/*Packet SN*/, LostPacketInfo*> lostPacketsInReceiverSide; //Receiver's Loss List
+    QHash<quint16/*Packet SN*/, LostPacketInfo *> lostPacketsInReceiverSide; //Receiver's Loss List
     QList<quint16/*Packet SN*/> lostPacketsSNInReceiverSide; //Receiver's Loss List
 
-    struct ACKPacketInfo{
+    struct ACKPacketInfo {
         quint16 firstReceivedPacketIDInReceiveWindow;
         QDateTime sentTime;
     };
-    QHash<quint16/*Packet SN*/, ACKPacketInfo*> ackPacketsHistory; //ACK History Window
+    QHash<quint16/*Packet SN*/, ACKPacketInfo *> ackPacketsHistory; //ACK History Window
     QList<quint16/*Packet SN*/> ackPacketsSNHistory;
     quint16 largestACK2SN;
 
@@ -258,7 +277,7 @@ private:
     uint m_peerHandshakeID;
 
     quint16 m_firstReceivedPacketIDInReceiveWindow;
-    QHash<quint16/*Packet SN*/, RUDPPacket*> m_cachedReceivedPacketsHash;
+    QHash<quint16/*Packet SN*/, RUDPPacket *> m_cachedReceivedPacketsHash;
 
     quint16 m_sendWindowSize;
 
@@ -269,7 +288,7 @@ private:
 
 
     quint16 m_receivedFragmentDataPacketID;
-    QHash<quint16/*Packet SN*/, RUDPPacket*> m_receivedFragmentDataPackets;
+    QHash<quint16/*Packet SN*/, RUDPPacket *> m_receivedFragmentDataPackets;
 
     static QList<RUDPPacket *> *m_unusedPackets;
     static QMutex *unusedPacketsMutex;

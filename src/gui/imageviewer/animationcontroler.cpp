@@ -32,7 +32,8 @@
 #include "ui_animationcontroler.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 AnimationControler::AnimationControler(QWidget *parent, Qt::WindowFlags fl) :
@@ -63,22 +64,25 @@ AnimationControler::~AnimationControler()
     delete ui;
 }
 
-QPixmap AnimationControler::currentPixmap() const{
+QPixmap AnimationControler::currentPixmap() const
+{
     return movie->currentPixmap();
 }
 
-bool AnimationControler::isValidMovie(){
+bool AnimationControler::isValidMovie()
+{
     return (movie->isValid() && movie->frameCount() > 1);
 }
 
-bool AnimationControler::setFileName(const QString &fileName){
+bool AnimationControler::setFileName(const QString &fileName)
+{
 
     movie->stop();
     movie->setFileName(fileName);
-    if(movie->isValid() && movie->frameCount() > 1){
+    if(movie->isValid() && movie->frameCount() > 1) {
         movie->start();
         return true;
-    }else{
+    } else {
         movie->stop();
     }
 
@@ -95,8 +99,9 @@ void AnimationControler::updateFrame()
         if (movie->frameCount() > 0) {
             ui->horizontalSliderCurrentFrame->setMaximum(movie->frameCount() - 1);
         } else {
-            if (movie->currentFrameNumber() > ui->horizontalSliderCurrentFrame->maximum())
+            if (movie->currentFrameNumber() > ui->horizontalSliderCurrentFrame->maximum()) {
                 ui->horizontalSliderCurrentFrame->setMaximum(movie->currentFrameNumber());
+            }
         }
         ui->horizontalSliderCurrentFrame->setValue(movie->currentFrameNumber());
     } else {

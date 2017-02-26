@@ -9,14 +9,15 @@
 #include "core_lib.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class CORE_LIB_API Job : public QObject
 {
     Q_OBJECT
 public:
     //enum JobState{NotRunning, Starting, Running};
-    enum JobResult{Finished = 0, FinishedWithError, Failed, Timeout, Working};
+    enum JobResult {Finished = 0, FinishedWithError, Failed, Timeout, Working};
     explicit Job(quint32 jobType, const QString &jobTitle, QObject *parent = 0);
     ~Job();
     void startTimer(int msecTimeout = 30000);
@@ -47,7 +48,7 @@ class CORE_LIB_API JobMonitor : public QObject
 {
     Q_OBJECT
 public:
-    static JobMonitor * instance();
+    static JobMonitor *instance();
     static void destoryInstance();
 
 private:
@@ -56,7 +57,7 @@ private:
 
 public:
     quint32 newJob(quint32 jobType, const QString &jobTitle);
-    Job * getJob(quint32 jobID) const;
+    Job *getJob(quint32 jobID) const;
     void deleteJob(quint32 jobID);
 
 signals:
@@ -72,7 +73,7 @@ private slots:
 
 private:
     static JobMonitor *m_instance;
-    QHash<quint32 /*Job ID*/, Job*> m_jobs;
+    QHash<quint32 /*Job ID*/, Job *> m_jobs;
 
 
 

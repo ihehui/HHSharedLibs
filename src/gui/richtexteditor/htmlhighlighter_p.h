@@ -51,7 +51,8 @@
 
 class QTextEdit;
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 /* HTML syntax highlighter based on Qt Quarterly example */
 class HtmlHighlighter : public QSyntaxHighlighter
@@ -73,7 +74,9 @@ public:
     void setFormatFor(Construct construct, const QTextCharFormat &format);
 
     QTextCharFormat formatFor(Construct construct) const
-    { return m_formats[construct]; }
+    {
+        return m_formats[construct];
+    }
 
 protected:
     enum State {

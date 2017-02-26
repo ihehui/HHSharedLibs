@@ -48,7 +48,8 @@
 #include "itemboxeventhandler.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class ItemBoxTreeWidget;
@@ -116,9 +117,9 @@ public slots:
 protected:
     bool eventFilter(QObject *o, QEvent *e);
 
-    virtual void dragEnterEvent (QDragEnterEvent * event);
-    virtual void dragMoveEvent(QDragMoveEvent * event);
-    virtual void dropEvent (QDropEvent * event);
+    virtual void dragEnterEvent (QDragEnterEvent *event);
+    virtual void dragMoveEvent(QDragMoveEvent *event);
+    virtual void dropEvent (QDropEvent *event);
 
 private slots:
 //    void handleMousePress(const QString &name, const QString &xml, const QPoint &global_mouse_pos);

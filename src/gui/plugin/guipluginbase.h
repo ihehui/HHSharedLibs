@@ -37,10 +37,12 @@
 
 #include "../guilib.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
-class GUI_LIB_API GUIPluginBase: public QObject, public GUIInterface {
+class GUI_LIB_API GUIPluginBase: public QObject, public GUIInterface
+{
     Q_OBJECT
     Q_INTERFACES(HEHUI::AbstractPluginInterface)
     Q_INTERFACES(HEHUI::GUIInterface)
@@ -60,7 +62,7 @@ public:
     //        virtual bool isSingle() const;
 
 
-    bool initialize(QWidget * parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString& pName, const QString& pVersion);
+    bool initialize(QWidget *parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString &pName, const QString &pVersion);
     virtual bool unload();
 
     //        QWidget *parentWidgetOfPlugin();
@@ -69,12 +71,12 @@ public:
     virtual QString whatsThis() const;
     virtual QString toolTip() const;
 
-    virtual QAction * mainActionForMenu();
-    virtual QMenu* menu();
+    virtual QAction *mainActionForMenu();
+    virtual QMenu *menu();
     void addActionToMenu(QAction *action);
 
 protected:
-    bool event( QEvent * e );
+    bool event( QEvent *e );
 
 
 signals:
@@ -85,7 +87,7 @@ private slots:
     virtual void retranslateUi();
     virtual void slotMainActionForMenuTriggered() = 0;
 
-    void slotSetDefaultActionForMenuAction(QAction * action);
+    void slotSetDefaultActionForMenuAction(QAction *action);
 
 private:
 

@@ -41,9 +41,11 @@
 #include "guilib.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-class GUI_LIB_API ImageResourceBase :public QObject{
+class GUI_LIB_API ImageResourceBase : public QObject
+{
     Q_OBJECT
 public:
     ImageResourceBase(QObject *parent = 0);
@@ -62,9 +64,9 @@ public:
     static void weightedFilter(const QImage &origin, QImage *newImage, const int kernel[], int kernelWidth, int divisor = 1);
 
 
-    
-    
-    
+
+
+
 };
 
 } //namespace HEHUI

@@ -45,7 +45,8 @@
 #include "rudp_global.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 
@@ -59,7 +60,7 @@ public:
                int retransmissionTimes = RUDP_PACKET_RETRANSMISSION_TIMES);
 
     RUDPPacket(const RUDPPacket &packet);
-    RUDPPacket & operator = (const RUDPPacket &packet);
+    RUDPPacket &operator = (const RUDPPacket &packet);
     virtual ~RUDPPacket();
 
     void resetPacket();

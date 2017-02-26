@@ -38,13 +38,14 @@
 
 
 #ifndef QT_NO_PRINTER
-#include <QPrinter>
-#include <QPrintDialog>
+    #include <QPrinter>
+    #include <QPrintDialog>
 #endif
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 
@@ -91,7 +92,7 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
 
     m_imageControler = new ImageViewerControler(this);
     connect(m_imageControler, SIGNAL(signalRotate(int)), this, SLOT(rotate(int)));
-    connect(m_imageControler, SIGNAL(signalFlip(bool,bool)), this, SLOT(flip(bool,bool)));
+    connect(m_imageControler, SIGNAL(signalFlip(bool, bool)), this, SLOT(flip(bool, bool)));
 
     //    connect(imageControler, SIGNAL(signalFlipHorizontal()), this, SLOT(flipHor()));
     //    connect(imageControler, SIGNAL(signalFlipVertical()), this, SLOT(flipVer()));
@@ -169,7 +170,8 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
 
 }
 
-ImageViewer::~ImageViewer(){
+ImageViewer::~ImageViewer()
+{
     m_tipTimer->stop();
 }
 
@@ -246,20 +248,26 @@ ImageViewer::~ImageViewer(){
 
 //}
 
-RenderWidget *ImageViewer::renderWidget(){
+RenderWidget *ImageViewer::renderWidget()
+{
     return m_imageLabel;
 }
 
-QScrollArea * ImageViewer::scrollArea(){
+QScrollArea *ImageViewer::scrollArea()
+{
     return m_scrollArea;
 }
 
-ImageViewerControler * ImageViewer::imageControler(){
+ImageViewerControler *ImageViewer::imageControler()
+{
     return m_imageControler;
 }
 
-void ImageViewer::processBrightnessAndContrast(QImage &image, int brightness, int contrast){
-    if(image.isNull()){return;}
+void ImageViewer::processBrightnessAndContrast(QImage &image, int brightness, int contrast)
+{
+    if(image.isNull()) {
+        return;
+    }
     ////----------------------------
     ////Algorithm: newColor = contrast * color(x,y) +  brightness )
     ////----------------------------
@@ -267,14 +275,14 @@ void ImageViewer::processBrightnessAndContrast(QImage &image, int brightness, in
     //QDateTime time = QDateTime::currentDateTime();
 
     quint8 values[256];
-    for(int i=0; i<256; i++){
-        int value = (contrast*0.01) * i + brightness;
+    for(int i = 0; i < 256; i++) {
+        int value = (contrast * 0.01) * i + brightness;
         values[i] = qBound(0, value, 255);
     }
 
-    for(int y=0; y<image.height(); y++){
+    for(int y = 0; y < image.height(); y++) {
         QRgb *rgb = (QRgb *)image.scanLine(y);
-        for(int x=0; x<image.width(); x++){
+        for(int x = 0; x < image.width(); x++) {
             rgb[x] = qRgb(values[qRed(rgb[x])], values[qGreen(rgb[x])], values[qBlue(rgb[x])]);
             //image.setPixel(x, y , qRgb(r,g,b));
         }
@@ -284,23 +292,25 @@ void ImageViewer::processBrightnessAndContrast(QImage &image, int brightness, in
 
 }
 
-void ImageViewer::setImage(const QImage &image, bool moveViewerToCenter, bool adjustViewerSize){
+void ImageViewer::setImage(const QImage &image, bool moveViewerToCenter, bool adjustViewerSize)
+{
     setImage(QPixmap::fromImage(image), moveViewerToCenter, adjustViewerSize);
 }
 
-void ImageViewer::setImage(const QPixmap &pixmap, bool moveViewerToCenter, bool adjustViewerSize){
-    if(pixmap.isNull()){
-        qCritical()<<"Error! Invalid pixmap!";
+void ImageViewer::setImage(const QPixmap &pixmap, bool moveViewerToCenter, bool adjustViewerSize)
+{
+    if(pixmap.isNull()) {
+        qCritical() << "Error! Invalid pixmap!";
         updatePixmap(pixmap);
         return;
     }
 
-    if(moveViewerToCenter){
+    if(moveViewerToCenter) {
         moveToCenter(adjustViewerSize);
     }
 
     updatePixmap(QPixmap());
-    m_imageLabel->resize(1,1);
+    m_imageLabel->resize(1, 1);
 
     m_scaleFactor = 1;
     m_fitToWindow = true;
@@ -316,21 +326,22 @@ void ImageViewer::setImage(const QPixmap &pixmap, bool moveViewerToCenter, bool 
     m_orignalPixmap = m_curPixmap;
 
     QSize viewportSize = m_scrollArea->viewport()->size();
-    if(pixmap.width() > viewportSize.width() ||  pixmap.height() > viewportSize.height()){
+    if(pixmap.width() > viewportSize.width() ||  pixmap.height() > viewportSize.height()) {
         QTimer::singleShot(10, this, SLOT(zoomFitBest()));
-    }else{
+    } else {
         QTimer::singleShot(10, this, SLOT(zoomOrignal()));
     }
 
     updateActions();
 }
 
-void ImageViewer::setImages(const QStringList &images, unsigned int initIndex){
+void ImageViewer::setImages(const QStringList &images, unsigned int initIndex)
+{
     this->m_images = images;
 
     int size = images.size();
     m_curImageIndex = initIndex;
-    if(m_curImageIndex >= size){
+    if(m_curImageIndex >= size) {
         m_curImageIndex = size - 1;
     }
 
@@ -342,56 +353,56 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
 {
 
     switch (event->type()) {
-    case QEvent::KeyRelease:
-    {
+    case QEvent::KeyRelease: {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *> (event);
         return processKeyEvent(obj, keyEvent);
     }
-        break;
+    break;
 
-        //    case QEvent::Enter:
-        //    {
-        //        //qDebug()<<"----QEvent::Enter"<<" "<<this;
-        //        return true;
-        //    }
-        //        break;
+    //    case QEvent::Enter:
+    //    {
+    //        //qDebug()<<"----QEvent::Enter"<<" "<<this;
+    //        return true;
+    //    }
+    //        break;
 
-    case QEvent::Leave:
-    {
+    case QEvent::Leave: {
         //qDebug()<<"----QEvent::Leave"<<" "<<this;
 
-        if(obj == m_imageControler){
+        if(obj == m_imageControler) {
             m_imageControler->hide();
             raise();
             setFocus();
             return true;
         }
     }
-        break;
+    break;
 
-    case QEvent::MouseButtonPress:
-    {
-        if(!m_dragable){
+    case QEvent::MouseButtonPress: {
+        if(!m_dragable) {
             return QObject::eventFilter(obj, event);
         }
 
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *> (event);
-        if(!mouseEvent){return false;}
+        if(!mouseEvent) {
+            return false;
+        }
         if (mouseEvent->button() == Qt::LeftButton) {
             m_dragPosition = mouseEvent->globalPos() - frameGeometry().topLeft();
             return true;
         }
     }
-        break;
+    break;
 
-    case QEvent::MouseMove:
-    {
+    case QEvent::MouseMove: {
 
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *> (event);
-        if(!mouseEvent){return false;}
+        if(!mouseEvent) {
+            return false;
+        }
 
         if (mouseEvent->buttons() & Qt::LeftButton) {
-            if(!m_dragable){
+            if(!m_dragable) {
                 return QObject::eventFilter(obj, event);
             }
             move(mouseEvent->globalPos() - m_dragPosition);
@@ -399,7 +410,9 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
         }
 
 
-        if(m_curPixmap.isNull()){return false;}
+        if(m_curPixmap.isNull()) {
+            return false;
+        }
 
         QPoint globalPos = mouseEvent->globalPos();
         QPoint pos = m_scrollArea->mapFromGlobal(globalPos);
@@ -407,23 +420,23 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
         int scrollAreaWidth = m_scrollArea->viewport()->width();
         int scrollAreaHeight = m_scrollArea->viewport()->height();
 
-        if(pos.x() < (scrollAreaWidth - m_toolButtonClose->width()*2) && pos.y() <= m_imageControler->height() && pos.y() > 0){
-            QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_imageControler->width())/2, 1) );
+        if(pos.x() < (scrollAreaWidth - m_toolButtonClose->width() * 2) && pos.y() <= m_imageControler->height() && pos.y() > 0) {
+            QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_imageControler->width()) / 2, 1) );
             m_imageControler->move(tl);
             m_imageControler->show();
-        }else{
+        } else {
             m_imageControler->hide();
             raise();
             setFocus();
         }
 
-        if(m_runningValidMovie){
+        if(m_runningValidMovie) {
             int animationControlerHeight = m_animationControler->height();
-            if(pos.y() <= scrollAreaHeight && pos.y() > (scrollAreaHeight - animationControlerHeight) ){
-                QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_animationControler->width())/2, (scrollAreaHeight - animationControlerHeight) ) );
+            if(pos.y() <= scrollAreaHeight && pos.y() > (scrollAreaHeight - animationControlerHeight) ) {
+                QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_animationControler->width()) / 2, (scrollAreaHeight - animationControlerHeight) ) );
                 m_animationControler->move(tl);
                 m_animationControler->show();
-            }else{
+            } else {
                 m_animationControler->hide();
                 raise();
                 setFocus();
@@ -432,46 +445,49 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
 
         return true;
     }
-        break;
+    break;
 
-    case QEvent::MouseButtonDblClick:
-    {
+    case QEvent::MouseButtonDblClick: {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *> (event);
-        if(!mouseEvent){return false;}
+        if(!mouseEvent) {
+            return false;
+        }
         return processMouseButtonDblClick(obj, mouseEvent);
     }
-        break;
+    break;
 
-    case QEvent::Wheel:
-    {
+    case QEvent::Wheel: {
         //qDebug()<<"----QEvent::Wheel"<<" "<<this;
 
         QWheelEvent *e = static_cast<QWheelEvent *> (event);
-        if(!e){return false;}
+        if(!e) {
+            return false;
+        }
 
-        if(m_curPixmap.isNull()){return false;}
+        if(m_curPixmap.isNull()) {
+            return false;
+        }
 
-        if(QApplication::keyboardModifiers() == Qt::ControlModifier){
+        if(QApplication::keyboardModifiers() == Qt::ControlModifier) {
             scaleImage(pow((double)2, -e->delta() / 240.0));
             return true;
         }
 
     }
-        break;
+    break;
 
-    case QEvent::Resize:
-    {
+    case QEvent::Resize: {
         //qDebug()<<"----QEvent::Resize"<<" obj:"<<obj;
 
         moveControler();
 
-        if(obj == this && m_fitToWindow && m_imageLabel->pixmap()){
+        if(obj == this && m_fitToWindow && m_imageLabel->pixmap()) {
             zoomFitBest();
             return true;
         }
 
     }
-        break;
+    break;
 
     default:
         break;
@@ -481,21 +497,22 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
 
 }
 
-bool ImageViewer::processKeyEvent(QObject *obj, QKeyEvent *keyEvent){
+bool ImageViewer::processKeyEvent(QObject *obj, QKeyEvent *keyEvent)
+{
 
-    qDebug()<<"----ImageViewer::processKeyEvent()";
+    qDebug() << "----ImageViewer::processKeyEvent()";
 
 
-    if(keyEvent->key() == Qt::Key_Escape){
+    if(keyEvent->key() == Qt::Key_Escape) {
         qApp->quit();
         return true;
     }
 
-    if(keyEvent->key() == Qt::Key_Right){
+    if(keyEvent->key() == Qt::Key_Right) {
         openFile(m_curImageIndex + 1);
         return true;
     }
-    if(keyEvent->key() == Qt::Key_Left){
+    if(keyEvent->key() == Qt::Key_Left) {
         openFile(m_curImageIndex - 1);
         return true;
     }
@@ -507,11 +524,12 @@ bool ImageViewer::processKeyEvent(QObject *obj, QKeyEvent *keyEvent){
     return false;
 }
 
-bool ImageViewer::processMouseButtonDblClick(QObject *obj, QMouseEvent *event){
-    if(obj == m_scrollArea || obj == m_imageLabel){
-        if(m_fitToWindow){
+bool ImageViewer::processMouseButtonDblClick(QObject *obj, QMouseEvent *event)
+{
+    if(obj == m_scrollArea || obj == m_imageLabel) {
+        if(m_fitToWindow) {
             zoomOrignal();
-        }else{
+        } else {
             zoomFitBest();
         }
         //reset();
@@ -520,33 +538,38 @@ bool ImageViewer::processMouseButtonDblClick(QObject *obj, QMouseEvent *event){
     return false;
 }
 
-void ImageViewer::setScaleButtonsVisible(bool visible){
+void ImageViewer::setScaleButtonsVisible(bool visible)
+{
     m_imageControler->setScaleButtonsVisible(visible);
 }
 
-void ImageViewer::setRotateButtonsVisible(bool visible){
+void ImageViewer::setRotateButtonsVisible(bool visible)
+{
     m_imageControler->setRotateButtonsVisible(visible);
 }
 
-void ImageViewer::setFlipButtonsVisible(bool visible){
+void ImageViewer::setFlipButtonsVisible(bool visible)
+{
     m_imageControler->setFlipButtonsVisible(visible);
 }
 
-void ImageViewer::setCloseButtonVisible(bool visible){
+void ImageViewer::setCloseButtonVisible(bool visible)
+{
     m_toolButtonClose->setVisible(visible);
 }
 
-void ImageViewer::setDragable(bool dragable){
+void ImageViewer::setDragable(bool dragable)
+{
     m_dragable = dragable;
 }
 
 void ImageViewer::open()
 {
     QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open Image Files"),
-                                                          currentImageDirectory,
-                                                          tr("Images (*.png *.xpm *.jpg *.mng *.svg *.gif *.bmp);;All files (*.*)")
-                                                          );
-    if (!fileNames.isEmpty()){
+                            currentImageDirectory,
+                            tr("Images (*.png *.xpm *.jpg *.mng *.svg *.gif *.bmp);;All files (*.*)")
+                                                         );
+    if (!fileNames.isEmpty()) {
         //openFile(fileNames);
         setImages(fileNames);
     }
@@ -615,13 +638,14 @@ void ImageViewer::openFile(const QString &fileName)
 
 }
 
-void ImageViewer::openFile(int imageIndex){
+void ImageViewer::openFile(int imageIndex)
+{
 
     int size = m_images.size();
     m_curImageIndex = imageIndex;
-    if(m_curImageIndex >= size){
+    if(m_curImageIndex >= size) {
         m_curImageIndex = 0;
-    }else if(m_curImageIndex < 0){
+    } else if(m_curImageIndex < 0) {
         m_curImageIndex = size - 1;
     }
 
@@ -629,13 +653,15 @@ void ImageViewer::openFile(int imageIndex){
 
 }
 
-inline void ImageViewer::updatePixmap(const QPixmap &pixmap){
+inline void ImageViewer::updatePixmap(const QPixmap &pixmap)
+{
     m_curPixmap = pixmap;
     m_imageLabel->setPixmap(m_curPixmap);
 }
 
 
-void ImageViewer::updateAnimationFrame(const QPixmap &pixmap){
+void ImageViewer::updateAnimationFrame(const QPixmap &pixmap)
+{
     //qDebug()<<"--ImageViewer::updateAnimationFrame(...)";
 
     updatePixmap(pixmap);
@@ -646,11 +672,11 @@ void ImageViewer::updateAnimationFrame(const QPixmap &pixmap){
     QMatrix matrix;
     matrix.rotate(m_rotateAngle);
 
-    updatePixmap( QPixmap::fromImage(m_curPixmap.toImage().mirrored(m_flipHorizontally, m_flipVertically)).transformed(matrix,Qt::SmoothTransformation) );
+    updatePixmap( QPixmap::fromImage(m_curPixmap.toImage().mirrored(m_flipHorizontally, m_flipVertically)).transformed(matrix, Qt::SmoothTransformation) );
 
-    if(m_fitToWindow){
+    if(m_fitToWindow) {
         zoomFitBest();
-    }else{
+    } else {
         scaleImage(1);
     }
 
@@ -658,7 +684,8 @@ void ImageViewer::updateAnimationFrame(const QPixmap &pixmap){
 
 }
 
-void ImageViewer::updateAnimationFrame(const QImage &image){
+void ImageViewer::updateAnimationFrame(const QImage &image)
+{
 
     updatePixmap(QPixmap::fromImage(image));
     m_orignalPixmap = m_curPixmap;
@@ -668,11 +695,11 @@ void ImageViewer::updateAnimationFrame(const QImage &image){
     QMatrix matrix;
     matrix.rotate(m_rotateAngle);
 
-    updatePixmap( QPixmap::fromImage(image.mirrored(m_flipHorizontally, m_flipVertically)).transformed(matrix,Qt::SmoothTransformation) );
+    updatePixmap( QPixmap::fromImage(image.mirrored(m_flipHorizontally, m_flipVertically)).transformed(matrix, Qt::SmoothTransformation) );
 
-    if(m_fitToWindow){
+    if(m_fitToWindow) {
         zoomFitBest();
-    }else{
+    } else {
         scaleImage(1);
     }
 
@@ -680,14 +707,16 @@ void ImageViewer::updateAnimationFrame(const QImage &image){
 
 }
 
-void ImageViewer::setText(const QString &text){
+void ImageViewer::setText(const QString &text)
+{
     m_imageLabel->setText(text);
 }
 
-bool ImageViewer::setDefaultSavePath(const QString &path){
+bool ImageViewer::setDefaultSavePath(const QString &path)
+{
 
     QDir dir;
-    if(!dir.mkpath(path)){
+    if(!dir.mkpath(path)) {
         QMessageBox::critical(this, tr("Error"), tr("Can not create path:<p>%1</p>").arg(path));
         return false;
     }
@@ -698,17 +727,19 @@ bool ImageViewer::setDefaultSavePath(const QString &path){
 
 }
 
-QString ImageViewer::defaultSavePath() {
+QString ImageViewer::defaultSavePath()
+{
 
-    if(m_defaultSavePath.trimmed().isEmpty()){
+    if(m_defaultSavePath.trimmed().isEmpty()) {
         m_defaultSavePath = "./";
     }
 
     return m_defaultSavePath;
 }
 
-void ImageViewer::moveToCenter(bool adjustViewerSize){
-    QDesktopWidget* desktop = QApplication::desktop();
+void ImageViewer::moveToCenter(bool adjustViewerSize)
+{
+    QDesktopWidget *desktop = QApplication::desktop();
     QRect rect = desktop->availableGeometry(this);
     int desktopWidth = rect.width();
     int desktopHeight = rect.height();
@@ -716,23 +747,28 @@ void ImageViewer::moveToCenter(bool adjustViewerSize){
     //    int newWindowHeight = qMin(image.height(), desktopHeight-40);
     //Resize
     const QPixmap *pixmap = m_imageLabel->pixmap();
-    if(adjustViewerSize && pixmap){
-        QSize minSize = QSize(qMin(pixmap->width(), desktopWidth-40), qMin(pixmap->height(), desktopHeight-40));
+    if(adjustViewerSize && pixmap) {
+        QSize minSize = QSize(qMin(pixmap->width(), desktopWidth - 40), qMin(pixmap->height(), desktopHeight - 40));
         QSize newSize = pixmap->size().scaled(minSize, Qt::KeepAspectRatio);
         resize(newSize);
     }
     move((desktopWidth - frameGeometry().width()) / 2, (desktopHeight - frameGeometry().height()) / 2);
 }
 
-void ImageViewer::rotate(int angle){
+void ImageViewer::rotate(int angle)
+{
 
-    if(angle == 0){return;}
+    if(angle == 0) {
+        return;
+    }
 
     //    const QPixmap *pixmap = imageLabel->pixmap();
     //    Q_ASSERT(pixmap);
     //    if(!pixmap){return;}
 
-    if(m_curPixmap.isNull()){return;}
+    if(m_curPixmap.isNull()) {
+        return;
+    }
 
     QMatrix matrix;
     matrix.rotate(angle);
@@ -740,12 +776,12 @@ void ImageViewer::rotate(int angle){
     //    QPixmap pixmap = curPixmap.transformed(matrix,Qt::SmoothTransformation);
     //    imageLabel->setPixmap(pixmap);
     //    updatePixmap(curPixmap.transformed(matrix,Qt::SmoothTransformation));
-    updatePixmap( QPixmap::fromImage(m_orignalPixmap.toImage().mirrored(m_flipHorizontally, m_flipVertically)).transformed(matrix,Qt::SmoothTransformation) );
+    updatePixmap( QPixmap::fromImage(m_orignalPixmap.toImage().mirrored(m_flipHorizontally, m_flipVertically)).transformed(matrix, Qt::SmoothTransformation) );
 
 
-    if(m_fitToWindow){
+    if(m_fitToWindow) {
         zoomFitBest();
-    }else{
+    } else {
         scaleImage(1);
     }
 
@@ -753,13 +789,16 @@ void ImageViewer::rotate(int angle){
 
 }
 
-void ImageViewer::flip(bool horizontally, bool vertically){
+void ImageViewer::flip(bool horizontally, bool vertically)
+{
 
     //    const QPixmap *pixmap = imageLabel->pixmap();
     //    Q_ASSERT(pixmap);
     //    if(!pixmap){return;}
 
-    if(m_curPixmap.isNull()){return;}
+    if(m_curPixmap.isNull()) {
+        return;
+    }
 
     //QImage image = pixmap->toImage().mirrored(true, false);
 
@@ -767,15 +806,15 @@ void ImageViewer::flip(bool horizontally, bool vertically){
     //    curPixmap = QPixmap::fromImage(curPixmap.toImage().mirrored(horizontally, vertically));
     //    imageLabel->setPixmap(curPixmap);
 
-    if(m_fitToWindow){
+    if(m_fitToWindow) {
         zoomFitBest();
     }
 
 
-    if(horizontally){
+    if(horizontally) {
         m_flipHorizontally = !m_flipHorizontally;
     }
-    if(vertically){
+    if(vertically) {
         m_flipVertically = !m_flipVertically;
     }
 
@@ -840,7 +879,9 @@ void ImageViewer::zoomFitBest()
 
     const QPixmap *pixmap = m_imageLabel->pixmap();
     Q_ASSERT(pixmap);
-    if(!pixmap){return;}
+    if(!pixmap) {
+        return;
+    }
 
     QSize imageSize = pixmap->size();
     QSize viewportSize = m_scrollArea->viewport()->size();
@@ -869,22 +910,26 @@ void ImageViewer::zoomOrignal()
 
 }
 
-void ImageViewer::save(){
+void ImageViewer::save()
+{
 
     QString path = m_defaultSavePath + QString("/%1.jpg").arg(QDateTime::currentDateTime().toString("yyyyMMddhhmmss"));
 
     const QPixmap *pixmap = m_imageLabel->pixmap();
     Q_ASSERT(pixmap);
-    if(!pixmap){return;}
+    if(!pixmap) {
+        return;
+    }
 
-    if(!pixmap->save(path)){
+    if(!pixmap->save(path)) {
         QMessageBox::critical(this, tr("Error"), tr("Can not save image as:<p>%1</p>").arg(path));
     }
 
 
 }
 
-void ImageViewer::saveAs(){
+void ImageViewer::saveAs()
+{
 
     QStringList filters;
     filters << "PNG (*.png)" << "JPEG (*.jpg)" << "XPM (*.xpm)" << tr("All Files (*)");
@@ -899,10 +944,12 @@ void ImageViewer::saveAs(){
     QFileDialog dlg;
     QString selectedFilter;
     QString path = dlg.getSaveFileName(this, tr("Save Image As:"), m_defaultSavePath, filters.join(";;"), &selectedFilter);
-    if(path.isEmpty()){return;}
+    if(path.isEmpty()) {
+        return;
+    }
     QFileInfo info(path);
     QString sufffix = info.suffix().trimmed();
-    if(sufffix.isEmpty()){
+    if(sufffix.isEmpty()) {
         sufffix = filtersHash.key(selectedFilter);
         path += sufffix;
     }
@@ -910,9 +957,11 @@ void ImageViewer::saveAs(){
 
     const QPixmap *pixmap = m_imageLabel->pixmap();
     Q_ASSERT(pixmap);
-    if(!pixmap){return;}
+    if(!pixmap) {
+        return;
+    }
 
-    if(!pixmap->save(path)){
+    if(!pixmap->save(path)) {
         QMessageBox::critical(this, tr("Error"), tr("Can not save image as:<p>%1</p>").arg(path));
     }
 
@@ -924,7 +973,9 @@ void ImageViewer::print()
 
     const QPixmap *pixmap = m_imageLabel->pixmap();
     Q_ASSERT(pixmap);
-    if(!pixmap){return;}
+    if(!pixmap) {
+        return;
+    }
 
 #if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
     QPrinter printer(QPrinter::HighResolution);
@@ -943,9 +994,12 @@ void ImageViewer::print()
 }
 
 
-void ImageViewer::reset(){
+void ImageViewer::reset()
+{
 
-    if(m_curPixmap.isNull()){return;}
+    if(m_curPixmap.isNull()) {
+        return;
+    }
 
     m_imageControler->reset();
     zoomFitBest();
@@ -953,7 +1007,8 @@ void ImageViewer::reset(){
 }
 
 
-void ImageViewer::showContextMenu(const QPoint &pos){
+void ImageViewer::showContextMenu(const QPoint &pos)
+{
 
 
     QMenu menu;
@@ -977,12 +1032,13 @@ void ImageViewer::showContextMenu(const QPoint &pos){
 
 }
 
-void ImageViewer::showTip(const QString &tip){
+void ImageViewer::showTip(const QString &tip)
+{
 
 
     m_tipLabel->setText(tip);
 
-    QPoint tl =  QPoint(m_scrollArea->geometry().center()) - QPoint( m_tipLabel->geometry().width()/2, m_tipLabel->geometry().height()/2) ;
+    QPoint tl =  QPoint(m_scrollArea->geometry().center()) - QPoint( m_tipLabel->geometry().width() / 2, m_tipLabel->geometry().height() / 2) ;
     m_tipLabel->move(tl);
     m_tipLabel->show();
 
@@ -993,28 +1049,33 @@ void ImageViewer::showTip(const QString &tip){
 
 
 
-void ImageViewer::showScaleFactor(){
+void ImageViewer::showScaleFactor()
+{
 
-    if(!m_tipScaleFactor){return;}
+    if(!m_tipScaleFactor) {
+        return;
+    }
 
-    QString tip = QString("<div align=\"center\" style=\"font-size:20pt;font-weight:bold;color:#ff0000;\"> %1% </div>").arg( (int)(m_scaleFactor*100));
+    QString tip = QString("<div align=\"center\" style=\"font-size:20pt;font-weight:bold;color:#ff0000;\"> %1% </div>").arg( (int)(m_scaleFactor * 100));
     showTip(tip);
 }
 
-void ImageViewer::showImageInfo(){
+void ImageViewer::showImageInfo()
+{
 
-    QString tip = QString("<div align=\"center\" style=\"font-size:20pt;font-weight:bold;color:#ff0000;\"> %1% </div>").arg( (int)(m_scaleFactor*100));
+    QString tip = QString("<div align=\"center\" style=\"font-size:20pt;font-weight:bold;color:#ff0000;\"> %1% </div>").arg( (int)(m_scaleFactor * 100));
     showTip(tip);
 }
 
-void ImageViewer::moveControler(){
+void ImageViewer::moveControler()
+{
     int scrollAreaWidth = m_scrollArea->viewport()->width();
     //int scrollAreaHeight = m_scrollArea->viewport()->height();
 
     QPoint tr = m_scrollArea->mapTo(this, QPoint( (scrollAreaWidth - m_toolButtonClose->width() ), 1 ));
     m_toolButtonClose->move(tr);
 
-    QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_imageControler->width())/2, 1) );
+    QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_imageControler->width()) / 2, 1) );
     m_imageControler->move(tl);
 }
 
@@ -1100,7 +1161,9 @@ void ImageViewer::scaleImage(double factor)
 
     const QPixmap *pixmap = m_imageLabel->pixmap();
     Q_ASSERT(pixmap);
-    if(!pixmap){return;}
+    if(!pixmap) {
+        return;
+    }
 
     //    Q_ASSERT(imageLabel->pixmap());
     //Q_ASSERT(!movie->currentPixmap().isNull());
@@ -1108,10 +1171,10 @@ void ImageViewer::scaleImage(double factor)
 
     m_scaleFactor *= factor;
 
-    if(m_scaleFactor > 10){
+    if(m_scaleFactor > 10) {
         m_scaleFactor = 10;
     }
-    if(m_scaleFactor < 0.1){
+    if(m_scaleFactor < 0.1) {
         m_scaleFactor = 0.1;
     }
 
@@ -1130,7 +1193,7 @@ void ImageViewer::scaleImage(double factor)
 void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
 {
     scrollBar->setValue(int(factor * scrollBar->value()
-                            + ((factor - 1) * scrollBar->pageStep()/2)));
+                            + ((factor - 1) * scrollBar->pageStep() / 2)));
 }
 
 

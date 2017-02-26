@@ -37,7 +37,8 @@
 #include "../../core/database/databaseutility.h"
 
 DatabaseConnecter::DatabaseConnecter(QObject *parent) :
-    QObject(parent) {
+    QObject(parent)
+{
 
     qDebug() << "----DatabaseConnecter::DatabaseConnecter(QObject *parent)";
 
@@ -70,14 +71,15 @@ DatabaseConnecter::DatabaseConnecter(QObject *parent) :
 
 }
 
-DatabaseConnecter::~DatabaseConnecter() {
+DatabaseConnecter::~DatabaseConnecter()
+{
 
 }
 
 bool DatabaseConnecter::isDatabaseOpened(const QString &connectionName,
-                                         const QString &driver, const QString &host, int port,
-                                         const QString &user, const QString &passwd,
-                                         const QString &databaseName, HEHUI::DatabaseType databaseType)
+        const QString &driver, const QString &host, int port,
+        const QString &user, const QString &passwd,
+        const QString &databaseName, HEHUI::DatabaseType databaseType)
 
 {
 
@@ -94,21 +96,21 @@ bool DatabaseConnecter::isDatabaseOpened(const QString &connectionName,
         db = getDatabase(connectionName, driver, host, port, user, passwd, databaseName, databaseType);
     }
 
-    if(db.isValid() && db.isOpen()){
+    if(db.isValid() && db.isOpen()) {
         return true;
-    }else{
+    } else {
         return false;
     }
 
 }
 
 QSqlDatabase DatabaseConnecter::getDatabase(const QString &connectionName,
-                                            const QString &driver, const QString &host, int port,
-                                            const QString &user, const QString &passwd,
-                                            const QString &databaseName, HEHUI::DatabaseType databaseType)
+        const QString &driver, const QString &host, int port,
+        const QString &user, const QString &passwd,
+        const QString &databaseName, HEHUI::DatabaseType databaseType)
 
 {
-    qDebug()<<"----DatabaseConnecter::getDatabase(...)";
+    qDebug() << "----DatabaseConnecter::getDatabase(...)";
 
     qApp->processEvents();
     //QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -151,7 +153,7 @@ QSqlDatabase DatabaseConnecter::getDatabase(const QString &connectionName,
                                                m_passwd,
                                                m_databaseName,
                                                m_databaseType
-                                               );
+                                              );
 
             if (err.type() != QSqlError::NoError) {
                 QApplication::restoreOverrideCursor();
@@ -159,15 +161,15 @@ QSqlDatabase DatabaseConnecter::getDatabase(const QString &connectionName,
                 qCritical() << QString("ERROR! An error occurred when opening the database: %1").arg(err.text());
 
                 DatabaseConnecterDialog dbConnecterDlg(
-                            m_connectionName,
-                            m_host,
-                            m_port,
-                            "",
-                            "",
-                            m_databaseName,
-                            m_databaseType,
-                            parentWidget
-                            );
+                    m_connectionName,
+                    m_host,
+                    m_port,
+                    "",
+                    "",
+                    m_databaseName,
+                    m_databaseType,
+                    parentWidget
+                );
                 dbConnecterDlg.showSaveSettingsOption(true);
                 QStringList parameters = dbConnecterDlg.getParameters();
                 if (parameters.size() <= 0) {
@@ -201,12 +203,12 @@ QSqlDatabase DatabaseConnecter::getDatabase(const QString &connectionName,
 }
 
 QSqlDatabase DatabaseConnecter::getDatabase2(const QString &connectionName,
-                                            const QString &driver, const QString &host, int port,
-                                            const QString &user, const QString &passwd,
-                                            const QString &databaseName, HEHUI::DatabaseType databaseType)
+        const QString &driver, const QString &host, int port,
+        const QString &user, const QString &passwd,
+        const QString &databaseName, HEHUI::DatabaseType databaseType)
 
 {
-    qDebug()<<"----DatabaseConnecter::getDatabase(...)";
+    qDebug() << "----DatabaseConnecter::getDatabase(...)";
 
     qApp->processEvents();
     //QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -279,7 +281,8 @@ QSqlDatabase DatabaseConnecter::getDatabase2(const QString &connectionName,
 
 }
 
-bool DatabaseConnecter::connectToNewDatabase(QString *connectionName) {
+bool DatabaseConnecter::connectToNewDatabase(QString *connectionName)
+{
     qDebug() << "----DatabaseConnecter::connectToNewDatabase()";
 
     DatabaseConnecterDialog dbConnecterDlg(parentWidget);
@@ -289,7 +292,7 @@ bool DatabaseConnecter::connectToNewDatabase(QString *connectionName) {
         QMessageBox::critical(parentWidget, tr("Fatal Error"), tr(
                                   "Can not connect to database server!"));
         qCritical() << QString("XX Fatal Error!") << QString(
-                           "Can not connect to database server!");
+                        "Can not connect to database server!");
         return false;
     }
 
@@ -300,48 +303,58 @@ bool DatabaseConnecter::connectToNewDatabase(QString *connectionName) {
     QSqlDatabase db;
     db = QSqlDatabase::database(parameters.at(0));
 
-    if(connectionName){
+    if(connectionName) {
         *connectionName = parameters.at(0);
     }
 
     return db.isValid();
 }
 
-QString DatabaseConnecter::dbConnectionName() const{
+QString DatabaseConnecter::dbConnectionName() const
+{
     return m_connectionName;
 }
 
-QString DatabaseConnecter::dbDriver() const{
+QString DatabaseConnecter::dbDriver() const
+{
     return m_driver;
 }
-QString DatabaseConnecter::dbServerHost() const{
+QString DatabaseConnecter::dbServerHost() const
+{
     return m_host;
 }
 
-quint16 DatabaseConnecter::dbServerPort() const{
+quint16 DatabaseConnecter::dbServerPort() const
+{
     return m_port;
 }
 
-QString DatabaseConnecter::dbUser() const{
+QString DatabaseConnecter::dbUser() const
+{
     return m_user;
 }
 
-QString DatabaseConnecter::dbPasswd() const{
+QString DatabaseConnecter::dbPasswd() const
+{
     return m_passwd;
 }
 
-QString DatabaseConnecter::dbName() const{
+QString DatabaseConnecter::dbName() const
+{
     return m_databaseName;
 }
 
-HEHUI::DatabaseType DatabaseConnecter::dbType() const{
+HEHUI::DatabaseType DatabaseConnecter::dbType() const
+{
     return m_databaseType;
 }
 
-bool DatabaseConnecter::settingsModified() const{
+bool DatabaseConnecter::settingsModified() const
+{
     return m_settingsModified;
 }
 
-bool DatabaseConnecter::saveSettings() const{
+bool DatabaseConnecter::saveSettings() const
+{
     return m_saveSettings;
 }

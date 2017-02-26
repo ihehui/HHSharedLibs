@@ -47,7 +47,8 @@ rudpSocket->endDataTransmission(m_peerAddress, m_peerPort, fragmentDataID);
 #include "../packethandler/packethandlerbase.h"
 
 
-namespace HEHUI{
+namespace HEHUI
+{
 
 class NETWORK_LIB_API RUDPSocket : public QUdpSocket
 {
@@ -101,18 +102,18 @@ private slots:
     void channelclosed(const QHostAddress &peerAddress, quint16 peerPort, bool normalClose);
 
 private:
-    RUDPChannel * getRUDPChannel(const QHostAddress &hostAddress = QHostAddress::Null, quint16 port = 0);
+    RUDPChannel *getRUDPChannel(const QHostAddress &hostAddress = QHostAddress::Null, quint16 port = 0);
 
     void recyleRUDPChannel(RUDPChannel *channel);
 
 private:
     PacketHandlerBase *m_packetHandlerBase;
 
-    QHash<QString/*IP:Port*/, RUDPChannel*> peers;
+    QHash<QString/*IP:Port*/, RUDPChannel *> peers;
 
     QByteArray *datagram;
 
-    QList<RUDPChannel*> m_unusedRUDPChannels;
+    QList<RUDPChannel *> m_unusedRUDPChannels;
 
     int m_keepAliveTimerInterval;
 
@@ -135,7 +136,7 @@ public:
 
     void run();
 
-    RUDPSocket * getRUDPSocket();
+    RUDPSocket *getRUDPSocket();
 
 private:
     RUDPSocket *m_rudpSocket;

@@ -14,4 +14,4 @@
 ****************************************************************************/
 #include "singleton.h"
 
-QHash<const QMetaObject*, QObject*> SingletonExpose::mInstances;
+QHash<const QMetaObject *, QObject *> SingletonExpose::mInstances;

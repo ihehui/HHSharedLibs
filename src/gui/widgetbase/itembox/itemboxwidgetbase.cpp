@@ -47,15 +47,16 @@
 #include <QtCore/QSharedData>
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class ItemBoxItemData : public QSharedData
 {
 public:
     ItemBoxItemData(const QString &aid, const QString &aname,
-                                 const QIcon &icon,
-                                 ItemBoxWidgetInterface::Item::Type atype);
+                    const QIcon &icon,
+                    ItemBoxWidgetInterface::Item::Type atype);
     QString m_id;
     QString m_name;
     QIcon m_icon;
@@ -64,14 +65,14 @@ public:
 };
 
 ItemBoxItemData::ItemBoxItemData(const QString &aid, const QString &aname,
-                                                           const QIcon &icon,
-                                                           ItemBoxWidgetInterface::Item::Type atype) :
+                                 const QIcon &icon,
+                                 ItemBoxWidgetInterface::Item::Type atype) :
     m_id(aid), m_name(aname), m_icon(icon), m_type(atype)
 {
 }
 
 ItemBoxWidgetInterface::Item::Item(const QString &aid, const QString &aname,
-                                            const QIcon &icon, Type atype) :
+                                   const QIcon &icon, Type atype) :
     m_data(new ItemBoxItemData(aid, aname, icon, atype))
 {
 }
@@ -98,7 +99,8 @@ QString ItemBoxWidgetInterface::Item::id() const
     return m_data->m_id;
 }
 
-void ItemBoxWidgetInterface::Item::setID(const QString &aid){
+void ItemBoxWidgetInterface::Item::setID(const QString &aid)
+{
     m_data->m_id = aid;
 }
 
@@ -160,14 +162,14 @@ ItemBoxWidgetBase::LoadMode ItemBoxWidgetBase::loadMode() const
 
 void ItemBoxWidgetBase::setLoadMode(LoadMode lm)
 {
-     m_loadMode = lm;
+    m_loadMode = lm;
 }
 
 // Convenience to find a Item by class name
 bool ItemBoxWidgetBase::findItem(const ItemBoxWidgetInterface *ibox,
-                                    const QString &itemID,
-                                    const QString &category,
-                                    Item *itemData)
+                                 const QString &itemID,
+                                 const QString &category,
+                                 Item *itemData)
 {
     // Note that entry names do not necessarily match the class name
     // (at least, not for the standard widgets), so,

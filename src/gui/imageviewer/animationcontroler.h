@@ -35,11 +35,13 @@
 #include <QMovie>
 
 
-namespace Ui {
+namespace Ui
+{
 class AnimationControler;
 }
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class AnimationControler : public QWidget
@@ -61,9 +63,9 @@ public slots:
     bool setFileName(const QString &fileName);
 
 private slots:
-        void updateFrame();
-        void updateAnimationControls();
-        void goToFrame(int frame);
+    void updateFrame();
+    void updateAnimationControls();
+    void goToFrame(int frame);
 
 
 private:

@@ -38,9 +38,10 @@
 #include "settingsbase.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-SettingsBase::SettingsBase(const QString fileBaseName, const QString fileDirPath, QObject* parent )
+SettingsBase::SettingsBase(const QString fileBaseName, const QString fileDirPath, QObject *parent )
     : SettingsCore(fileBaseName, fileDirPath, parent )
 {
 
@@ -64,7 +65,7 @@ QString SettingsBase::getStyle() const
     return value("MainWindow/Style", QString("fusion")).toString();
 #endif
 
-    return value("MainWindow/Style","").toString();
+    return value("MainWindow/Style", "").toString();
 
 }
 
@@ -76,7 +77,7 @@ void SettingsBase::setPalette(bool useStylePalette)
 
 bool SettingsBase::getPalette()
 {
-    return value("MainWindow/UseStylePalette",false).toBool();
+    return value("MainWindow/UseStylePalette", false).toBool();
 }
 
 void SettingsBase::setHideOnClose(bool hideOnClose)
@@ -86,37 +87,36 @@ void SettingsBase::setHideOnClose(bool hideOnClose)
 
 bool SettingsBase::getHideOnClose()
 {
-    return value("MainWindow/HideOnClose",true).toBool();
+    return value("MainWindow/HideOnClose", true).toBool();
 }
 
-void SettingsBase::restoreState( QMainWindow* mw)
+void SettingsBase::restoreState( QMainWindow *mw)
 {
-    if ( !mw )
+    if ( !mw ) {
         return;
+    }
     mw->restoreState( value( "MainWindow/State" ).toByteArray() );
     QPoint p = value( "MainWindow/Position" ).toPoint();
     QSize s = value( "MainWindow/Size" ).toSize();
-    if ( !p.isNull() && !s.isNull() )
-    {
+    if ( !p.isNull() && !s.isNull() ) {
         mw->resize( s );
         mw->move( p );
     }
 
-    if ( value( "MainWindow/Maximized", false ).toBool() ){
+    if ( value( "MainWindow/Maximized", false ).toBool() ) {
         mw->showMaximized();
     }
 
 
-    if ( value( "MainWindow/Hidden", false ).toBool() )
-    {
+    if ( value( "MainWindow/Hidden", false ).toBool() ) {
         mw->hide();
     }
 
 }
 
-void SettingsBase::saveState( QMainWindow* mw)
+void SettingsBase::saveState( QMainWindow *mw)
 {
-    if ( !mw ){
+    if ( !mw ) {
         return;
     }
 
@@ -129,12 +129,14 @@ void SettingsBase::saveState( QMainWindow* mw)
 }
 
 
-void SettingsBase::setRestoreWindowStateOnStartup(bool restore){
+void SettingsBase::setRestoreWindowStateOnStartup(bool restore)
+{
     setValue( "MainWindow/RestoreWindowStateOnStartup", restore );
 
 }
 
-bool SettingsBase::getRestoreWindowStateOnStartup(){
+bool SettingsBase::getRestoreWindowStateOnStartup()
+{
     return value("MainWindow/RestoreWindowStateOnStartup", false).toBool();
 
 }

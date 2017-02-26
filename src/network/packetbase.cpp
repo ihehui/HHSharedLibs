@@ -32,12 +32,14 @@
 
 //#include "packetstreamoperator.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //重载操作符“<<”
 //Write data to stream
-QDataStream &operator<<(QDataStream &out, const HEHUI::PacketBase &packet){
+QDataStream &operator<<(QDataStream &out, const HEHUI::PacketBase &packet)
+{
     quint8 packetType = packet.getPacketType();
     QByteArray packetData = packet.getPacketBody();
 
@@ -48,7 +50,8 @@ QDataStream &operator<<(QDataStream &out, const HEHUI::PacketBase &packet){
 
 //重载操作符“>>”
 //Read data from stream
-QDataStream &operator>>(QDataStream &in, HEHUI::PacketBase &packet){
+QDataStream &operator>>(QDataStream &in, HEHUI::PacketBase &packet)
+{
     quint8 packetType = 0;
     QByteArray packetData;
 
@@ -69,16 +72,17 @@ QDataStream &operator>>(QDataStream &in, HEHUI::PacketBase &packet){
 
 QString PacketBase::m_localID = "";
 
-PacketBase::PacketBase() {
+PacketBase::PacketBase()
+{
 
     //	packetHeader.resize(0);
     //	packetBody.resize(0);
     //	packetTail.resize(0);
-    
+
     this->m_packetType = HEHUI::UnKnownPacket;
     this->m_packetBody = QByteArray();
     this->m_packetBody.resize(0);
-    
+
     this->peerHostAddress = QHostAddress::Null;;
     this->peerHostPort = 0;
 
@@ -87,7 +91,8 @@ PacketBase::PacketBase() {
 
 }
 
-PacketBase::PacketBase(quint8 packetType){
+PacketBase::PacketBase(quint8 packetType)
+{
 
     this->m_packetType = packetType;
     this->m_packetBody = QByteArray();
@@ -102,11 +107,13 @@ PacketBase::PacketBase(quint8 packetType){
 }
 
 
-PacketBase::PacketBase(const PacketBase &packet){
+PacketBase::PacketBase(const PacketBase &packet)
+{
     *this = packet;
- }
+}
 
-PacketBase & PacketBase::operator = (const PacketBase &packet){
+PacketBase &PacketBase::operator = (const PacketBase &packet)
+{
 
     this->m_packetType = packet.getPacketType();
     this->m_packetBody = packet.getPacketBody();
@@ -120,29 +127,32 @@ PacketBase & PacketBase::operator = (const PacketBase &packet){
     return *this;
 }
 
-PacketBase::~PacketBase() {
+PacketBase::~PacketBase()
+{
     resetPacket();
 }
 
-void PacketBase::registerMetaTypeStreamOperators(){
+void PacketBase::registerMetaTypeStreamOperators()
+{
 
     //注册自定义类型，必须重载“<<”和“>>”, 见"packetstreamoperator.h"
 
     int type = QMetaType::type("HEHUI::Packet");
-    if(!type){
+    if(!type) {
         qRegisterMetaTypeStreamOperators<HEHUI::PacketBase>("HEHUI::Packet");
-    }else if(!QMetaType::isRegistered(type)){
+    } else if(!QMetaType::isRegistered(type)) {
         qRegisterMetaTypeStreamOperators<HEHUI::PacketBase>("HEHUI::Packet");
     }
 
 }
 
-void PacketBase::resetPacket(){
+void PacketBase::resetPacket()
+{
     this->m_packetType = UnKnownPacket;
     //this->m_packetSerialNumber = 0;
     this->m_packetBody.clear();
     this->m_packetBody.resize(0);
-    
+
     this->peerHostAddress = QHostAddress::Null;
     this->peerHostPort = 0;
 
@@ -150,7 +160,8 @@ void PacketBase::resetPacket(){
     this->m_peerID = "";
 }
 
-bool PacketBase::isValid() {
+bool PacketBase::isValid()
+{
     return (UnKnownPacket != m_packetType) && (!m_packetBody.isEmpty());
 }
 
@@ -166,8 +177,11 @@ bool PacketBase::isValid() {
 //    return ba;
 //}
 
-bool PacketBase::fromByteArray(QByteArray *data){
-    if(!data){return false;};
+bool PacketBase::fromByteArray(QByteArray *data)
+{
+    if(!data) {
+        return false;
+    };
 
     this->m_packetType = UnKnownPacket;
     this->m_peerID = "";
@@ -182,11 +196,13 @@ bool PacketBase::fromByteArray(QByteArray *data){
 }
 
 
-quint8 PacketBase::getPacketType() const {
+quint8 PacketBase::getPacketType() const
+{
     return m_packetType;
 }
 
-void PacketBase::setPacketType(quint8 packetType) {
+void PacketBase::setPacketType(quint8 packetType)
+{
     this->m_packetType = packetType;
 }
 
@@ -253,56 +269,68 @@ void PacketBase::setPacketType(quint8 packetType) {
 
  */
 
-QHostAddress PacketBase::getPeerHostAddress() const {
-	//    QMutexLocker locker(&mutex);
-        return peerHostAddress;
+QHostAddress PacketBase::getPeerHostAddress() const
+{
+    //    QMutexLocker locker(&mutex);
+    return peerHostAddress;
 }
 
-void PacketBase::setPeerHostAddress(const QHostAddress &peerHostAddress) {
-	//    QMutexLocker locker(&mutex);
-        this->peerHostAddress = peerHostAddress;
+void PacketBase::setPeerHostAddress(const QHostAddress &peerHostAddress)
+{
+    //    QMutexLocker locker(&mutex);
+    this->peerHostAddress = peerHostAddress;
 }
 
-quint16 PacketBase::getPeerHostPort() const {
-	//    QMutexLocker locker(&mutex);
-        return peerHostPort;
+quint16 PacketBase::getPeerHostPort() const
+{
+    //    QMutexLocker locker(&mutex);
+    return peerHostPort;
 }
 
-void PacketBase::setPeerHostPort(quint16 peerHostPort) {
-	//    QMutexLocker locker(&mutex);
-        this->peerHostPort = peerHostPort;
+void PacketBase::setPeerHostPort(quint16 peerHostPort)
+{
+    //    QMutexLocker locker(&mutex);
+    this->peerHostPort = peerHostPort;
 }
 
-SOCKETID PacketBase::getSocketID() const{
+SOCKETID PacketBase::getSocketID() const
+{
     return m_socketID;
 }
 
-void PacketBase::setSocketID(SOCKETID id){
+void PacketBase::setSocketID(SOCKETID id)
+{
     this->m_socketID = id;
 }
 
-QString PacketBase::getPeerID() const{
+QString PacketBase::getPeerID() const
+{
     return m_peerID;
 }
 
-void PacketBase::setPeerID(const QString &id){
+void PacketBase::setPeerID(const QString &id)
+{
     this->m_peerID = id;
 }
 
-const QString PacketBase::getLocalID(){
+const QString PacketBase::getLocalID()
+{
     return m_localID;
 }
 
-void PacketBase::setLocalID(const QString &id){
+void PacketBase::setLocalID(const QString &id)
+{
     m_localID = id;
 }
 
-QByteArray PacketBase::getPacketBody() const {
+QByteArray PacketBase::getPacketBody() const
+{
     //    QMutexLocker locker(&mutex);
-        return m_packetBody;
+    return m_packetBody;
 }
 
-void PacketBase::setPacketBody(const QByteArray &data) {
+void PacketBase::setPacketBody(const QByteArray &data)
+{
     //    QMutexLocker locker(&mutex);
     this->m_packetBody = data;
 }
@@ -317,32 +345,37 @@ void PacketBase::setPacketBody(const QByteArray &data) {
 //////////////////////////////////////////////////////////////////////////////////////
 
 Packet::Packet(quint8 packetType)
-    :PacketBase(packetType)
+    : PacketBase(packetType)
 {
 
 }
 
 Packet::Packet(const PacketBase &base)
-    :PacketBase()
+    : PacketBase()
 {
     convert(base);
 }
 
-Packet & Packet::operator = (const PacketBase &base){
+Packet &Packet::operator = (const PacketBase &base)
+{
 
     convert(base);
 
     return *this;
 }
 
-Packet::~Packet(){
+Packet::~Packet()
+{
 
 }
 
-QByteArray Packet::toByteArray(){
+QByteArray Packet::toByteArray()
+{
 
     QByteArray body = encrypt(packBodyData());
-    if(body.isEmpty()){return QByteArray();}
+    if(body.isEmpty()) {
+        return QByteArray();
+    }
 
     QByteArray ba;
     QDataStream out(&ba, QIODevice::WriteOnly);
@@ -354,7 +387,8 @@ QByteArray Packet::toByteArray(){
 }
 
 
-void Packet::convert(const PacketBase &base){
+void Packet::convert(const PacketBase &base)
+{
 
     setPacketType(base.getPacketType());
     setPeerHostAddress(base.getPeerHostAddress());

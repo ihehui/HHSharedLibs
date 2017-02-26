@@ -24,7 +24,7 @@
 #define NETERR_INCLUDED
 
 #if _MSC_VER > 1000
-#pragma once
+    #pragma once
 #endif
 
 /*INC*/
@@ -102,7 +102,7 @@
 /* UNUSED BASE+35 */
 #define NERR_NetworkError       (NERR_BASE+36)  /* A general network error occurred. */
 #define NERR_WkstaInconsistentState (NERR_BASE+37)
-    /* The Workstation service is in an inconsistent state. Restart the computer before restarting the Workstation service. */
+/* The Workstation service is in an inconsistent state. Restart the computer before restarting the Workstation service. */
 #define NERR_WkstaNotStarted    (NERR_BASE+38)  /* The Workstation service has not been started. */
 #define NERR_BrowserNotStarted  (NERR_BASE+39)  /* The requested information is not available. */
 #define NERR_InternalError      (NERR_BASE+40)  /* An internal Windows error occurred.*/
@@ -591,7 +591,7 @@
 #define NERR_PasswordMustChange            (NERR_BASE + 601)   /* Password must change at next logon */
 #define NERR_AccountLockedOut              (NERR_BASE + 602)   /* Account is locked out */
 #define NERR_PasswordTooLong               (NERR_BASE + 603)   /* Password is too long */
-#define NERR_PasswordNotComplexEnough      (NERR_BASE + 604)   /* Password doesn't meet the complexity policy */ 
+#define NERR_PasswordNotComplexEnough      (NERR_BASE + 604)   /* Password doesn't meet the complexity policy */
 #define NERR_PasswordFilterError           (NERR_BASE + 605)   /* Password doesn't meet the requirements of the filter dll's */
 
 /***********WARNING ****************

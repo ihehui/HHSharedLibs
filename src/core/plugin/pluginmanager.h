@@ -42,20 +42,22 @@
 #include "abstractplugininterface.h"
 #include "../core_lib.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
-class CORE_LIB_API PluginManager: public QObject {
+class CORE_LIB_API PluginManager: public QObject
+{
     Q_OBJECT
 
 public:
 
     virtual ~PluginManager();
 
-    static PluginManager* instance();
+    static PluginManager *instance();
 
     //Read only
-    const QHash<QString, AbstractPluginInterface *> & getPluginsHash() const;
+    const QHash<QString, AbstractPluginInterface *> &getPluginsHash() const;
 
     //Plugins list
     QList<AbstractPluginInterface *> pluginsList() const;
@@ -64,8 +66,8 @@ public:
 
     //Load plugins
     virtual void loadPlugins(const QString &pluginsDirPath = QCoreApplication::applicationDirPath() + QDir::separator()
-            + QString(PLUGINS_MAIN_DIR) + QDir::separator() + QString(PLUGINS_MYPLUGINS_DIR));
-    virtual AbstractPluginInterface * loadPlugin(const QString &pluginFilePath, QString *errorString = 0);
+                             + QString(PLUGINS_MAIN_DIR) + QDir::separator() + QString(PLUGINS_MYPLUGINS_DIR));
+    virtual AbstractPluginInterface *loadPlugin(const QString &pluginFilePath, QString *errorString = 0);
     virtual bool reloadPlugin(const QString &pluginFilePath);
     virtual bool unloadPlugins();
 

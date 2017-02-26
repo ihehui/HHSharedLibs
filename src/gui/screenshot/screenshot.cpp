@@ -42,7 +42,8 @@
 #include "ui_screenshot.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 Screenshot::Screenshot(QWidget *parent, Qt::WindowFlags fl)
@@ -53,9 +54,9 @@ Screenshot::Screenshot(QWidget *parent, Qt::WindowFlags fl)
 
     //    originalPixmap = QPixmap::grabWindow(QApplication::desktop()->winId());
     QScreen *screen = QApplication::primaryScreen();
-    if (screen){
+    if (screen) {
         originalPixmap = screen->grabWindow(0);
-    }else{
+    } else {
         originalPixmap = QPixmap();
     }
 
@@ -74,32 +75,31 @@ Screenshot::~Screenshot()
     delete ui;
 }
 
-bool Screenshot::event(QEvent *e){
+bool Screenshot::event(QEvent *e)
+{
 
-    switch(e->type()){
-    case QEvent::KeyRelease:
-    {
+    switch(e->type()) {
+    case QEvent::KeyRelease: {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *> (e);
-        if(keyEvent->key() == Qt::Key_Escape){
-            if(m_targetPixmapWidget){
+        if(keyEvent->key() == Qt::Key_Escape) {
+            if(m_targetPixmapWidget) {
                 m_targetPixmapWidget->close();
             }
             close();
             return true;
         }
     }
-        break;
-    case QEvent::MouseButtonPress:
-    {
+    break;
+    case QEvent::MouseButtonPress: {
         QMouseEvent *event = static_cast<QMouseEvent *> (e);
-        if(event->button() == Qt::LeftButton){
+        if(event->button() == Qt::LeftButton) {
             topLeft = event->globalPos();
             bottomRight = QPoint(topLeft.x() + 5, topLeft.y() + 5);
-            if(!m_targetPixmapWidget){
+            if(!m_targetPixmapWidget) {
                 showSelectedRect();
                 QToolTip::showText(topLeft, QString("Press X:%1 Y:%2").arg(topLeft.x()).arg(topLeft.y()));
                 return true;
-            }else{
+            } else {
                 //m_targetPixmapWidget->resize(0,0);
                 updateSelectedRect();
                 m_targetPixmapWidget->move(topLeft);
@@ -107,11 +107,10 @@ bool Screenshot::event(QEvent *e){
             }
         }
     }
-        break;
-    case QEvent::MouseMove:
-    {
+    break;
+    case QEvent::MouseMove: {
         QMouseEvent *event = static_cast<QMouseEvent *> (e);
-        if(event->buttons() & Qt::LeftButton){
+        if(event->buttons() & Qt::LeftButton) {
             bottomRight = event->globalPos();
             //QToolTip::showText(bottomRight, QString("Move X:%1 Y:%2").arg(bottomRight.x()).arg(bottomRight.y()));
 
@@ -119,7 +118,7 @@ bool Screenshot::event(QEvent *e){
             return true;
         }
     }
-        break;
+    break;
     default:
         break;
     }
@@ -128,7 +127,8 @@ bool Screenshot::event(QEvent *e){
     return QWidget::event(e);
 }
 
-void Screenshot::drawBackground(){
+void Screenshot::drawBackground()
+{
 
     QPainter painter(&backgroundImage);
 
@@ -175,9 +175,10 @@ void Screenshot::drawBackground(){
 
 //}
 
-void Screenshot::showSelectedRect(){
+void Screenshot::showSelectedRect()
+{
 
-    if(!m_targetPixmapWidget){
+    if(!m_targetPixmapWidget) {
         m_targetPixmapWidget = new SelectTargetImageWidget(originalPixmap.toImage(), QRect(topLeft, bottomRight), this);
         connect(m_targetPixmapWidget, SIGNAL(imageSelected(const QImage &)), this, SIGNAL(imageSelected(const QImage &)));
     }
@@ -187,7 +188,8 @@ void Screenshot::showSelectedRect(){
 
 }
 
-void Screenshot::updateSelectedRect(){
+void Screenshot::updateSelectedRect()
+{
     m_targetPixmapWidget->resize(bottomRight.x() - topLeft.x(), bottomRight.y() - topLeft.y());
 }
 

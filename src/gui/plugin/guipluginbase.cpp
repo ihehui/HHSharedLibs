@@ -29,7 +29,8 @@
 
 #include "guipluginbase.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 GUIPluginBase::GUIPluginBase()
@@ -42,7 +43,8 @@ GUIPluginBase::GUIPluginBase()
 
 }
 
-GUIPluginBase::~GUIPluginBase() {
+GUIPluginBase::~GUIPluginBase()
+{
     qDebug("--GUIPluginBase::~GUIPluginBase()");
 
     //unload();
@@ -50,14 +52,12 @@ GUIPluginBase::~GUIPluginBase() {
     if (m_menu) {
         QAction *action = m_menu->menuAction();
         QList<QWidget *> widgetList = action->associatedWidgets();
-        foreach(QWidget *widget, widgetList)
-        {
+        foreach(QWidget *widget, widgetList) {
             widget->removeAction(action);
         }
 
         QList<QGraphicsWidget *> graphicsWidgetList = action->associatedGraphicsWidgets();
-        foreach(QGraphicsWidget *graphicsWidget, graphicsWidgetList)
-        {
+        foreach(QGraphicsWidget *graphicsWidget, graphicsWidgetList) {
             graphicsWidget->removeAction(action);
         }
     }
@@ -76,23 +76,28 @@ GUIPluginBase::~GUIPluginBase() {
 //    return QString("1.0.0");
 //}
 
-QString GUIPluginBase::vendor() const {
+QString GUIPluginBase::vendor() const
+{
     return QString(tr("He Hui"));
 }
 
-QString GUIPluginBase::author() const {
+QString GUIPluginBase::author() const
+{
     return QString(tr("He Hui"));
 }
 
-QString GUIPluginBase::url() const {
+QString GUIPluginBase::url() const
+{
     return QString("www.gnu.org");
 }
 
-QString GUIPluginBase::description() const {
+QString GUIPluginBase::description() const
+{
     return QString(tr("GUI Plug-in"));
 }
 
-QString GUIPluginBase::license() const {
+QString GUIPluginBase::license() const
+{
     QString licenseString = QString(tr("This plugin is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.</br>"));
     licenseString += QString(tr("<p>See the <a href=\"http://www.gnu.org/copyleft/lesser.html\">GNU LESSER GENERAL PUBLIC LICENSE</a> for more details.</p>"));
     return licenseString;
@@ -103,7 +108,8 @@ QString GUIPluginBase::license() const {
 //    return false;
 //  }
 
-bool GUIPluginBase::initialize(QWidget * parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString& pName, const QString& pVersion) {
+bool GUIPluginBase::initialize(QWidget *parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString &pName, const QString &pVersion)
+{
 
     qDebug("----GUIPluginBase::initialize(...)");
 
@@ -135,7 +141,8 @@ bool GUIPluginBase::initialize(QWidget * parentWidget, QMenu *menu, QToolBar *to
 
 }
 
-bool GUIPluginBase::unload() {
+bool GUIPluginBase::unload()
+{
     qDebug("----GUIPluginBase::unload()");
 
     //    if(m_menu){
@@ -157,21 +164,25 @@ bool GUIPluginBase::unload() {
     return true;
 }
 
-QIcon GUIPluginBase::icon() const {
+QIcon GUIPluginBase::icon() const
+{
     return QIcon(":/resources/images/plugin.png");
 
 }
 
-QString GUIPluginBase::whatsThis() const {
+QString GUIPluginBase::whatsThis() const
+{
     return QString(tr("GUI Plug-in"));
 }
 
-QString GUIPluginBase::toolTip() const {
+QString GUIPluginBase::toolTip() const
+{
 
     return QString(tr("GUI Plug-in"));
 }
 
-QMenu * GUIPluginBase::menu() {
+QMenu *GUIPluginBase::menu()
+{
     if (!m_menu) {
         m_menu = new QMenu(name(), parentWidget);
         //		m_menu->setIcon(icon());
@@ -191,7 +202,7 @@ QMenu * GUIPluginBase::menu() {
         //		connect(m_menu->menuAction(), SIGNAL(triggered()), defaultAction, SLOT(trigger()));
 
         QAction *action = mainActionForMenu();
-        if(action){
+        if(action) {
             m_menu->addAction(action);
             slotSetDefaultActionForMenuAction(action);
         }
@@ -213,25 +224,27 @@ QMenu * GUIPluginBase::menu() {
 
 }
 
-void GUIPluginBase::addActionToMenu(QAction *action){
+void GUIPluginBase::addActionToMenu(QAction *action)
+{
 
-    if(!action){
+    if(!action) {
         return;
     }
-    
+
     QMenu *m = menu();
     m->addAction(action);
-    
+
 }
 
-bool GUIPluginBase::event( QEvent * e ){
+bool GUIPluginBase::event( QEvent *e )
+{
 
-    if(e->type() == QEvent::LanguageChange){
-        if(m_menu){
+    if(e->type() == QEvent::LanguageChange) {
+        if(m_menu) {
             m_menu->setTitle(name());
         }
-        if(actionMain){
-            actionMain->setText(name());    
+        if(actionMain) {
+            actionMain->setText(name());
         }
         retranslateUi();
     }
@@ -239,7 +252,8 @@ bool GUIPluginBase::event( QEvent * e ){
 }
 
 
-void GUIPluginBase::slotSetDefaultActionForMenuAction(QAction * action) {
+void GUIPluginBase::slotSetDefaultActionForMenuAction(QAction *action)
+{
     qDebug("----GUIPluginBase::slotSetDefaultActionForMenuAction(QAction * action)");
 
     if ((defaultAction == action) || (!m_menu)) {
@@ -260,30 +274,32 @@ void GUIPluginBase::slotSetDefaultActionForMenuAction(QAction * action) {
     menuAction->setWhatsThis(action->whatsThis());
 
     QIcon icon = action->icon();
-    if(icon.isNull()){
+    if(icon.isNull()) {
         menuAction->setIcon(QIcon(":/resources/images/plugin.png"));
-    }else{
+    } else {
         menuAction->setIcon(icon);
     }
 
 
 }
 
-void GUIPluginBase::retranslateUi(){
+void GUIPluginBase::retranslateUi()
+{
 
     //    if(m_menu){
     //        m_menu->setTitle(name());
     //    }
-    
+
     //    if(actionMain){
     //        actionMain->setText(name());
     //    }
 }
 
 
-QAction * GUIPluginBase::mainActionForMenu(){
+QAction *GUIPluginBase::mainActionForMenu()
+{
 
-    if(!actionMain){
+    if(!actionMain) {
         actionMain = new QAction(icon(), name(), m_menu);
         actionMain->setToolTip(toolTip());
         actionMain->setStatusTip(toolTip());

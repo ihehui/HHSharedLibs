@@ -43,7 +43,8 @@
 
 
 
-namespace HEHUI{
+namespace HEHUI
+{
 
 
 PluginManagerWindow::PluginManagerWindow(QWidget *parent) :
@@ -80,7 +81,8 @@ PluginManagerWindow::PluginManagerWindow(QWidget *parent) :
 
 }
 
-PluginManagerWindow::~PluginManagerWindow(){
+PluginManagerWindow::~PluginManagerWindow()
+{
 
     pluginInfoModel->clear();
     delete pluginInfoModel;
@@ -105,7 +107,8 @@ bool PluginManagerWindow::eventFilter(QObject *object, QEvent *event){
 }
 */
 
-void PluginManagerWindow::on_pushButtonDetails_clicked(bool checked) {
+void PluginManagerWindow::on_pushButtonDetails_clicked(bool checked)
+{
     if (checked) {
         ui->groupBoxDetails->show();
         slotUpdateUI(ui->tableView->currentIndex());
@@ -115,7 +118,8 @@ void PluginManagerWindow::on_pushButtonDetails_clicked(bool checked) {
 
 }
 
-void PluginManagerWindow::on_pushButtonLoad_clicked(){
+void PluginManagerWindow::on_pushButtonLoad_clicked()
+{
     QString filterString;
 #ifdef Q_OS_WIN
     filterString = tr("DLL (*.dll);;All Files (*.*)");
@@ -126,22 +130,22 @@ void PluginManagerWindow::on_pushButtonLoad_clicked(){
 #endif
 
     QString pluginsDirPath = QCoreApplication::applicationDirPath() + QDir::separator()
-            + QString(PLUGINS_MAIN_DIR) + QDir::separator() + QString(
-                PLUGINS_MYPLUGINS_DIR);
+                             + QString(PLUGINS_MAIN_DIR) + QDir::separator() + QString(
+                                 PLUGINS_MYPLUGINS_DIR);
     QStringList files = QFileDialog::getOpenFileNames(this, tr("Select one or more plugin files to load"), pluginsDirPath, filterString);
-    if(files.isEmpty()){
+    if(files.isEmpty()) {
         return;
     }
 
-    foreach(QString file, files){
-        if(!QFile::exists(file)){
+    foreach(QString file, files) {
+        if(!QFile::exists(file)) {
             QMessageBox::critical(this, tr("Error"), tr("File '%1' does not exist!").arg(file));
             break;
         }
 
         QString errorString = "";
         AbstractPluginInterface *plugin = PluginManager::instance()->loadPlugin(file, &errorString);
-        if(!plugin){
+        if(!plugin) {
             QMessageBox::critical(this, tr("Error"), tr("Can not load plugin '%1'!\n%2").arg(QFileInfo(file).fileName()).arg(errorString));
             continue;
         }
@@ -160,22 +164,23 @@ void PluginManagerWindow::on_pushButtonLoad_clicked(){
 
 }
 
-void PluginManagerWindow::on_pushButtonUnload_clicked(){
+void PluginManagerWindow::on_pushButtonUnload_clicked()
+{
     qDebug("----PluginManagerWindow::on_pushButtonUnload_clicked()");
 
     QModelIndex index = ui->tableView->currentIndex();
-    if(!index.isValid()){
+    if(!index.isValid()) {
         return;
     }
 
     HEHUI::AbstractPluginInterface *plugin = PluginManager::instance()->getPluginsHash().values().at(index.row());
-    if(!plugin){
+    if(!plugin) {
         QMessageBox::critical(this, tr("Error"), tr("Invalid plug-in instance or plug-in has already been unloaded!"));
         qCritical("ERROR! Invalid plug-in instance or plug-in has already been unloaded!");
         return;
     }
 
-    if(!PluginManager::instance()->unloadPlugin(plugin)){
+    if(!PluginManager::instance()->unloadPlugin(plugin)) {
         QMessageBox::critical(this, tr("Error"), tr("Can not unload the plug-in '%1'!").arg(plugin->name()));
         qCritical("ERROR! Can not unload the plug-in '%s'!", qPrintable(plugin->name()));
         return;
@@ -188,12 +193,13 @@ void PluginManagerWindow::on_pushButtonUnload_clicked(){
 
 }
 
-void PluginManagerWindow::slotUpdateUI(const QModelIndex &index){
+void PluginManagerWindow::slotUpdateUI(const QModelIndex &index)
+{
     qDebug("----PluginManagerWindow::slotUpdateUI(const QModelIndex &index)");
 
     ui->pushButtonUnload->setEnabled(index.isValid());
 
-    if((!index.isValid()) || ui->groupBoxDetails->isHidden()){
+    if((!index.isValid()) || ui->groupBoxDetails->isHidden()) {
         ui->labelAuthor->clear();
         ui->labelURL->clear();
         ui->textBrowserDescription->clear();

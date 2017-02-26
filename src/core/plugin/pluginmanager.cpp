@@ -31,12 +31,14 @@
 
 #include "pluginmanager.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
-PluginManager* PluginManager::pluginManager = 0;
+PluginManager *PluginManager::pluginManager = 0;
 
-PluginManager* PluginManager::instance() {
+PluginManager *PluginManager::instance()
+{
     qDebug("----PluginManager::instance()");
 
     if (!pluginManager) {
@@ -48,46 +50,52 @@ PluginManager* PluginManager::instance() {
 }
 
 PluginManager::PluginManager(QObject *parent) :
-    QObject(parent) {
+    QObject(parent)
+{
 
     //loadPlugins();
 
 }
 
-PluginManager::~PluginManager() {
+PluginManager::~PluginManager()
+{
     // TODO Auto-generated destructor stub
 }
 
-const QHash<QString, AbstractPluginInterface *> & PluginManager::getPluginsHash() const {
+const QHash<QString, AbstractPluginInterface *> &PluginManager::getPluginsHash() const
+{
     return pluginsHash;
 
 }
 
-QList<AbstractPluginInterface *> PluginManager::pluginsList() const {
+QList<AbstractPluginInterface *> PluginManager::pluginsList() const
+{
     return pluginsHash.values();
 
 }
 
-QString PluginManager::pluginFilePath(AbstractPluginInterface *plugin) const {
+QString PluginManager::pluginFilePath(AbstractPluginInterface *plugin) const
+{
 
     return pluginsHash.key(plugin);
 }
 
-void PluginManager::loadPlugins(const QString &pluginsDirPath) {
+void PluginManager::loadPlugins(const QString &pluginsDirPath)
+{
     qDebug() << "----PluginManager::loadPlugins(...)";
     qDebug() << "~~ Plug-ins Dir:" << pluginsDirPath;
 
     QDir pluginsDir(pluginsDirPath);
-    foreach(QString fileName, pluginsDir.entryList(QDir::Files))
-    {
+    foreach(QString fileName, pluginsDir.entryList(QDir::Files)) {
         QString absoluteFilePath = pluginsDir.absoluteFilePath(fileName);
-        qDebug()<<"--------------absoluteFilePath:"<<absoluteFilePath;
+        qDebug() << "--------------absoluteFilePath:" << absoluteFilePath;
         loadPlugin(absoluteFilePath);
     }
 
 }
 
-AbstractPluginInterface * PluginManager::loadPlugin(const QString &pluginFilePath, QString *errorString) {
+AbstractPluginInterface *PluginManager::loadPlugin(const QString &pluginFilePath, QString *errorString)
+{
     qDebug("----PluginManager::loadPlugin(const QString &pluginFilePath)");
     //Q_ASSERT(QFileInfo(pluginFilePath).exists());
 
@@ -95,8 +103,8 @@ AbstractPluginInterface * PluginManager::loadPlugin(const QString &pluginFilePat
 
     if (!QFileInfo(pluginFilePath).exists()) {
         error = tr("File '%1' does not exist!").arg(pluginFilePath);
-        qCritical()<<"ERROR! An error occurred while loading plugin! "<<error;
-        if(errorString){
+        qCritical() << "ERROR! An error occurred while loading plugin! " << error;
+        if(errorString) {
             *errorString = error;
         }
         return 0;
@@ -104,8 +112,8 @@ AbstractPluginInterface * PluginManager::loadPlugin(const QString &pluginFilePat
 
     if (pluginsHash.contains(pluginFilePath)) {
         error = tr("Plugin '%1' has already been loaded!").arg(pluginFilePath);
-        qCritical()<<"ERROR! "<<error;
-        if(errorString){
+        qCritical() << "ERROR! " << error;
+        if(errorString) {
             *errorString = error;
         }
         return 0;
@@ -133,16 +141,16 @@ AbstractPluginInterface * PluginManager::loadPlugin(const QString &pluginFilePat
             emit signalPluginLoaded(pluginFilePath);
 
             error = tr("Plug-in '%1' loaded!").arg(pluginFilePath);
-            qDebug()<< error;
-            if(errorString){
+            qDebug() << error;
+            if(errorString) {
                 *errorString = error;
             }
             return plugin;
 
         } else {
             error = tr("Unknown Plug-in: %1").arg(pluginFilePath);
-            qCritical()<<"ERROR! An error occurred while loading plugin! "<<error;
-            if(errorString){
+            qCritical() << "ERROR! An error occurred while loading plugin! " << error;
+            if(errorString) {
                 *errorString = error;
             }
             return 0;
@@ -154,8 +162,8 @@ AbstractPluginInterface * PluginManager::loadPlugin(const QString &pluginFilePat
         delete pluginLoader;
         pluginLoader = 0;
 
-        qCritical()<<"ERROR! An error occurred while loading plugin! "<<error;
-        if(errorString){
+        qCritical() << "ERROR! An error occurred while loading plugin! " << error;
+        if(errorString) {
             *errorString = error;
         }
         return 0;
@@ -164,7 +172,8 @@ AbstractPluginInterface * PluginManager::loadPlugin(const QString &pluginFilePat
 
 }
 
-bool PluginManager::reloadPlugin(const QString &pluginFilePath) {
+bool PluginManager::reloadPlugin(const QString &pluginFilePath)
+{
     qDebug("----PluginManager::reloadPlugin(const QString &pluginFilePath)");
     Q_ASSERT(QFileInfo(pluginFilePath).exists());
 
@@ -180,18 +189,22 @@ bool PluginManager::reloadPlugin(const QString &pluginFilePath) {
 
 }
 
-bool PluginManager::unloadPlugins(){
-    qDebug()<<"--PluginManager::unloadPlugins()";
+bool PluginManager::unloadPlugins()
+{
+    qDebug() << "--PluginManager::unloadPlugins()";
 
     foreach (AbstractPluginInterface *plugin, pluginsHash.values()) {
-        if(!plugin){continue;}
+        if(!plugin) {
+            continue;
+        }
         unloadPlugin(plugin);
     }
 
     return pluginsHash.isEmpty();
 }
 
-bool PluginManager::unloadPlugin(AbstractPluginInterface *plugin) {
+bool PluginManager::unloadPlugin(AbstractPluginInterface *plugin)
+{
     qDebug("----PluginManager::unloadPlugin(AbstractPluginInterface *plugin)");
     Q_ASSERT(plugin);
 
@@ -216,7 +229,8 @@ bool PluginManager::unloadPlugin(AbstractPluginInterface *plugin) {
 
 }
 
-bool PluginManager::unloadPlugin(const QString &pluginFilePath) {
+bool PluginManager::unloadPlugin(const QString &pluginFilePath)
+{
     qDebug("----PluginManager::unloadPlugin(const QString &pluginFilePath)");
 
     if (pluginsHash.contains(pluginFilePath)) {

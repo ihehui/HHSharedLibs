@@ -44,19 +44,19 @@
 #include <QCoreApplication>
 
 #if defined(Q_OS_WIN)
-#  if !defined(QT_QTSERVICE_EXPORT) && !defined(QT_QTSERVICE_IMPORT)
-#    define QT_QTSERVICE_EXPORT
-#  elif defined(QT_QTSERVICE_IMPORT)
-#    if defined(QT_QTSERVICE_EXPORT)
-#      undef QT_QTSERVICE_EXPORT
-#    endif
-#    define QT_QTSERVICE_EXPORT __declspec(dllimport)
-#  elif defined(QT_QTSERVICE_EXPORT)
-#    undef QT_QTSERVICE_EXPORT
-#    define QT_QTSERVICE_EXPORT __declspec(dllexport)
-#  endif
+    #if !defined(QT_QTSERVICE_EXPORT) && !defined(QT_QTSERVICE_IMPORT)
+        #define QT_QTSERVICE_EXPORT
+    #elif defined(QT_QTSERVICE_IMPORT)
+        #if defined(QT_QTSERVICE_EXPORT)
+            #undef QT_QTSERVICE_EXPORT
+        #endif
+        #define QT_QTSERVICE_EXPORT __declspec(dllimport)
+    #elif defined(QT_QTSERVICE_EXPORT)
+        #undef QT_QTSERVICE_EXPORT
+        #define QT_QTSERVICE_EXPORT __declspec(dllexport)
+    #endif
 #else
-#  define QT_QTSERVICE_EXPORT
+    #define QT_QTSERVICE_EXPORT
 #endif
 
 class QStringList;
@@ -66,9 +66,8 @@ class QT_QTSERVICE_EXPORT QtServiceController
 {
     Q_DECLARE_PRIVATE(QtServiceController)
 public:
-    enum StartupType
-    {
-	    AutoStartup = 0, ManualStartup
+    enum StartupType {
+        AutoStartup = 0, ManualStartup
     };
 
     QtServiceController(const QString &name);
@@ -83,7 +82,7 @@ public:
     QString serviceFilePath() const;
 
     static bool install(const QString &serviceFilePath, const QString &account = QString(),
-                const QString &password = QString());
+                        const QString &password = QString());
     bool uninstall();
 
     bool start(const QStringList &arguments);
@@ -104,13 +103,11 @@ class QT_QTSERVICE_EXPORT QtServiceBase
     Q_DECLARE_PRIVATE(QtServiceBase)
 public:
 
-    enum MessageType
-    {
-	Success = 0, Error, Warning, Information
+    enum MessageType {
+        Success = 0, Error, Warning, Information
     };
 
-    enum ServiceFlag
-    {
+    enum ServiceFlag {
         Default = 0x00,
         CanBeSuspended = 0x01,
         CannotBeStopped = 0x02,
@@ -136,7 +133,7 @@ public:
     int exec();
 
     void logMessage(const QString &message, MessageType type = Success,
-                int id = 0, uint category = 0, const QByteArray &data = QByteArray());
+                    int id = 0, uint category = 0, const QByteArray &data = QByteArray());
 
     static QtServiceBase *instance();
 
@@ -171,7 +168,9 @@ public:
 
 protected:
     Application *application() const
-    { return app; }
+    {
+        return app;
+    }
 
     virtual void createApplication(int &argc, char **argv)
     {
@@ -181,7 +180,9 @@ protected:
     }
 
     virtual int executeApplication()
-    { return Application::exec(); }
+    {
+        return Application::exec();
+    }
 
 private:
     Application *app;

@@ -35,8 +35,8 @@
 #define RECEIVER_H
 
 // #include <QtCore>
- #include <QObject>
- #include <QUdpSocket>
+#include <QObject>
+#include <QUdpSocket>
 
 #include <winsock2.h> //!!!!!Order 1st
 #include <windows.h> //!!!!!Order 2nd
@@ -53,7 +53,8 @@
 
 //class QUdpSocket;
 
-class IPMultiCastWin : public IPMulticastSocketBase{
+class IPMultiCastWin : public IPMulticastSocketBase
+{
     Q_OBJECT
 public:
 
@@ -75,11 +76,11 @@ private slots:
 
 private:
     //QUdpSocket * udpSocket;
-    long count,Receivedpackets;
+    long count, Receivedpackets;
     bool bFlag;
     WSADATA wsd;
-    struct sockaddr_in local,remote,from;
-    SOCKET sock,sockM;
+    struct sockaddr_in local, remote, from;
+    SOCKET sock, sockM;
     //    char recvbuf[BUFSIZE];
 
 };

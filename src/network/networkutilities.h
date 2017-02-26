@@ -37,9 +37,11 @@
 
 #include "networklib.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-class NETWORK_LIB_API NetworkUtilities {
+class NETWORK_LIB_API NetworkUtilities
+{
 public:
     NetworkUtilities();
     virtual ~NetworkUtilities();

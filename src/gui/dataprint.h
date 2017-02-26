@@ -42,9 +42,11 @@
 class QPrinter;
 
 
-namespace HEHUI{
+namespace HEHUI
+{
 
-class GUI_LIB_API DataPrint : public QObject{
+class GUI_LIB_API DataPrint : public QObject
+{
     Q_OBJECT
 public:
     DataPrint(const QString &fileName, bool preview, QObject *parent = 0);

@@ -31,44 +31,44 @@
 #ifndef GLOBAL_CORE_H_
 #define GLOBAL_CORE_H_
 
- #include "core_lib.h"
+#include "core_lib.h"
 
 #ifdef Q_OS_WIN
-#define OS_IS_WINDOWS 1
+    #define OS_IS_WINDOWS 1
 #else
-#define OS_IS_WINDOWS 0
+    #define OS_IS_WINDOWS 0
 #endif
 
 
 
 
 #ifndef LANGUAGE_FILE_PREFIX
-#define LANGUAGE_FILE_PREFIX	"ts_"
+    #define LANGUAGE_FILE_PREFIX	"ts_"
 #endif
 //const QString LANGUAGE_FILE_PREFIX = "ts_";
 
 #ifndef RESOURCE_PATH
-#define RESOURCE_PATH	":/resources"
+    #define RESOURCE_PATH	":/resources"
 #endif
 //const QString RESOURCE_PATH = ":/resources";
 
 
 
 #ifndef LANGUAGE_FILE_DIR
-#define LANGUAGE_FILE_DIR	"translations"
+    #define LANGUAGE_FILE_DIR	"translations"
 #endif
 
 
 #ifndef PLUGINS_MAIN_DIR
-#define PLUGINS_MAIN_DIR	"plugins"
+    #define PLUGINS_MAIN_DIR	"plugins"
 #endif
 
 #ifndef PLUGINS_MYPLUGINS_DIR
-#define PLUGINS_MYPLUGINS_DIR	"hehui"
+    #define PLUGINS_MYPLUGINS_DIR	"hehui"
 #endif
 
 #ifndef MYLIBS_DIR
-#define MYLIBS_DIR	"lib"
+    #define MYLIBS_DIR	"lib"
 #endif
 
 /*
@@ -121,26 +121,27 @@
 */
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 enum DatabaseType {
-        OTHER = 0,
-        MYSQL = 1,
-        SQLITE = 2,
-        POSTGRESQL = 3,
-        FIREBIRD = 4,
-        DB2 = 5,
-        ORACLE = 6,
-        M$SQLSERVER = 7,
-        M$ACCESS =8,
+    OTHER = 0,
+    MYSQL = 1,
+    SQLITE = 2,
+    POSTGRESQL = 3,
+    FIREBIRD = 4,
+    DB2 = 5,
+    ORACLE = 6,
+    M$SQLSERVER = 7,
+    M$ACCESS = 8,
 
 };
 
-enum WindowPosition{
-	Center = 0,
-	BottomRight = 1
-	};
+enum WindowPosition {
+    Center = 0,
+    BottomRight = 1
+};
 
 
 

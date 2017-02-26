@@ -67,16 +67,18 @@ void QtUnixServerSocket::setPath(const QString &path)
 
     int sock = ::socket(PF_UNIX, SOCK_STREAM, 0);
     if (sock != -1) {
-	struct sockaddr_un addr;
-	::memset(&addr, 0, sizeof(struct sockaddr_un));
-	addr.sun_family = AF_UNIX;
-	::unlink(path.toLatin1().constData()); // ### This might need to be changed
-	unsigned int pathlen = strlen(path.toLatin1().constData());
-	if (pathlen > sizeof(addr.sun_path)) pathlen = sizeof(addr.sun_path);
-	::memcpy(addr.sun_path, path.toLatin1().constData(), pathlen);
-	if ((::bind(sock, (struct sockaddr *)&addr, SUN_LEN(&addr)) != -1) &&
-	    (::listen(sock, 5) != -1)) {
-	    setSocketDescriptor(sock);
+        struct sockaddr_un addr;
+        ::memset(&addr, 0, sizeof(struct sockaddr_un));
+        addr.sun_family = AF_UNIX;
+        ::unlink(path.toLatin1().constData()); // ### This might need to be changed
+        unsigned int pathlen = strlen(path.toLatin1().constData());
+        if (pathlen > sizeof(addr.sun_path)) {
+            pathlen = sizeof(addr.sun_path);
+        }
+        ::memcpy(addr.sun_path, path.toLatin1().constData(), pathlen);
+        if ((::bind(sock, (struct sockaddr *)&addr, SUN_LEN(&addr)) != -1) &&
+                (::listen(sock, 5) != -1)) {
+            setSocketDescriptor(sock);
             path_ = path;
         }
     }

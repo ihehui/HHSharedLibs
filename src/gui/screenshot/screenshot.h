@@ -43,11 +43,13 @@
 
 
 
-namespace Ui {
+namespace Ui
+{
 class ScreenshotUI;
 }
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class GUI_LIB_API Screenshot : public QWidget
@@ -78,7 +80,7 @@ private:
 private:
     Ui::ScreenshotUI *ui;
 
-    SelectTargetImageWidget * m_targetPixmapWidget;
+    SelectTargetImageWidget *m_targetPixmapWidget;
 
     QPixmap originalPixmap;
 

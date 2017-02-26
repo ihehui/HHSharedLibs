@@ -48,7 +48,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 /*
  QIcon createIconSet(const QString &name)
@@ -80,20 +81,21 @@ namespace HEHUI {
 
 
 
-QIcon createIconSet(const QString &iconFileName, const QString &defaultIconName,  QIcon::Mode mode){
+QIcon createIconSet(const QString &iconFileName, const QString &defaultIconName,  QIcon::Mode mode)
+{
 
     QString file;
-    if(QFile::exists(iconFileName)){
+    if(QFile::exists(iconFileName)) {
         file = iconFileName;
-    }else if(QFile::exists(defaultIconName)){
+    } else if(QFile::exists(defaultIconName)) {
         file = defaultIconName;
-    }else{
+    } else {
         file = QString(":/resources/images/emptyicon.png");
     }
 
 
 
-    if(mode == QIcon::Disabled){
+    if(mode == QIcon::Disabled) {
         QIcon icon;
         QSize size = QImage(file).size();
         QPixmap pixmap = QIcon(file).pixmap(size, mode);
