@@ -119,7 +119,21 @@ void CTimer::rdtsc(uint64_t &x)
    #elif defined(WIN32)
       //HANDLE hCurThread = ::GetCurrentThread(); 
       //DWORD_PTR dwOldMask = ::SetThreadAffinityMask(hCurThread, 1); 
-      BOOL ret = QueryPerformanceCounter((LARGE_INTEGER *)&x);
+   LARGE_INTEGER xx = { 0 };
+      BOOL ret = FALSE;
+      try
+      {
+          ret = QueryPerformanceCounter(&xx);
+          if (ret)
+          {
+              x = xx.QuadPart;
+          }
+      }
+      catch(...)
+      {
+          ret = FALSE;
+      }
+
       //SetThreadAffinityMask(hCurThread, dwOldMask);
       if (!ret)
          x = getTime() * s_ullCPUFrequency;
@@ -148,9 +162,18 @@ uint64_t CTimer::readCPUFrequency()
       // CPU clocks per microsecond
       frequency = (t2 - t1) / 100000;
    #elif defined(WIN32)
-      int64_t ccf;
-      if (QueryPerformanceFrequency((LARGE_INTEGER *)&ccf))
-         frequency = ccf / 1000000;
+   LARGE_INTEGER ccf = { 0 };
+      BOOL ret;
+      try
+      {
+         ret = QueryPerformanceFrequency(&ccf);
+      }
+      catch (...)
+      {
+         ret = FALSE;
+      }
+      if (ret)
+         frequency = ccf.QuadPart / 1000000;
    #elif defined(OSX)
       mach_timebase_info_data_t info;
       mach_timebase_info(&info);
@@ -254,13 +277,30 @@ uint64_t CTimer::getTime()
       gettimeofday(&t, 0);
       return t.tv_sec * 1000000ULL + t.tv_usec;
    #else
-      LARGE_INTEGER ccf;
+    LARGE_INTEGER ccf = { 0 };
       HANDLE hCurThread = ::GetCurrentThread(); 
       DWORD_PTR dwOldMask = ::SetThreadAffinityMask(hCurThread, 1);
-      if (QueryPerformanceFrequency(&ccf))
+      BOOL ret;
+      try
       {
-         LARGE_INTEGER cc;
-         if (QueryPerformanceCounter(&cc))
+         ret = QueryPerformanceFrequency(&ccf);
+      }
+      catch (...)
+      {
+         ret = FALSE;
+      }
+      if (ret)
+      {
+          LARGE_INTEGER cc = { 0 };
+         try
+         {
+             ret = QueryPerformanceCounter(&cc);
+         }
+         catch (...)
+         {
+             ret = FALSE;
+         }
+         if (ret)
          {
             SetThreadAffinityMask(hCurThread, dwOldMask); 
             return (cc.QuadPart * 1000000ULL / ccf.QuadPart);
@@ -337,24 +377,6 @@ CGuard::~CGuard()
    #else
       if (WAIT_FAILED != m_iLocked)
          ReleaseMutex(m_Mutex);
-   #endif
-}
-
-void CGuard::enterCS(pthread_mutex_t& lock)
-{
-   #ifndef WIN32
-      pthread_mutex_lock(&lock);
-   #else
-      WaitForSingleObject(lock, INFINITE);
-   #endif
-}
-
-void CGuard::leaveCS(pthread_mutex_t& lock)
-{
-   #ifndef WIN32
-      pthread_mutex_unlock(&lock);
-   #else
-      ReleaseMutex(lock);
    #endif
 }
 

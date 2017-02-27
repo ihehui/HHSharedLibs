@@ -22,6 +22,7 @@ include(udt_source.pri)
 #include UDT Source
 include( ./build_with_udt.pri )
 
+
 DEFINES += UDT_LIBRARY_EXPORT
 
 INCLUDEPATH += . \
@@ -101,8 +102,8 @@ INSTALLS += target
 QMAKE_TARGET_COMPANY = "UDT"
 QMAKE_TARGET_PRODUCT = "UDT4"
 QMAKE_TARGET_DESCRIPTION = "UDP-based data transfer protocol"
-QMAKE_TARGET_COPYRIGHT = "Copyright (C) 2001 - 2014 Yunhong Gu. All rights reserved."
-PACKAGE_DOMAIN = "http://udt.sf.net"
+QMAKE_TARGET_COPYRIGHT = "Copyright (C) 2001 - 2017 Yunhong Gu. All rights reserved."
+PACKAGE_DOMAIN = "http://udt.sf.net https://sourceforge.net/u/hughdavis/udt/ci/master/tree/"
 
 
 

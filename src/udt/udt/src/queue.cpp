@@ -466,8 +466,7 @@ CSndQueue::~CSndQueue()
 {
    m_bClosing = true;
 
-//   #ifndef WIN32
-   #ifdef USE_PTHREADS
+   #ifndef WIN32
       pthread_mutex_lock(&m_WindowLock);
       pthread_cond_signal(&m_WindowCond);
       pthread_mutex_unlock(&m_WindowLock);
@@ -497,8 +496,7 @@ void CSndQueue::init(CChannel* c, CTimer* t)
    m_pSndUList->m_pWindowCond = &m_WindowCond;
    m_pSndUList->m_pTimer = m_pTimer;
 
-//   #ifndef WIN32
-   #ifdef USE_PTHREADS
+   #ifndef WIN32
       if (0 != pthread_create(&m_WorkerThread, NULL, CSndQueue::worker, this))
       {
          m_WorkerThread = 0;
@@ -512,8 +510,7 @@ void CSndQueue::init(CChannel* c, CTimer* t)
    #endif
 }
 
-// #ifndef WIN32
-#ifdef USE_PTHREADS
+#ifndef WIN32
    void* CSndQueue::worker(void* param)
 #else
    DWORD WINAPI CSndQueue::worker(LPVOID param)
@@ -838,6 +835,7 @@ void CRendezvousQueue::updateConnStatus()
       return;
 
    CGuard vg(m_RIDVectorLock);
+   list<UDTSOCKET> needRemoved;
 
    for (list<CRL>::iterator i = m_lRendezvousID.begin(); i != m_lRendezvousID.end(); ++ i)
    {
@@ -849,6 +847,7 @@ void CRendezvousQueue::updateConnStatus()
             // connection timer expired, acknowledge app via epoll
             i->m_pUDT->m_bConnecting = false;
             CUDT::s_UDTUnited.m_EPoll.update_events(i->m_iID, i->m_pUDT->m_sPollID, UDT_EPOLL_ERR, true);
+            needRemoved.push_back(i->m_pUDT->m_SocketID);
             continue;
          }
 
@@ -865,6 +864,11 @@ void CRendezvousQueue::updateConnStatus()
          delete [] reqdata;
       }
    }
+   for (list<UDTSOCKET>::iterator i = needRemoved.begin(); i != needRemoved.end(); ++ i)
+   {
+       remove(*i);
+   }
+
 }
 
 //
@@ -905,8 +909,7 @@ CRcvQueue::~CRcvQueue()
 {
    m_bClosing = true;
 
-//   #ifndef WIN32
-   #ifdef USE_PTHREADS
+   #ifndef WIN32
       if (0 != m_WorkerThread)
          pthread_join(m_WorkerThread, NULL);
       pthread_mutex_destroy(&m_PassLock);
@@ -956,8 +959,7 @@ void CRcvQueue::init(int qsize, int payload, int version, int hsize, CChannel* c
    m_pRcvUList = new CRcvUList;
    m_pRendezvousQueue = new CRendezvousQueue;
 
-//   #ifndef WIN32
-   #ifdef USE_PTHREADS
+   #ifndef WIN32
       if (0 != pthread_create(&m_WorkerThread, NULL, CRcvQueue::worker, this))
       {
          m_WorkerThread = 0;
@@ -971,8 +973,7 @@ void CRcvQueue::init(int qsize, int payload, int version, int hsize, CChannel* c
    #endif
 }
 
-// #ifndef WIN32
-#ifdef USE_PTHREADS
+#ifndef WIN32
    void* CRcvQueue::worker(void* param)
 #else
    DWORD WINAPI CRcvQueue::worker(LPVOID param)

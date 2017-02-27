@@ -1,4 +1,10 @@
 
+
+##### https://sourceforge.net/u/hughdavis/udt/ci/master/tree/
+##### git clone https://git.code.sf.net/u/hughdavis/udt u-hughdavis-udt
+
+
+
 #DEPENDPATH += $$PWD $$PWD/udt/src
 INCLUDEPATH += $$PWD #$$PWD/udt/src
 

@@ -55,9 +55,9 @@ INSTALLS += target
 # INSTALLS += headers
 # define some usefull values
 QMAKE_TARGET_COMPANY = "ENET"
-QMAKE_TARGET_PRODUCT = "ENET 1.3"
+QMAKE_TARGET_PRODUCT = "ENET 1.3.13"
 QMAKE_TARGET_DESCRIPTION = "UDP-based data transfer protocol"
-QMAKE_TARGET_COPYRIGHT = "Copyright (c) 2002-2014 Lee Salzman"
+QMAKE_TARGET_COPYRIGHT = "Copyright (c) 2002-2017 Lee Salzman"
 PACKAGE_DOMAIN = "http://enet.bespin.org"
 
 
