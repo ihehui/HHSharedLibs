@@ -38,7 +38,8 @@
 
 #include "../guilib.h"
 
-namespace Ui {
+namespace Ui
+{
 class ProgressDlgClass;
 }
 

@@ -35,14 +35,15 @@
 #define ERROR_H
 
 #ifndef NO_ERROR
-#define NO_ERROR 0
+    #define NO_ERROR 0
 #endif
 
 
 #include <QString>
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class Error
 {
@@ -51,7 +52,7 @@ public:
 
     Error(unsigned int code = NO_ERROR, const QString &errorString = "");
     Error(const Error &error);
-    Error & operator = (const Error &error);
+    Error &operator = (const Error &error);
 
     unsigned int code() const;
     void setErrorCode(unsigned int code);

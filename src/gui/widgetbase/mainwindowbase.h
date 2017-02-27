@@ -57,9 +57,11 @@
 #include "../guilib.h"
 
 
-namespace HEHUI{
+namespace HEHUI
+{
 
-class GUI_LIB_API  MainWindowBase: public QMainWindow {
+class GUI_LIB_API  MainWindowBase: public QMainWindow
+{
     Q_OBJECT
 
 public:
@@ -93,9 +95,9 @@ public:
 public slots:
     void slotResetStatusBar(bool show);
 
-    QMenu * getLanguageMenu(const QString &qmFileDirPath, const QString &local);
-    QMenu * getStyleMenu(const QString &preferedStyle, bool useStylePalette = false);
-    QMenu * getPluginsMenu();
+    QMenu *getLanguageMenu(const QString &qmFileDirPath, const QString &local);
+    QMenu *getStyleMenu(const QString &preferedStyle, bool useStylePalette = false);
+    QMenu *getPluginsMenu();
     QAction *getPluginsManagementAction();
 
 
@@ -120,13 +122,13 @@ private:
 
 
 protected:
-    bool event( QEvent * e );
-    void closeEvent ( QCloseEvent * event ) = 0;
+    bool event( QEvent *e );
+    void closeEvent ( QCloseEvent *event ) = 0;
 
 
 private:
     QWidget *m_progressWidget;
-    QHBoxLayout* hlayout;
+    QHBoxLayout *hlayout;
     //QLabel *label;
     QProgressBar *progressBarOnStatusBar;
 

@@ -44,7 +44,7 @@
 #include "../3rdparty/qtservice/src/qtservice.h"
 
 
- class SERVICE_LIB_API Service : public QObject, public QtService<QCoreApplication>
+class SERVICE_LIB_API Service : public QObject, public QtService<QCoreApplication>
 {
     Q_OBJECT
 
@@ -54,11 +54,11 @@ public:
 
 //#ifdef Q_OS_WIN
 //    virtual bool runAs(const QString &userName, const QString &password, const QString &exeFilePath, const QString &parameters = "", bool show = true, const QString &workingDir = QCoreApplication::applicationDirPath(), bool wait = false);
-    
+
 //    int changeToDefaultDesktop();
 //    void resetDesktop();
 //#endif
-    
+
 protected:
     virtual void start() = 0;
     virtual void stop() = 0;
@@ -70,7 +70,7 @@ protected:
 public slots:
 
 private:
-    
+
 
 
 

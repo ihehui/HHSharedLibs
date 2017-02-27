@@ -25,7 +25,7 @@ Notes:
 #define __LMJOIN_H__
 
 #if _MSC_VER > 1000
-#pragma once
+    #pragma once
 #endif
 
 
@@ -34,19 +34,19 @@ Notes:
 /////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef __in_opt
-#define __in_opt
+    #define __in_opt
 #endif
 
 #ifndef __out_opt
-#define __out_opt
+    #define __out_opt
 #endif
 
 #ifndef __deref_out
-#define __deref_out
+    #define __deref_out
 #endif
 
 #ifndef __out
-#define __out
+    #define __out
 #endif
 
 
@@ -99,25 +99,25 @@ typedef enum _NETSETUP_JOIN_STATUS {
 #define NETSETUP_ACCT_CREATE    0x00000002      // Do the server side account creation/rename
 #define NETSETUP_ACCT_DELETE    0x00000004      // Delete the account when a domain is left
 #define NETSETUP_WIN9X_UPGRADE  0x00000010      // Invoked during upgrade of Windows 9x to
-                                                // Windows NT
+// Windows NT
 #define NETSETUP_DOMAIN_JOIN_IF_JOINED  0x00000020  // Allow the client to join a new domain
-                                                // even if it is already joined to a domain
+// even if it is already joined to a domain
 #define NETSETUP_JOIN_UNSECURE  0x00000040      // Performs an unsecure join
 #define NETSETUP_MACHINE_PWD_PASSED 0x00000080  // Indicates that the machine (not user) password
-                                                //  is passed. Valid only for unsecure joins
+//  is passed. Valid only for unsecure joins
 #define NETSETUP_DEFER_SPN_SET  0x00000100      // Specifies that writting SPN and DnsHostName
-                                                //  attributes on the computer object should be
-                                                //  defered until rename that will follow join
-                                                
+//  attributes on the computer object should be
+//  defered until rename that will follow join
+
 #define NETSETUP_JOIN_DC_ACCOUNT    0x00000200  // Allow join if existing account is a DC
 #define NETSETUP_JOIN_WITH_NEW_NAME 0x00000400  // Check for computer name change
 
 #define NETSETUP_INSTALL_INVOCATION 0x00040000  // The APIs were invoked during install
 
 #define NETSETUP_IGNORE_UNSUPPORTED_FLAGS  0x10000000  // If this bit is set, unrecognized flags
-                                                       //  will be ignored by the NetJoin API and
-                                                       //  the API will behave as if the flags
-                                                       //  were not set.
+//  will be ignored by the NetJoin API and
+//  the API will behave as if the flags
+//  were not set.
 
 #define NETSETUP_VALID_UNJOIN_FLAGS (NETSETUP_ACCT_DELETE | NETSETUP_IGNORE_UNSUPPORTED_FLAGS)
 
@@ -137,7 +137,7 @@ NetJoinDomain(
     IN  LPCWSTR lpAccount OPTIONAL,
     __in_opt IN  LPCWSTR lpPassword OPTIONAL,
     IN  DWORD   fJoinOptions
-    );
+);
 
 NET_API_STATUS
 NET_API_FUNCTION
@@ -146,7 +146,7 @@ NetUnjoinDomain(
     IN  LPCWSTR lpAccount OPTIONAL,
     __in_opt IN  LPCWSTR lpPassword OPTIONAL,
     IN  DWORD   fUnjoinOptions
-    );
+);
 
 NET_API_STATUS
 NET_API_FUNCTION
@@ -156,7 +156,7 @@ NetRenameMachineInDomain(
     IN  LPCWSTR lpAccount OPTIONAL,
     __in_opt IN  LPCWSTR lpPassword OPTIONAL,
     IN  DWORD   fRenameOptions
-    );
+);
 
 
 //
@@ -170,7 +170,7 @@ NetValidateName(
     IN  LPCWSTR             lpAccount OPTIONAL,
     __in_opt IN  LPCWSTR             lpPassword OPTIONAL,
     IN  NETSETUP_NAME_TYPE  NameType
-    );
+);
 
 //
 // Determines whether a workstation is joined to a domain or not
@@ -181,7 +181,7 @@ NetGetJoinInformation(
     __in_opt IN   LPCWSTR                lpServer OPTIONAL,
     __out_opt OUT  LPWSTR                *lpNameBuffer,
     OUT  PNETSETUP_JOIN_STATUS  BufferType
-    );
+);
 
 
 //
@@ -196,7 +196,7 @@ NetGetJoinableOUs(
     __in_opt IN  LPCWSTR     lpPassword OPTIONAL,
     __out_opt OUT DWORD      *OUCount,
     __deref_out OUT LPWSTR    **OUs
-    );
+);
 
 //
 // Computer rename preparation APIs
@@ -212,7 +212,7 @@ NetAddAlternateComputerName(
     IN  LPCWSTR DomainAccount OPTIONAL,
     __in_opt IN  LPCWSTR DomainAccountPassword OPTIONAL,
     IN  ULONG Reserved
-    );
+);
 
 NET_API_STATUS
 NET_API_FUNCTION
@@ -222,7 +222,7 @@ NetRemoveAlternateComputerName(
     IN  LPCWSTR DomainAccount OPTIONAL,
     __in_opt IN  LPCWSTR DomainAccountPassword OPTIONAL,
     IN  ULONG Reserved
-    );
+);
 
 NET_API_STATUS
 NET_API_FUNCTION
@@ -232,7 +232,7 @@ NetSetPrimaryComputerName(
     IN  LPCWSTR DomainAccount OPTIONAL,
     __in_opt IN  LPCWSTR DomainAccountPassword OPTIONAL,
     IN  ULONG Reserved
-    );
+);
 
 //
 // The following enumeration must be kept
@@ -255,7 +255,7 @@ NetEnumerateComputerNames(
     IN  ULONG Reserved,
     __out OUT PDWORD EntryCount,
     __deref_out OUT LPWSTR **ComputerNames
-    );
+);
 
 #ifdef __cplusplus
 }

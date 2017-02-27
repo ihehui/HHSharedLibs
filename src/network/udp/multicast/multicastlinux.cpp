@@ -38,8 +38,8 @@ IPMulticastLinux::IPMulticastLinux(QObject *parent)
     : IPMulticastSocketBase(parent)
 {
     //	udpSocket = 0;
-    count=0;
-    Receivedpackets=0;
+    count = 0;
+    Receivedpackets = 0;
 
     ip = 0;
 
@@ -47,13 +47,14 @@ IPMulticastLinux::IPMulticastLinux(QObject *parent)
 
     //joinGroup();
 
-    qDebug()<<"----MulticastLinux::MulticastLinux(...)~~MulticastLinux::MulticastLinux(const QString &ip, uint port, QObject *parent)";
+    qDebug() << "----MulticastLinux::MulticastLinux(...)~~MulticastLinux::MulticastLinux(const QString &ip, uint port, QObject *parent)";
 
 }
 
-IPMulticastLinux::~IPMulticastLinux() {
+IPMulticastLinux::~IPMulticastLinux()
+{
 
-    if(isBound()){
+    if(isBound()) {
         leaveGroup();
     }
 
@@ -69,10 +70,11 @@ IPMulticastLinux::~IPMulticastLinux() {
 }
 
 
-bool IPMulticastLinux::startIPMulticastListening(const QHostAddress &ipMulticastGroupAddress, quint16 ipMulticastGroupPort){
+bool IPMulticastLinux::startIPMulticastListening(const QHostAddress &ipMulticastGroupAddress, quint16 ipMulticastGroupPort)
+{
 
     QUdpSocket *udpSocket = getUdpSocket();
-    if(!udpSocket){
+    if(!udpSocket) {
         qCritical("Invalid UDP Socket!");
         return false;
     }
@@ -202,7 +204,8 @@ bool IPMulticastLinux::startIPMulticastListening(const QHostAddress &ipMulticast
 
 
 
-void IPMulticastLinux::joinGroup() {
+void IPMulticastLinux::joinGroup()
+{
     //struct ip_mreq command;
     //int listenPort = atoi(portEdit->text());
 
@@ -254,7 +257,7 @@ void IPMulticastLinux::joinGroup() {
         }
 
         QSocketNotifier *socketNotifier = new QSocketNotifier(
-                    socket_descriptor, QSocketNotifier::Read, this);
+            socket_descriptor, QSocketNotifier::Read, this);
 
         QObject::connect(socketNotifier, SIGNAL(activated(int)), this,
                          SLOT(slotDataReceived()));
@@ -273,7 +276,7 @@ void IPMulticastLinux::joinGroup() {
         }
 
         QSocketNotifier *socketNotifier = new QSocketNotifier(
-                    socket_descriptor, QSocketNotifier::Read, this);
+            socket_descriptor, QSocketNotifier::Read, this);
 
         QObject::connect(socketNotifier, SIGNAL(activated(int)), this,
                          SLOT(slotDataReceived()));
@@ -288,12 +291,13 @@ void IPMulticastLinux::joinGroup() {
      }*/
 }
 
-void IPMulticastLinux::leaveGroup() {
+void IPMulticastLinux::leaveGroup()
+{
     if (setsockopt(socket_descriptor, IPPROTO_IP, IP_DROP_MEMBERSHIP, &command, sizeof(command)) < 0) {
         perror("setsockopt:IP_DROP_MEMBERSHIP");
     }
 
-    memset(&socket_descriptor,0,socket_descriptor);
+    memset(&socket_descriptor, 0, socket_descriptor);
 
 
     close(socket_descriptor);
@@ -306,7 +310,8 @@ void IPMulticastLinux::leaveGroup() {
 
 }
 
-void IPMulticastLinux::slotDataReceived() {
+void IPMulticastLinux::slotDataReceived()
+{
     int sin_len;
     char message[256];
     //int listenPort = atoi(portEdit->text());
@@ -386,10 +391,11 @@ bool IPMulticastLinux::slotSendData(const QString &ip, quint16 port, const QStri
 
 
 
-bool IPMulticastLinux::slotSendUDPDatagramViaBoundSocket(const QString &ip, quint16 port, const QByteArray &data){
+bool IPMulticastLinux::slotSendUDPDatagramViaBoundSocket(const QString &ip, quint16 port, const QByteArray &data)
+{
 
     QUdpSocket *udpSocket = getUdpSocket();
-    if(!udpSocket){
+    if(!udpSocket) {
         qCritical("Invalid UDP Socket!");
         return false;
     }
@@ -398,14 +404,14 @@ bool IPMulticastLinux::slotSendUDPDatagramViaBoundSocket(const QString &ip, quin
 
     qint64 bytesSent = udpSocket->writeDatagram(data, QHostAddress(ip), port);
 
-    if (bytesSent != data.size() ){
-        qDebug()<<"XXXXMulticastLinux::slotSendUDPDatagramsViaBoundSocket(...)~~Data Size:"<<data.size()<<"---Failed!!!!!!!!!";
+    if (bytesSent != data.size() ) {
+        qDebug() << "XXXXMulticastLinux::slotSendUDPDatagramsViaBoundSocket(...)~~Data Size:" << data.size() << "---Failed!!!!!!!!!";
 
         return false;
     }
 
 
-    qDebug()<<"----MulticastLinux::slotSendUDPDatagramsViaBoundSocket(...)~~Data Size:"<<data.size()<<"---Successful!!!!!!!!!";
+    qDebug() << "----MulticastLinux::slotSendUDPDatagramsViaBoundSocket(...)~~Data Size:" << data.size() << "---Successful!!!!!!!!!";
 
 
     return true;

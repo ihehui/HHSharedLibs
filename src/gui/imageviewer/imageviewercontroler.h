@@ -33,12 +33,14 @@
 
 #include <QWidget>
 
-namespace Ui {
+namespace Ui
+{
 class ImageViewerControlerUI;
 }
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class ImageViewerControler : public QWidget
@@ -77,16 +79,40 @@ private slots:
     void on_dial_valueChanged(int value);
     void on_toolButtonRotateRight_clicked();
 
-    void on_toolButtonFlipVertical_clicked(){emit signalFlip(false, true);}
-    void on_toolButtonFlipHorizontal_clicked(){emit signalFlip(true, false);}
+    void on_toolButtonFlipVertical_clicked()
+    {
+        emit signalFlip(false, true);
+    }
+    void on_toolButtonFlipHorizontal_clicked()
+    {
+        emit signalFlip(true, false);
+    }
 
-    void on_toolButtonZoomIn_clicked(){emit signalZoomIn();}
-    void on_toolButtonZoomOut_clicked(){emit signalZoomOut();}
-    void on_toolButtonZoomFitBest_clicked(){emit signalZoomFitBest();}
-    void on_toolButtonZoomOriginal_clicked(){emit signalZoomOrignal();}
+    void on_toolButtonZoomIn_clicked()
+    {
+        emit signalZoomIn();
+    }
+    void on_toolButtonZoomOut_clicked()
+    {
+        emit signalZoomOut();
+    }
+    void on_toolButtonZoomFitBest_clicked()
+    {
+        emit signalZoomFitBest();
+    }
+    void on_toolButtonZoomOriginal_clicked()
+    {
+        emit signalZoomOrignal();
+    }
 
-    void on_toolButtonSave_clicked(){emit signalSave();}
-    void on_toolButtonSaveAs_clicked(){emit signalSaveAs();}
+    void on_toolButtonSave_clicked()
+    {
+        emit signalSave();
+    }
+    void on_toolButtonSaveAs_clicked()
+    {
+        emit signalSaveAs();
+    }
 
 
 private:

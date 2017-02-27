@@ -10,7 +10,8 @@
 #include "enet/include/enet/enet.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class ENETProtocolBasePrivate;
 
@@ -27,7 +28,7 @@ public:
 
 
     void setPeerPrivateData(quint32 peerID, void *data);
-    void * getPeerPrivateData(quint32 peerID);
+    void *getPeerPrivateData(quint32 peerID);
 
     QString errorString() const;
 
@@ -38,7 +39,7 @@ signals:
 
 public slots:
     //Start the server to listen,  implement the virtual function startWaitingForIO()
-    bool listen(quint16 port, const QHostAddress &localAddress= QHostAddress::Any, unsigned int maximumNumberOfPeers = ENET_PROTOCOL_MAXIMUM_PEER_ID);
+    bool listen(quint16 port, const QHostAddress &localAddress = QHostAddress::Any, unsigned int maximumNumberOfPeers = ENET_PROTOCOL_MAXIMUM_PEER_ID);
     //Close the server
     void close();
 

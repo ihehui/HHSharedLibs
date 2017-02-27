@@ -15,7 +15,8 @@
 
 
 
-namespace HEHUI{
+namespace HEHUI
+{
 
 
 RUDPSocket::RUDPSocket(PacketHandlerBase *packetHandlerBase, int keepAliveTimerInterval, QObject *parent) :
@@ -35,7 +36,7 @@ RUDPSocket::RUDPSocket(PacketHandlerBase *packetHandlerBase, int keepAliveTimerI
     qRegisterMetaTypeStreamOperators<HEHUI::RUDPPacket>("HEHUI::RUDPPacket");
 
     //IMPORTANT For Multi-thread
-    if(QThreadPool::globalInstance()->maxThreadCount() < MIN_THREAD_COUNT){
+    if(QThreadPool::globalInstance()->maxThreadCount() < MIN_THREAD_COUNT) {
         QThreadPool::globalInstance()->setMaxThreadCount(MIN_THREAD_COUNT);
     }
 
@@ -44,8 +45,9 @@ RUDPSocket::RUDPSocket(PacketHandlerBase *packetHandlerBase, int keepAliveTimerI
 
 }
 
-RUDPSocket::~RUDPSocket(){
-    qDebug()<<"--RUDPSocket::~RUDPSocket()";
+RUDPSocket::~RUDPSocket()
+{
+    qDebug() << "--RUDPSocket::~RUDPSocket()";
 
 
 
@@ -68,27 +70,31 @@ RUDPSocket::~RUDPSocket(){
 
 }
 
-bool RUDPSocket::isConnected(const QString &peerAddressString, quint16 peerPort){
+bool RUDPSocket::isConnected(const QString &peerAddressString, quint16 peerPort)
+{
 
     return isConnected(QHostAddress(peerAddressString), peerPort);
 
 }
 
-bool RUDPSocket::isConnected(const QHostAddress &peerAddress, quint16 peerPort){
+bool RUDPSocket::isConnected(const QHostAddress &peerAddress, quint16 peerPort)
+{
 
     RUDPChannel *channel = getRUDPChannel(peerAddress, peerPort);
     return channel->isConnected();
 
 }
 
-void RUDPSocket::connectToPeer(const QString &peerAddressString, quint16 peerPort, bool wait, int msecTimeout){
+void RUDPSocket::connectToPeer(const QString &peerAddressString, quint16 peerPort, bool wait, int msecTimeout)
+{
 
     connectToPeer(QHostAddress(peerAddressString), peerPort, wait, msecTimeout);
 }
 
-void RUDPSocket::connectToPeer(const QHostAddress &peerAddress, quint16 peerPort, bool wait, int msecTimeout){
+void RUDPSocket::connectToPeer(const QHostAddress &peerAddress, quint16 peerPort, bool wait, int msecTimeout)
+{
 
-    if( 0 == localPort()){
+    if( 0 == localPort()) {
         bind();
     }
 
@@ -97,7 +103,8 @@ void RUDPSocket::connectToPeer(const QHostAddress &peerAddress, quint16 peerPort
 
 }
 
-void RUDPSocket::disconnectFromPeer(const QHostAddress &peerAddress, quint16 peerPort){
+void RUDPSocket::disconnectFromPeer(const QHostAddress &peerAddress, quint16 peerPort)
+{
 
     RUDPChannel *channel = getRUDPChannel(peerAddress, peerPort);
     channel->disconnectFromPeer();
@@ -125,7 +132,8 @@ void RUDPSocket::disconnectFromPeer(const QHostAddress &peerAddress, quint16 pee
 //    return channel->sendDatagram(data, offset, fragment);
 //}
 
-quint64 RUDPSocket::sendDatagram(const QHostAddress &peerAddress, quint16 peerPort, QByteArray *data, bool isReliableDataPacket){
+quint64 RUDPSocket::sendDatagram(const QHostAddress &peerAddress, quint16 peerPort, QByteArray *data, bool isReliableDataPacket)
+{
 
     RUDPChannel *channel = getRUDPChannel(peerAddress, peerPort);
     return channel->sendDatagram(data, isReliableDataPacket);
@@ -136,20 +144,26 @@ quint64 RUDPSocket::sendDatagram(const QHostAddress &peerAddress, quint16 peerPo
 //    return channel->endDataTransmission(fragmentDataID);
 //}
 
-void RUDPSocket::closeChannel(const QHostAddress &peerAddress, quint16 peerPort){
+void RUDPSocket::closeChannel(const QHostAddress &peerAddress, quint16 peerPort)
+{
     RUDPChannel *channel = getRUDPChannel(peerAddress, peerPort);
     channel->closeChannel();
     recyleRUDPChannel(channel);
 
 }
 
-void RUDPSocket::closeAllChannels(){
-    qDebug()<<"--RUDPSocket::closeAllChannels()"<<" ThreadId:"<<QThread::currentThreadId();
+void RUDPSocket::closeAllChannels()
+{
+    qDebug() << "--RUDPSocket::closeAllChannels()" << " ThreadId:" << QThread::currentThreadId();
 
-    if(peers.isEmpty()){return;}
+    if(peers.isEmpty()) {
+        return;
+    }
 
     foreach (RUDPChannel *channel, peers.values()) {
-        if(!channel){continue;}
+        if(!channel) {
+            continue;
+        }
         channel->closeChannel();
         recyleRUDPChannel(channel);
     }
@@ -157,13 +171,18 @@ void RUDPSocket::closeAllChannels(){
 
 }
 
-void RUDPSocket::closeAllUnusedChannels(){
-    qDebug()<<"--RUDPSocket::closeAllUnusedChannels()";
+void RUDPSocket::closeAllUnusedChannels()
+{
+    qDebug() << "--RUDPSocket::closeAllUnusedChannels()";
 
-    if(m_unusedRUDPChannels.isEmpty()){return;}
+    if(m_unusedRUDPChannels.isEmpty()) {
+        return;
+    }
 
     foreach (RUDPChannel *channel, m_unusedRUDPChannels) {
-        if(!channel){continue;}
+        if(!channel) {
+            continue;
+        }
         delete channel;
         channel = 0;
     }
@@ -173,23 +192,28 @@ void RUDPSocket::closeAllUnusedChannels(){
 
 }
 
-void RUDPSocket::setMaxCachedUnusedChannelsCount(int count){
+void RUDPSocket::setMaxCachedUnusedChannelsCount(int count)
+{
     this->m_maxCachedUnusedChannelsCount = count;
 }
 
-int RUDPSocket::getMaxCachedUnusedChannelsCount() const{
+int RUDPSocket::getMaxCachedUnusedChannelsCount() const
+{
     return m_maxCachedUnusedChannelsCount;
 }
 
-void RUDPSocket::setMaxCachedUnusedPacketsCount(int count){
+void RUDPSocket::setMaxCachedUnusedPacketsCount(int count)
+{
     RUDPChannel::setMaxCachedUnusedPacketsCount(count);
 }
 
-int RUDPSocket::getMaxCachedUnusedPacketsCount() const{
+int RUDPSocket::getMaxCachedUnusedPacketsCount() const
+{
     return RUDPChannel::getMaxCachedUnusedPacketsCount();
 }
 
-void RUDPSocket::readPendingDatagrams() {
+void RUDPSocket::readPendingDatagrams()
+{
     //qDebug()<<"----RUDPSocket::readPendingDatagrams()";
 
     while (hasPendingDatagrams()) {
@@ -200,8 +224,8 @@ void RUDPSocket::readPendingDatagrams() {
         quint16 peerPort;
 
         qint64 readSize = readDatagram(datagram->data(), datagramSize, &peerAddress, &peerPort);
-        if(readSize == -1){
-            qWarning()<<"Can not read datagram!";
+        if(readSize == -1) {
+            qWarning() << "Can not read datagram!";
             break;
         }
 
@@ -240,12 +264,13 @@ void RUDPSocket::readPendingDatagrams() {
 
 
 
-void RUDPSocket::channelclosed(const QHostAddress &peerAddress, quint16 peerPort, bool normalClose){
-    qDebug()<<"--RUDPSocket::channelclosed()";
+void RUDPSocket::channelclosed(const QHostAddress &peerAddress, quint16 peerPort, bool normalClose)
+{
+    qDebug() << "--RUDPSocket::channelclosed()";
 
     RUDPChannel *channel = getRUDPChannel(peerAddress, peerPort);
     //RUDPChannel *channel = qobject_cast<RUDPChannel *>(sender());
-    if(channel){
+    if(channel) {
         QHostAddress address = channel->getPeerHostAddress();
         quint16 port = channel->getPeerHostPort();
         QString channelID = address.toString() + ":" + QString::number(port);
@@ -257,15 +282,16 @@ void RUDPSocket::channelclosed(const QHostAddress &peerAddress, quint16 peerPort
 
 }
 
-RUDPChannel * RUDPSocket::getRUDPChannel(const QHostAddress &hostAddress, quint16 port){
+RUDPChannel *RUDPSocket::getRUDPChannel(const QHostAddress &hostAddress, quint16 port)
+{
 
     QString channelID = hostAddress.toString() + ":" + QString::number(port);
 
     RUDPChannel *channel = 0;
 
-    if(!peers.contains(channelID)){
-        if(m_unusedRUDPChannels.isEmpty()){
-            qDebug()<<"Create new channel:"<<channelID;
+    if(!peers.contains(channelID)) {
+        if(m_unusedRUDPChannels.isEmpty()) {
+            qDebug() << "Create new channel:" << channelID;
             channel = new RUDPChannel(this, m_packetHandlerBase, hostAddress, port, m_keepAliveTimerInterval, 0);
 //            connect(channel, SIGNAL(finished()), this, SLOT(channelclosed()));
 //            connect(channel, SIGNAL(terminated()), this, SLOT(channelclosed()));
@@ -278,13 +304,13 @@ RUDPChannel * RUDPSocket::getRUDPChannel(const QHostAddress &hostAddress, quint1
 
             //channel->start();
             peers.insert(channelID, channel);
-        }else{
-            qDebug()<<"Use idle channel:"<<channelID;
+        } else {
+            qDebug() << "Use idle channel:" << channelID;
             channel = m_unusedRUDPChannels.takeFirst();
             //channel->start();
         }
 
-    }else{
+    } else {
 //        QList<QHostAddress> addresses = peers.keys();
 //        foreach (QHostAddress address, addresses) {
 //            RUDPChannel *c = peers.value(address);
@@ -301,11 +327,12 @@ RUDPChannel * RUDPSocket::getRUDPChannel(const QHostAddress &hostAddress, quint1
 
 }
 
-inline void RUDPSocket::recyleRUDPChannel(RUDPChannel *channel){
+inline void RUDPSocket::recyleRUDPChannel(RUDPChannel *channel)
+{
 
     //channel->quit();
 
-    if(m_unusedRUDPChannels.size() >= m_maxCachedUnusedChannelsCount){
+    if(m_unusedRUDPChannels.size() >= m_maxCachedUnusedChannelsCount) {
         delete channel;
         channel = 0;
         return;
@@ -320,7 +347,7 @@ inline void RUDPSocket::recyleRUDPChannel(RUDPChannel *channel){
 /////////////////////////////////////////////////////////////////////////////////////
 
 RUDPSocketThread::RUDPSocketThread(PacketHandlerBase *packetHandlerBase, int keepAliveTimerInterval, QObject *parent)
-    :QThread(parent)
+    : QThread(parent)
 {
 
     m_rudpSocket = new RUDPSocket(packetHandlerBase, keepAliveTimerInterval, parent);
@@ -330,15 +357,18 @@ RUDPSocketThread::RUDPSocketThread(PacketHandlerBase *packetHandlerBase, int kee
 
 }
 
-RUDPSocketThread::~RUDPSocketThread() {
+RUDPSocketThread::~RUDPSocketThread()
+{
 
 }
 
-void RUDPSocketThread::run(){
+void RUDPSocketThread::run()
+{
     exec();
 }
 
-RUDPSocket * RUDPSocketThread::getRUDPSocket(){
+RUDPSocket *RUDPSocketThread::getRUDPSocket()
+{
 
     return m_rudpSocket;
 }

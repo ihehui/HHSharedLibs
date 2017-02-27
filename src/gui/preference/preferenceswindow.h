@@ -39,11 +39,13 @@
 
 
 
-namespace Ui {
+namespace Ui
+{
 class PreferencesWindowClass;
 }
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class PreferencesWindow : public QWidget

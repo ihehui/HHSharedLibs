@@ -51,7 +51,8 @@
 class QString;
 class QIcon;
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 // QIcon createIconSet(const QString &name);
 // QIcon emptyIcon();

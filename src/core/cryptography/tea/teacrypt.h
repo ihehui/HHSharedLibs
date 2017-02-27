@@ -42,11 +42,11 @@ public:
     TEACrypt();
     ~TEACrypt();
 
-    static void encrypt( unsigned char* instr, int instrlen, unsigned char* key,
-                         unsigned char*  outstr, int* outstrlen_ptr);
+    static void encrypt( unsigned char *instr, int instrlen, unsigned char *key,
+                         unsigned char  *outstr, int *outstrlen_ptr);
 
-    static int decrypt(unsigned char* instr, int instrlen, unsigned char* key,
-                       unsigned char*  outstr, int* outstrlen_ptr);
+    static int decrypt(unsigned char *instr, int instrlen, unsigned char *key,
+                       unsigned char  *outstr, int *outstrlen_ptr);
 
 private:
     static int rand(void);
@@ -55,12 +55,12 @@ private:
     static void teaDecipher(unsigned int *const v, const unsigned int *const k,
                             unsigned int *const w);
 
-    static int qq_crypt ( unsigned char   flag,  unsigned char*  instr,  int  instrlen,
-                          unsigned char*  key, unsigned char*  outstr, int* outstrlen_ptr);
+    static int qq_crypt ( unsigned char   flag,  unsigned char  *instr,  int  instrlen,
+                          unsigned char  *key, unsigned char  *outstr, int *outstrlen_ptr);
 
     //        int stringToByte(unsigned char* destination, string &source);
-    void charToByte(unsigned char* destination, const char *source, int sourceLength);
-    void byteToChar(char *destination, const unsigned char* source, int sourceLength);
+    void charToByte(unsigned char *destination, const char *source, int sourceLength);
+    void byteToChar(char *destination, const unsigned char *source, int sourceLength);
 
 };
 

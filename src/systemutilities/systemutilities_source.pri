@@ -1,10 +1,17 @@
 # Input
+
 HEADERS += \
     systemutilities.h \
-    systemutilitieslib.h
+    systemutilitieslib.h \
+    $$PWD/utilities_def.h
 
 SOURCES += systemutilities.cpp
 
+unix {
+HEADERS += unixutilities.h
+
+SOURCES += unixutilities.cpp
+}
 
 win32 { 
 
@@ -31,8 +38,8 @@ SOURCES += windowsmanagement.cpp \
                    $$PWD/resources/lib/WinRing0
 
     LIBS += -L$$PWD/resources/lib/WindowsAPI \
-        -lWindowsAPI \
-        -L$$PWD/resources/lib/WinRing0
+            -lWindowsAPI \
+            -L$$PWD/resources/lib/WinRing0
 
     LIBS += -luser32 \
         -lNetAPI32 \

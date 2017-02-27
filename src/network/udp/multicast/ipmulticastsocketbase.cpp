@@ -35,7 +35,7 @@
 #include "ipmulticastsocketbase.h"
 
 IPMulticastSocketBase::IPMulticastSocketBase(QObject *parent)
-    :QObject(parent)
+    : QObject(parent)
 {
 
     udpSocket = 0;
@@ -45,31 +45,38 @@ IPMulticastSocketBase::IPMulticastSocketBase(QObject *parent)
 
 }
 
-IPMulticastSocketBase::~IPMulticastSocketBase() {
+IPMulticastSocketBase::~IPMulticastSocketBase()
+{
 
 }
 
-QUdpSocket * IPMulticastSocketBase::getUdpSocket() const{
+QUdpSocket *IPMulticastSocketBase::getUdpSocket() const
+{
     return udpSocket;
 }
 
-void IPMulticastSocketBase::setUdpSocket(QUdpSocket *udpSocket){
+void IPMulticastSocketBase::setUdpSocket(QUdpSocket *udpSocket)
+{
     this->udpSocket = udpSocket;
 }
 
-bool IPMulticastSocketBase::isBound(){
+bool IPMulticastSocketBase::isBound()
+{
     return bound;
 }
 
-void IPMulticastSocketBase::setBound(bool bound){
+void IPMulticastSocketBase::setBound(bool bound)
+{
     this->bound = bound;
 }
 
-QHostAddress IPMulticastSocketBase::getMulticastGroupAddress() const {
+QHostAddress IPMulticastSocketBase::getMulticastGroupAddress() const
+{
     return this->ipMulticastGroupAddress;
 }
 
-void IPMulticastSocketBase::setMulticastGroupAddress(const QHostAddress &ipMulticastGroupAddress){
+void IPMulticastSocketBase::setMulticastGroupAddress(const QHostAddress &ipMulticastGroupAddress)
+{
     this->ipMulticastGroupAddress = ipMulticastGroupAddress;
 }
 
@@ -77,11 +84,13 @@ void IPMulticastSocketBase::setMulticastGroupAddress(const QHostAddress &ipMulti
 //    return localAddress;
 //}
 
-quint16 IPMulticastSocketBase::getPort() const {
+quint16 IPMulticastSocketBase::getPort() const
+{
     return this->port;
 }
 
-void IPMulticastSocketBase::setPort(quint16 port){
+void IPMulticastSocketBase::setPort(quint16 port)
+{
     this->port = port;
 }
 

@@ -69,10 +69,12 @@
 
 #define ICONBUTTON_SIZE 16
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
-class HintLineEdit : public QLineEdit {
+class HintLineEdit : public QLineEdit
+{
     Q_OBJECT
 public:
     explicit HintLineEdit(QWidget *parent = 0);
@@ -98,8 +100,15 @@ class IconButton: public QToolButton
 public:
     IconButton(QWidget *parent);
     void paintEvent(QPaintEvent *event);
-    float fader() { return m_fader; }
-    void setFader(float value) { m_fader = value; update(); }
+    float fader()
+    {
+        return m_fader;
+    }
+    void setFader(float value)
+    {
+        m_fader = value;
+        update();
+    }
     void animateShow(bool visible);
 
 private:

@@ -35,11 +35,11 @@
 
 #include <QtCore/QtGlobal>
 
- #if defined(GUI_LIBRARY_EXPORT)
- #  define GUI_LIB_API Q_DECL_EXPORT
- #else
- #  define GUI_LIB_API Q_DECL_IMPORT
- #endif
+#if defined(GUI_LIBRARY_EXPORT)
+    #define GUI_LIB_API Q_DECL_EXPORT
+#else
+    #define GUI_LIB_API Q_DECL_IMPORT
+#endif
 
 
 /*

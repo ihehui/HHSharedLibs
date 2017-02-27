@@ -33,11 +33,11 @@
 //#endif
 
 #ifndef MIN_THREAD_COUNT
-#define MIN_THREAD_COUNT 10
+    #define MIN_THREAD_COUNT 10
 #endif
 
 #ifndef MAX_DATA_BLOCK_SIZE
-#define MAX_DATA_BLOCK_SIZE 2048000
+    #define MAX_DATA_BLOCK_SIZE 2048000
 #endif
 
 
@@ -50,19 +50,22 @@
 #include "udtlib.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 //typedef UDTSTATUS UDTSocketStatus;
 typedef int UDTSOCKET;
 class CCC;
 
-class UDT_LIB_API UDTProtocolBase :public QObject{
+class UDT_LIB_API UDTProtocolBase : public QObject
+{
     Q_OBJECT
 public:
 
 
-    struct SocketOptions{
-        SocketOptions(){
+    struct SocketOptions {
+        SocketOptions()
+        {
 #ifdef WIN32
             UDT_MSS = 1052;
 #else
@@ -96,7 +99,7 @@ public:
         int UDT_MSS;
         bool UDT_SNDSYN;
         bool UDT_RCVSYN;
-        CCC* UDT_CC;
+        CCC *UDT_CC;
         int UDT_FC;
 
         int UDT_SNDBUF;
@@ -127,8 +130,14 @@ public:
     void setDefaultSocketOptions(const SocketOptions *options);
     SocketOptions getDefaultSocketOptions() const;
 
-    bool isStreamMode(){return m_stream;}
-    UDTSOCKET getServerSocket(){return serverSocket;}
+    bool isStreamMode()
+    {
+        return m_stream;
+    }
+    UDTSOCKET getServerSocket()
+    {
+        return serverSocket;
+    }
 
     bool getAddressInfoFromSocket(UDTSOCKET socket, QString *address, quint16 *port, bool getPeerInfo = true);
 
@@ -153,7 +162,7 @@ signals:
 
 public slots:
     //Start the server to listen,  implement the virtual function startWaitingForIO()
-    UDTSOCKET listen(quint16 port = 0, const QHostAddress &localAddress= QHostAddress::Any);
+    UDTSOCKET listen(quint16 port = 0, const QHostAddress &localAddress = QHostAddress::Any);
 
     //Close the server
     void close();
@@ -224,8 +233,8 @@ private:
 
     SocketOptions m_socketOptions;
 
-    QHash<UDTSOCKET, QByteArray*> m_cachedDataInfoHash;
-    QList<QByteArray*> m_unusedCached;
+    QHash<UDTSOCKET, QByteArray *> m_cachedDataInfoHash;
+    QList<QByteArray *> m_unusedCached;
 
     QString m_errorMessage;
 

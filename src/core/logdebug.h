@@ -2,36 +2,46 @@
 #define LOGDEBUG_H
 
 
-//#if defined(LOG_DEBUG)
 #include <QDebug>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QTime>
 #include <QtCore/QMutex>
+#include <QCoreApplication>
+#include <QFileInfo>
+#include <QDir>
+
 #if defined(Q_OS_WIN32)
-#include <qt_windows.h>
+    #include <qt_windows.h>
 #else
-#include <unistd.h>
-#include <stdlib.h>
+    #include <unistd.h>
+    #include <stdlib.h>
 #endif
 
-static QFile* f = 0;
+
+#if defined(Q_OS_WIN32)
+static QString logFileName = "c:/macs_debuglog.txt";
+#else
+static QString logFileName = "/tmp/macs_debuglog.txt";
+#endif
+static QFile* file = 0;
 static qulonglong processId = 0;
+static bool printTostderr = false;
 
 static void closeDebugLog()
 {
-    if (!f){return;}
+    if (!file){return;}
 
     QByteArray s(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
     s += " [";
     s += QByteArray::number(processId);
     s += "] ";
     QByteArray ps(s + "------ DEBUG LOG CLOSED ------\n");
-    f->write(ps);
-    f->flush();
-    f->close();
-    delete f;
-    f = 0;
+    file->write(ps);
+    file->flush();
+    file->close();
+    delete file;
+    file = 0;
 }
 
 
@@ -52,41 +62,45 @@ static void logDebug(QtMsgType type, const char* msg)
 #endif
     }
 
-    QByteArray s(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
-    s += " [";
-    s += QByteArray::number(processId);
-    s += "] ";
+    QByteArray ba(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
+    ba += " [";
+    ba += QByteArray::number(processId);
+    ba += "] ";
 
-    if (!f) {
+    if (!file) {
 #if defined(Q_OS_WIN32)
-        f = new QFile("./" + logFilename);
+        file = new QFile(logFileName);
 #else
-        f = new QFile("/tmp/" + logFilename);
+        file = new QFile(logFileName);
 #endif
-        if (!f->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
-            delete f;
-            f = 0;
+        if (!file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
+            delete file;
+            file = 0;
             return;
         }
-        QByteArray ps('\n' + s + "------ DEBUG LOG OPENED ------\n");
-        f->write(ps);
+        QByteArray ps('\n' + ba + "------ DEBUG LOG OPENED ------\n");
+        file->write(ps);
     }
 
     switch (type) {
     case QtWarningMsg:
-        s += "WARNING: ";
+        ba += " WARNING: ";
         break;
     case QtCriticalMsg:
-        s += "CRITICAL: ";
+        ba += "CRITICAL: ";
         break;
     case QtFatalMsg:
-        s+= "FATAL: ";
+        ba+= "    FATAL: ";
         break;
     case QtDebugMsg:
-        s += "DEBUG: ";
+        ba += "   DEBUG: ";
         break;
+//    case QtInfoMsg:
+//        s += "    INFO: ";
+//        break;
+
     default:
-        // Nothing
+        ba += "    INFO: ";
         break;
     }
 
@@ -95,9 +109,9 @@ static void logDebug(QtMsgType type, const char* msg)
 
 #if QT_VERSION >= 0x050000
     QString str = QString("%1 (%2:%3, %4)").arg(msg).arg(context.file).arg(context.line).arg(context.function);
-    s += str.toUtf8();
+    ba += str.toUtf8();
 #else
-    s += msg;
+    ba += msg;
 #endif
 
 
@@ -109,10 +123,14 @@ static void logDebug(QtMsgType type, const char* msg)
 //#else
 //    s += msg;
 //#endif
-    s += '\n';
+    ba += '\n';
 
-    f->write(s);
-    f->flush();
+    file->write(ba);
+    file->flush();
+
+    if(printTostderr){
+        fprintf(stderr, "%s\n", ba.data());
+    }
 
     if (type == QtFatalMsg) {
         closeDebugLog();
@@ -122,7 +140,13 @@ static void logDebug(QtMsgType type, const char* msg)
 
 
 
-static void installMessageLogger(){
+static void installMessageLogger(const QString &fileName, bool printMsgTostderr = false){
+    if(!fileName.isEmpty()){
+        logFileName = fileName;
+            QFileInfo info(logFileName);
+            QDir dir;
+            dir.mkpath(info.path());
+    }
 
 #  if QT_VERSION >= 0x050000
     //reset the message handler
@@ -133,6 +157,8 @@ static void installMessageLogger(){
     qInstallMsgHandler(logDebug);
 #  endif
     qAddPostRoutine(closeDebugLog);
+
+    printTostderr = printMsgTostderr;
 
 }
 

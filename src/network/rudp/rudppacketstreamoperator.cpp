@@ -36,7 +36,8 @@
 
 //重载操作符“<<”
 //Write data to stream
-QDataStream &operator<<(QDataStream &out, const HEHUI::RUDPPacket &packet){
+QDataStream &operator<<(QDataStream &out, const HEHUI::RUDPPacket &packet)
+{
 
 
     out << packet.getPacketType() << packet.getPacketSerialNumber() << packet.getPacketData();
@@ -59,7 +60,8 @@ QDataStream &operator<<(QDataStream &out, const HEHUI::RUDPPacket &packet){
 
 //重载操作符“>>”
 //Read data from stream
-QDataStream &operator>>(QDataStream &in, HEHUI::RUDPPacket &packet){
+QDataStream &operator>>(QDataStream &in, HEHUI::RUDPPacket &packet)
+{
     quint8 packetType = 0;
     quint16 packetSerialNumber = 0;
     QByteArray packetData;

@@ -78,7 +78,7 @@ void InteractiveService::start()
 {
 #if defined(Q_OS_WIN)
     if ((QSysInfo::WindowsVersion & QSysInfo::WV_NT_based) &&
-        (QSysInfo::WindowsVersion >= QSysInfo::WV_VISTA)) {
+            (QSysInfo::WindowsVersion >= QSysInfo::WV_VISTA)) {
         logMessage( "Service GUI not allowed on Windows Vista. See the documentation for this example for more information.", QtServiceBase::Error );
         return;
     }
@@ -98,14 +98,16 @@ void InteractiveService::stop()
 
 void InteractiveService::pause()
 {
-    if (gui)
-	gui->hide();
+    if (gui) {
+        gui->hide();
+    }
 }
 
 void InteractiveService::resume()
 {
-    if (gui)
-	gui->show();
+    if (gui) {
+        gui->show();
+    }
 }
 
 void InteractiveService::processCommand(int code)

@@ -56,7 +56,8 @@
 #include <QDebug>
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 enum { FilterRole = Qt::UserRole + 11 };
 
@@ -65,9 +66,9 @@ enum { FilterRole = Qt::UserRole + 11 };
 struct ItemBoxCategoryEntry {
     ItemBoxCategoryEntry();
     explicit ItemBoxCategoryEntry(const ItemBoxWidgetInterface::Item &item,
-                                    const QString &filter,
-                                    const QIcon &icon,
-                                    bool editable);
+                                  const QString &filter,
+                                  const QIcon &icon,
+                                  bool editable);
 
     ItemBoxWidgetInterface::Item item;
     QString toolTip;
@@ -84,8 +85,8 @@ ItemBoxCategoryEntry::ItemBoxCategoryEntry() :
 }
 
 ItemBoxCategoryEntry::ItemBoxCategoryEntry(const ItemBoxWidgetInterface::Item &w,
-                                               const QString &filterIn,
-                                               const QIcon &i, bool e) :
+        const QString &filterIn,
+        const QIcon &i, bool e) :
     item(w),
     filter(filterIn),
     icon(i),
@@ -97,15 +98,16 @@ ItemBoxCategoryEntry::ItemBoxCategoryEntry(const ItemBoxWidgetInterface::Item &w
  * QAbstractListModel since the behaviour depends on the view mode of the list
  * view, it does not return text in the case of IconMode. */
 
-class ItemBoxCategoryModel : public QAbstractListModel {
+class ItemBoxCategoryModel : public QAbstractListModel
+{
 public:
     explicit ItemBoxCategoryModel(ItemBoxEventHandler *core, QObject *parent = 0);
 
     // QAbstractListModel
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    virtual bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
-    virtual Qt::ItemFlags flags (const QModelIndex & index ) const;
+    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+    virtual Qt::ItemFlags flags (const QModelIndex &index ) const;
     virtual bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
 
     // The model returns no text in icon mode, so, it also needs to know it
@@ -114,7 +116,7 @@ public:
 
     void addItem(const ItemBoxWidgetInterface::Item &item, const QIcon &icon, bool editable);
 
-    ItemBoxWidgetInterface::Item itemAt(const QModelIndex & index) const;
+    ItemBoxWidgetInterface::Item itemAt(const QModelIndex &index) const;
     ItemBoxWidgetInterface::Item itemAt(int row) const;
     ItemBoxWidgetInterface::Item item(const QString &item_id) const;
     int indexOfItem(const QString &item_id) const;
@@ -155,22 +157,26 @@ QListView::ViewMode ItemBoxCategoryModel::viewMode() const
 
 void ItemBoxCategoryModel::setViewMode(QListView::ViewMode vm)
 {
-    if (m_viewMode == vm)
+    if (m_viewMode == vm) {
         return;
+    }
     const bool empty = m_categoryentrys.isEmpty();
-    if (!empty)
+    if (!empty) {
         beginResetModel();
+    }
     m_viewMode = vm;
-    if (!empty)
+    if (!empty) {
         endResetModel();
+    }
 }
 
 int ItemBoxCategoryModel::indexOfWidget(const QString &name)
 {
     const int count = m_categoryentrys.size();
     for (int  i = 0; i < count; i++)
-        if (m_categoryentrys.at(i).item.name() == name)
+        if (m_categoryentrys.at(i).item.name() == name) {
             return i;
+        }
     return -1;
 }
 
@@ -178,8 +184,9 @@ ItemBoxWidgetInterface::Category ItemBoxCategoryModel::category() const
 {
     ItemBoxWidgetInterface::Category rc;
     const ItemBoxCategoryEntrys::const_iterator cend = m_categoryentrys.constEnd();
-    for (ItemBoxCategoryEntrys::const_iterator it = m_categoryentrys.constBegin(); it != cend; ++it)
+    for (ItemBoxCategoryEntrys::const_iterator it = m_categoryentrys.constBegin(); it != cend; ++it) {
         rc.addItem(it->item);
+    }
     return rc;
 }
 
@@ -190,22 +197,25 @@ bool ItemBoxCategoryModel::removeCustomWidgets()
     bool changed = false;
     for (ItemBoxCategoryEntrys::iterator it = m_categoryentrys.begin(); it != m_categoryentrys.end(); )
         if (it->item.type() == ItemBoxWidgetInterface::Item::Custom) {
-            if (!changed)
+            if (!changed) {
                 beginResetModel();
+            }
             it = m_categoryentrys.erase(it);
             changed = true;
         } else {
             ++it;
         }
-    if (changed)
+    if (changed) {
         endResetModel();
+    }
     return changed;
 }
 
-bool ItemBoxCategoryModel::updateItemName(const QString &item_id, const QString &name){
+bool ItemBoxCategoryModel::updateItemName(const QString &item_id, const QString &name)
+{
 
     QModelIndex idx = index(indexOfItem(item_id));
-    if(!idx.isValid()){
+    if(!idx.isValid()) {
         return false;
     }
 
@@ -214,10 +224,11 @@ bool ItemBoxCategoryModel::updateItemName(const QString &item_id, const QString 
 
 }
 
-bool ItemBoxCategoryModel::updateItemIcon(const QString &item_id, const QIcon &icon){
+bool ItemBoxCategoryModel::updateItemIcon(const QString &item_id, const QIcon &icon)
+{
 
     QModelIndex idx = index(indexOfItem(item_id));
-    if(!idx.isValid()){
+    if(!idx.isValid()) {
         return false;
     }
 
@@ -240,7 +251,7 @@ bool ItemBoxCategoryModel::updateItemIcon(const QString &item_id, const QIcon &i
 
 //}
 
-void ItemBoxCategoryModel::addItem(const ItemBoxWidgetInterface::Item &item, const QIcon &icon,bool editable)
+void ItemBoxCategoryModel::addItem(const ItemBoxWidgetInterface::Item &item, const QIcon &icon, bool editable)
 {
     // build item. Filter on name + class name if it is different and not a layout.
     QString filter = item.id();
@@ -265,11 +276,13 @@ void ItemBoxCategoryModel::addItem(const ItemBoxWidgetInterface::Item &item, con
 
 
     const QString toolTip = item.id();
-    if (!toolTip.isEmpty())
+    if (!toolTip.isEmpty()) {
         categoryEntry.toolTip = toolTip;
+    }
     const QString whatsThis = item.id();
-    if (!whatsThis.isEmpty())
+    if (!whatsThis.isEmpty()) {
         categoryEntry.whatsThis = whatsThis;
+    }
 
 
 
@@ -283,8 +296,9 @@ void ItemBoxCategoryModel::addItem(const ItemBoxWidgetInterface::Item &item, con
 QVariant ItemBoxCategoryModel::data(const QModelIndex &index, int role) const
 {
     const int row = index.row();
-    if (row < 0 || row >=  m_categoryentrys.size())
+    if (row < 0 || row >=  m_categoryentrys.size()) {
         return QVariant();
+    }
 
     const ItemBoxCategoryEntry &categoryEntry = m_categoryentrys.at(row);
     switch (role) {
@@ -319,7 +333,7 @@ bool ItemBoxCategoryModel::setData(const QModelIndex &index, const QVariant &val
 {
 
     const int row = index.row();
-    if ( row < 0 || row >=  m_categoryentrys.size() ){
+    if ( row < 0 || row >=  m_categoryentrys.size() ) {
         return false;
     }
     //if (role != Qt::EditRole || row < 0 || row >=  m_categoryEntries.size() || value.type() != QVariant::String)
@@ -327,7 +341,7 @@ bool ItemBoxCategoryModel::setData(const QModelIndex &index, const QVariant &val
 
     ItemBoxCategoryEntry &categoryEntry = m_categoryentrys[row];
 
-    if(role == Qt::DisplayRole && value.type() == QVariant::String){
+    if(role == Qt::DisplayRole && value.type() == QVariant::String) {
         const QString newName = value.toString();
         categoryEntry.item.setName(newName);
 
@@ -339,13 +353,13 @@ bool ItemBoxCategoryModel::setData(const QModelIndex &index, const QVariant &val
 //        }
     }
 
-    if(role == Qt::DecorationRole){
-        if( value.type() == QVariant::Icon){
+    if(role == Qt::DecorationRole) {
+        if( value.type() == QVariant::Icon) {
             categoryEntry.icon = value.value<QIcon>();
         }//else if(value.type() == QVariant::String){
-            //const QString newIconName = value.toString();
-            //categoryEntry.item.setIcon(newIconName);
-            //categoryEntry.icon = QIcon(newIconName);
+        //const QString newIconName = value.toString();
+        //categoryEntry.item.setIcon(newIconName);
+        //categoryEntry.icon = QIcon(newIconName);
         //}
     }
 
@@ -379,8 +393,9 @@ Qt::ItemFlags ItemBoxCategoryModel::flags(const QModelIndex &index) const
         if (m_categoryentrys.at(row).editable) {
             rc |= Qt::ItemIsSelectable;
             // Can change name in list mode only
-            if (m_viewMode == QListView::ListMode)
+            if (m_viewMode == QListView::ListMode) {
                 rc |= Qt::ItemIsEditable;
+            }
         }
     return rc;
 }
@@ -390,36 +405,41 @@ int ItemBoxCategoryModel::rowCount(const QModelIndex & /*parent*/) const
     return m_categoryentrys.size();
 }
 
-bool ItemBoxCategoryModel::removeRows(int row, int count, const QModelIndex & parent)
+bool ItemBoxCategoryModel::removeRows(int row, int count, const QModelIndex &parent)
 {
-    if (row < 0 || count < 1)
+    if (row < 0 || count < 1) {
         return false;
+    }
     const int size = m_categoryentrys.size();
     const int last =  row + count - 1;
-    if (row >= size || last >= size)
+    if (row >= size || last >= size) {
         return false;
+    }
     beginRemoveRows(parent, row, last);
-    for (int r = last; r >= row; r--)
-         m_categoryentrys.removeAt(r);
+    for (int r = last; r >= row; r--) {
+        m_categoryentrys.removeAt(r);
+    }
     endRemoveRows();
     return true;
 }
 
-ItemBoxWidgetInterface::Item ItemBoxCategoryModel::itemAt(const QModelIndex & index) const
+ItemBoxWidgetInterface::Item ItemBoxCategoryModel::itemAt(const QModelIndex &index) const
 {
     return itemAt(index.row());
 }
 
 ItemBoxWidgetInterface::Item ItemBoxCategoryModel::itemAt(int row) const
 {
-    if (row < 0 || row >=  m_categoryentrys.size())
+    if (row < 0 || row >=  m_categoryentrys.size()) {
         return ItemBoxWidgetInterface::Item();
+    }
     return m_categoryentrys.at(row).item;
 }
 
-ItemBoxWidgetInterface::Item ItemBoxCategoryModel::item(const QString &item_id) const{
-    foreach(ItemBoxCategoryEntry entry, m_categoryentrys){
-        if(entry.item.id() == item_id){
+ItemBoxWidgetInterface::Item ItemBoxCategoryModel::item(const QString &item_id) const
+{
+    foreach(ItemBoxCategoryEntry entry, m_categoryentrys) {
+        if(entry.item.id() == item_id) {
             return entry.item;
         }
     }
@@ -428,11 +448,13 @@ ItemBoxWidgetInterface::Item ItemBoxCategoryModel::item(const QString &item_id) 
 
 }
 
-int ItemBoxCategoryModel::indexOfItem(const QString &item_id) const{
+int ItemBoxCategoryModel::indexOfItem(const QString &item_id) const
+{
     const int count = m_categoryentrys.size();
     for (int  i = 0; i < count; i++)
-        if (m_categoryentrys.at(i).item.id() == item_id)
+        if (m_categoryentrys.at(i).item.id() == item_id) {
             return i;
+        }
     return -1;
 }
 
@@ -448,11 +470,11 @@ public:
 };
 
 QWidget *ItemBoxCategoryEntryDelegate::createEditor(QWidget *parent,
-                                                const QStyleOptionViewItem &option,
-                                                const QModelIndex &index) const
+        const QStyleOptionViewItem &option,
+        const QModelIndex &index) const
 {
     QWidget *result = QItemDelegate::createEditor(parent, option, index);
-    if (QLineEdit *line_edit = qobject_cast<QLineEdit*>(result)) {
+    if (QLineEdit *line_edit = qobject_cast<QLineEdit *>(result)) {
         QRegExp re = QRegExp(QStringLiteral("[_a-zA-Z][_a-zA-Z0-9]*"));
         Q_ASSERT(re.isValid());
         line_edit->setValidator(new QRegExpValidator(re, line_edit));
@@ -504,21 +526,23 @@ void ItemBoxCategoryListView::setViewMode(ViewMode vm)
 void ItemBoxCategoryListView::setCurrentItem(AccessMode am, int row)
 {
     const QModelIndex index = am == FilteredAccess ?
-        m_proxyModel->index(row, 0) :
-        m_proxyModel->mapFromSource(m_model->index(row, 0));
+                              m_proxyModel->index(row, 0) :
+                              m_proxyModel->mapFromSource(m_model->index(row, 0));
 
-    if (index.isValid())
+    if (index.isValid()) {
         setCurrentIndex(index);
+    }
 }
 
 void ItemBoxCategoryListView::slotPressed(const QModelIndex &index)
 {
     //TODO
-    m_core->handleTooltipEventOnItem("", QPoint(0,0), QPoint(0,0));
+    m_core->handleTooltipEventOnItem("", QPoint(0, 0), QPoint(0, 0));
 
     const ItemBoxWidgetInterface::Item itm = m_model->itemAt(m_proxyModel->mapToSource(index));
-    if (itm.isNull())
+    if (itm.isNull()) {
         return;
+    }
 
     m_core->handleItemPressed(itm.id(), QCursor::pos());
 //    emit pressed(itm.id(), QCursor::pos());
@@ -528,8 +552,9 @@ void ItemBoxCategoryListView::slotPressed(const QModelIndex &index)
 void ItemBoxCategoryListView::removeCurrentItem()
 {
     const QModelIndex index = currentIndex();
-    if (!index.isValid() || !m_proxyModel->removeRow(index.row()))
+    if (!index.isValid() || !m_proxyModel->removeRow(index.row())) {
         return;
+    }
 
     // We check the unfiltered item count here, we don't want to get removed if the
     // filtered view is empty
@@ -543,15 +568,17 @@ void ItemBoxCategoryListView::removeCurrentItem()
 void ItemBoxCategoryListView::editCurrentItem()
 {
     const QModelIndex index = currentIndex();
-    if (index.isValid())
+    if (index.isValid()) {
         edit(index);
+    }
 }
 
 void ItemBoxCategoryListView::slotItemActivated(const QModelIndex &index)
 {
     /*const*/ ItemBoxWidgetInterface::Item itm = m_model->itemAt(m_proxyModel->mapToSource(index));
-    if (itm.isNull())
+    if (itm.isNull()) {
         return;
+    }
 
     QString id = itm.id();
     m_core->handleItemActivated(id);
@@ -569,7 +596,7 @@ int ItemBoxCategoryListView::mapRowToSource(int filterRow) const
     return m_proxyModel->mapToSource(filterIndex).row();
 }
 
-ItemBoxWidgetInterface::Item ItemBoxCategoryListView::itemAt(AccessMode am, const QModelIndex & index) const
+ItemBoxWidgetInterface::Item ItemBoxCategoryListView::itemAt(AccessMode am, const QModelIndex &index) const
 {
     const QModelIndex unfilteredIndex = am == FilteredAccess ? m_proxyModel->mapToSource(index) : index;
     return m_model->itemAt(unfilteredIndex);
@@ -580,11 +607,13 @@ ItemBoxWidgetInterface::Item ItemBoxCategoryListView::itemAt(AccessMode am, int 
     return m_model->itemAt(am == UnfilteredAccess ? row : mapRowToSource(row));
 }
 
-ItemBoxWidgetInterface::Item ItemBoxCategoryListView::item(const QString &item_id){
+ItemBoxWidgetInterface::Item ItemBoxCategoryListView::item(const QString &item_id)
+{
     return m_model->item(item_id);
 }
 
-int ItemBoxCategoryListView::indexOfItem(const QString &item_id){
+int ItemBoxCategoryListView::indexOfItem(const QString &item_id)
+{
     return m_model->indexOfItem(item_id);
 }
 
@@ -620,7 +649,8 @@ bool ItemBoxCategoryListView::removeCustomItems()
     return m_model->removeCustomWidgets();
 }
 
-bool ItemBoxCategoryListView::updateItemName(const QString &item_id, const QString &name){
+bool ItemBoxCategoryListView::updateItemName(const QString &item_id, const QString &name)
+{
     //qDebug()<<"----CategoryListView::updateObjectItemName(const QString &item_id, const QIcon &icon)";
 
     bool ok = m_model->updateItemName(item_id, name);
@@ -629,7 +659,8 @@ bool ItemBoxCategoryListView::updateItemName(const QString &item_id, const QStri
 
 }
 
-bool ItemBoxCategoryListView::updateItemIcon(const QString &item_id, const QIcon &icon){
+bool ItemBoxCategoryListView::updateItemIcon(const QString &item_id, const QIcon &icon)
+{
     //qDebug()<<"----CategoryListView::updateObjectItemIcon(const QString &item_id, const QIcon &icon)";
 
     bool ok =  m_model->updateItemIcon(item_id, icon);
@@ -647,42 +678,45 @@ bool ItemBoxCategoryListView::updateItemIcon(const QString &item_id, const QIcon
 
 //}
 
-bool ItemBoxCategoryListView::event(QEvent *event){
+bool ItemBoxCategoryListView::event(QEvent *event)
+{
 
-    switch(event->type()){
-    case QEvent::FocusIn:
-    {
-        if(lastFocusedCategoryListView != this){
-            if(lastFocusedCategoryListView){
+    switch(event->type()) {
+    case QEvent::FocusIn: {
+        if(lastFocusedCategoryListView != this) {
+            if(lastFocusedCategoryListView) {
                 lastFocusedCategoryListView->clearSelection();
             }
             lastFocusedCategoryListView = this;
         }
 
     }
-        break;
-        //    case QEvent::FocusOut:
-        //    {
-        //        QPoint cursorpos = QCursor::pos();
-        //        QPoint topleft = mapToGlobal(pos());
-        //        if(cursorpos.x() < topleft.x() || cursorpos.x() > (topleft.x() + width()) || cursorpos.y() < topleft.y() || cursorpos.y() > (topleft.y() + height()) ){
-        //            clearSelection();
-        //        }
+    break;
+    //    case QEvent::FocusOut:
+    //    {
+    //        QPoint cursorpos = QCursor::pos();
+    //        QPoint topleft = mapToGlobal(pos());
+    //        if(cursorpos.x() < topleft.x() || cursorpos.x() > (topleft.x() + width()) || cursorpos.y() < topleft.y() || cursorpos.y() > (topleft.y() + height()) ){
+    //            clearSelection();
+    //        }
 
-        //        qDebug()<<"--QEvent::FocusOut";
-        //        //return true;
-        //    }
-        //    break;
-    case QEvent::ContextMenu:
-    {
+    //        qDebug()<<"--QEvent::FocusOut";
+    //        //return true;
+    //    }
+    //    break;
+    case QEvent::ContextMenu: {
         QContextMenuEvent *e = static_cast<QContextMenuEvent *> (event);
-        if(!e){return false;}
+        if(!e) {
+            return false;
+        }
 
         QString itemID = "";
         QModelIndex index = indexAt(e->pos());
-        if(!index.isValid()){return false;}
+        if(!index.isValid()) {
+            return false;
+        }
         ItemBoxWidgetInterface::Item item = itemAt(UnfilteredAccess, index);
-        if(!item.isNull()){
+        if(!item.isNull()) {
             itemID = item.id();
         }
 
@@ -690,17 +724,20 @@ bool ItemBoxCategoryListView::event(QEvent *event){
 
         return true;
     }
-        break;
-    case QEvent::ToolTip:
-    {
+    break;
+    case QEvent::ToolTip: {
         QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
-        if(!helpEvent){return false;}
+        if(!helpEvent) {
+            return false;
+        }
 
         QString itemID = "";
         QModelIndex index = indexAt(helpEvent->pos());
-        if(!index.isValid()){return false;}
+        if(!index.isValid()) {
+            return false;
+        }
         ItemBoxWidgetInterface::Item item = itemAt(UnfilteredAccess, index);
-        if(item.isNull()){
+        if(item.isNull()) {
             return false;
         }
         itemID = item.id();
@@ -710,7 +747,7 @@ bool ItemBoxCategoryListView::event(QEvent *event){
         QPoint globalMousePos = helpEvent->globalPos();
 
         QSize iconsize = iconSize();
-        if(globalMousePos.x() < globalvisualRectTopLeft.x() || globalMousePos.x() > (globalvisualRectTopLeft.x() + iconsize.width()) || globalMousePos.y() < globalvisualRectTopLeft.y() || globalMousePos.y() > (globalvisualRectTopLeft.y() + iconsize.height()) ){
+        if(globalMousePos.x() < globalvisualRectTopLeft.x() || globalMousePos.x() > (globalvisualRectTopLeft.x() + iconsize.width()) || globalMousePos.y() < globalvisualRectTopLeft.y() || globalMousePos.y() > (globalvisualRectTopLeft.y() + iconsize.height()) ) {
             //m_core->slotTooltipEventOnObjectItemOccurs("", globalvisualRectTopLeft, globalMousePos);
             return false;
         }
@@ -720,15 +757,14 @@ bool ItemBoxCategoryListView::event(QEvent *event){
 
         return true;
     }
-        break;
-    case QEvent::Resize:
-    {
+    break;
+    case QEvent::Resize: {
         QResizeEvent *e = static_cast<QResizeEvent *>(event);
         QListView::resizeEvent(e);
         updateGeometries();
     }
 
-        break;
+    break;
     default:
         break;
 

@@ -40,14 +40,16 @@
 #include "../core_lib.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-class AbstractPluginInterface {
-    
+class AbstractPluginInterface
+{
+
 public:
-    
-    virtual ~AbstractPluginInterface(){}
-    
+
+    virtual ~AbstractPluginInterface() {}
+
     virtual QString name() const = 0;
     virtual QString version() const = 0;
     virtual QString vendor() const = 0;
@@ -55,19 +57,19 @@ public:
     virtual QString url() const = 0;
     virtual QString description() const = 0;
     virtual QString license() const = 0;
-    
+
     virtual bool isSingle() = 0;
 
     //初始化插件
     //Initialization
     //virtual bool initialize(QObject *parentObject) = 0;
-    
+
     //卸载插件
     //Unload the plugin
     virtual bool unload() = 0;
 
 
-    };
+};
 
 
 }

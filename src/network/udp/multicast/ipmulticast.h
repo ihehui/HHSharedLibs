@@ -38,12 +38,12 @@
 
 
 #ifdef Q_OS_WIN32
-#include "multicastwin.h"
-typedef IPMultiCastWin IPMulticastSocket;
+    #include "multicastwin.h"
+    typedef IPMultiCastWin IPMulticastSocket;
 
 #else//  Q_OS_LINUX
-#include "multicastlinux.h"
-typedef IPMulticastLinux IPMulticastSocket;
+    #include "multicastlinux.h"
+    typedef IPMulticastLinux IPMulticastSocket;
 
 #endif
 

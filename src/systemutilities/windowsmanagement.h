@@ -43,8 +43,8 @@
 #include <QPair>
 
 #ifdef Q_OS_WIN32
-//#define _WIN32_WINNT 0x0500
-#include <windows.h>
+    //#define _WIN32_WINNT 0x0500
+    #include <windows.h>
 
 #endif
 
@@ -53,7 +53,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class SYSUTIL_LIB_API WindowsManagement : public QObject
@@ -61,8 +62,8 @@ class SYSUTIL_LIB_API WindowsManagement : public QObject
     Q_OBJECT
 public:
     //enum Location{LEATHER_PRODUCTS_FACTORY_DG = 1, HANDBAG_FACTORY_DG, No3_Branch_Factory, LEATHER_PRODUCTS_FACTORY_YD};
-    enum Location{No1_Branch_Factory = 0, No2_Branch_Factory, No3_Branch_Factory, No4_Branch_Factory, LEATHER_PRODUCTS_FACTORY_YD};
-    enum UserAccountState{UAS_Unknown, UAS_Disabled, UAS_Enabled};
+    enum Location {No1_Branch_Factory = 0, No2_Branch_Factory, No3_Branch_Factory, No4_Branch_Factory, LEATHER_PRODUCTS_FACTORY_YD};
+    enum UserAccountState {UAS_Unknown, UAS_Disabled, UAS_Enabled};
 
     explicit WindowsManagement(QObject *parent = 0);
 
@@ -113,7 +114,7 @@ public:
 
     void cleanTemporaryFiles();
     //void deleteFiles(const QString &path);
-    void deleteFiles(const QString &path, const QStringList & nameFilters = QStringList(), const QStringList & ignoredFiles = QStringList(), const QStringList & ignoredDirs = QStringList());
+    void deleteFiles(const QString &path, const QStringList &nameFilters = QStringList(), const QStringList &ignoredFiles = QStringList(), const QStringList &ignoredDirs = QStringList());
 
     void modifySystemSettings();
 

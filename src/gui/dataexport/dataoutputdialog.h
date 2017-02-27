@@ -10,28 +10,36 @@
 #include "../guilib.h"
 
 
-namespace Ui {
+namespace Ui
+{
 class DataOutputDialogUI;
 }
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 class GUI_LIB_API DataOutputDialog: public QDialog
 {
     Q_OBJECT
 
-    enum FileFormate{FILE_FORMATE_TEXT, FILE_FORMATE_XML, FILE_FORMATE_SQLSCRIPT};
-    enum FileSeparator{FILE_SEPARATOR_VRTICAL, FILE_SEPARATOR_COMMA, FILE_SEPARATOR_TAB, FILE_SEPARATOR_OTHER};
+    enum FileFormate {FILE_FORMATE_TEXT, FILE_FORMATE_XML, FILE_FORMATE_SQLSCRIPT};
+    enum FileSeparator {FILE_SEPARATOR_VRTICAL, FILE_SEPARATOR_COMMA, FILE_SEPARATOR_TAB, FILE_SEPARATOR_OTHER};
 
 public:
-    enum IOType{EXPORT, IMPORT, PRINT};
+    enum IOType {EXPORT, IMPORT, PRINT};
 
     DataOutputDialog(QTableView *tableView, IOType ioType = EXPORT, QWidget *parent = 0);
     ~DataOutputDialog();
 
 
-    QTableView *getTableView(){return tableView;}
-    void setTableView(QTableView *tv){tableView = tv;}
+    QTableView *getTableView()
+    {
+        return tableView;
+    }
+    void setTableView(QTableView *tv)
+    {
+        tableView = tv;
+    }
 
 
 protected:
@@ -56,7 +64,10 @@ private slots:
     void on_browseButton_clicked();
 
     void on_executeButton_clicked();
-    void on_cancelButton_clicked() { reject(); }
+    void on_cancelButton_clicked()
+    {
+        reject();
+    }
 
 private:
     Ui::DataOutputDialogUI *ui;

@@ -40,7 +40,8 @@
 #include "../../core/global_core.h"
 
 
-namespace Ui {
+namespace Ui
+{
 class DatabaseConnecterDialogUI;
 }
 
@@ -84,9 +85,12 @@ private:
 
 private slots:
     void on_databaseTypeComboBox_currentIndexChanged(int index);
-    void on_driverCombo_currentIndexChanged(const QString & text);
+    void on_driverCombo_currentIndexChanged(const QString &text);
     void on_okButton_clicked();
-    void on_cancelButton_clicked() { reject(); }
+    void on_cancelButton_clicked()
+    {
+        reject();
+    }
     void on_browseButton_clicked();
 
 protected:

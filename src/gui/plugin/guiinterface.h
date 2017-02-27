@@ -37,9 +37,11 @@
 #include "../../core/plugin/abstractplugininterface.h"
 #include "../guilib.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-class GUI_LIB_API GUIInterface: public AbstractPluginInterface {
+class GUI_LIB_API GUIInterface: public AbstractPluginInterface
+{
 
 public:
 
@@ -57,7 +59,7 @@ public:
 
     //Initialization
     // virtual bool initialize( QWidget *parent) = 0;
-    virtual bool initialize(QWidget * parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString& pName, const QString& pVersion) = 0;
+    virtual bool initialize(QWidget *parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString &pName, const QString &pVersion) = 0;
 
     //Unload the plugin
     //virtual bool unload() = 0;
@@ -68,7 +70,7 @@ public:
     virtual QString whatsThis() const = 0;
     virtual QString toolTip() const = 0;
 
-    virtual QMenu* menu() = 0;
+    virtual QMenu *menu() = 0;
 
 };
 

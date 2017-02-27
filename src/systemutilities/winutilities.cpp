@@ -74,21 +74,25 @@ typedef BOOL (WINAPI *PGPI)(DWORD, DWORD, DWORD, DWORD, PDWORD);
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
-WinUtilities::WinUtilities() {
+WinUtilities::WinUtilities()
+{
     // TODO Auto-generated constructor stub
 
 
 }
 
-WinUtilities::~WinUtilities() {
+WinUtilities::~WinUtilities()
+{
     // TODO Auto-generated destructor stub
 }
 
 
-QString WinUtilities::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId){
+QString WinUtilities::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId)
+{
     //    wchar_t buffer[8192];
     //    ZeroMemory(buffer, 8192);
 
@@ -97,7 +101,7 @@ QString WinUtilities::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId){
 
 
 
-    HMODULE hLib= 0;
+    HMODULE hLib = 0;
     DWORD dwFlags;
     OSVERSIONINFOW os;
     wchar_t buffer[8192];
@@ -107,31 +111,31 @@ QString WinUtilities::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId){
     cbBuffer = 0;
 
 
-    if(winErrorCode >= 2100 && winErrorCode <= 2999){
+    if(winErrorCode >= 2100 && winErrorCode <= 2999) {
         //Undocumented errors %NETWORK_ERROR_FIRST to %NETWORK_ERROR_LAST
         os.dwOSVersionInfoSize = sizeof(os);
         GetVersionExW(&os);
-        if(os.dwPlatformId == VER_PLATFORM_WIN32_NT){
+        if(os.dwPlatformId == VER_PLATFORM_WIN32_NT) {
             hLib = LoadLibraryExW(L"NETMSG.DLL", 0, LOAD_LIBRARY_AS_DATAFILE);
         }
-    }else if(winErrorCode >= 12000 && winErrorCode <= 12171){
+    } else if(winErrorCode >= 12000 && winErrorCode <= 12171) {
         //Undocumented errors %INTERNET_ERROR_FIRST to %NTERNET_ERROR_LAST
         hLib = LoadLibraryExW(L"WININET.DLL", 0, LOAD_LIBRARY_AS_DATAFILE);
     }
 
     dwFlags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK;
-    if(hLib){
+    if(hLib) {
         dwFlags = dwFlags | FORMAT_MESSAGE_FROM_HMODULE;
     }
 
     cbBuffer = FormatMessageW(dwFlags, hLib, winErrorCode, dwLanguageId, buffer, 8192, 0);
-    if(hLib){
+    if(hLib) {
         FreeLibrary(hLib);
     }
 
-    if(cbBuffer){
+    if(cbBuffer) {
         return QString::fromWCharArray(buffer).simplified();
-    }else{
+    } else {
         QString string = QString::number(winErrorCode, 16).toUpper();
         return QString(QObject::tr("Error:0x%1").arg(string.rightJustified(8, '0')));
     }
@@ -139,7 +143,8 @@ QString WinUtilities::WinSysErrorMsg(DWORD winErrorCode, DWORD dwLanguageId){
 
 }
 
-void WinUtilities::freeMemory(){
+void WinUtilities::freeMemory()
+{
 
 #if defined(Q_OS_WIN32)
     //SetProcessWorkingSetSize(GetCurrentProcess(), 0xFFFFFFFF, 0xFFFFFFFF);
@@ -148,13 +153,15 @@ void WinUtilities::freeMemory(){
 
 }
 
-__int64 WinUtilities::CompareFileTime ( FILETIME time1, FILETIME time2 ){
+__int64 WinUtilities::CompareFileTime ( FILETIME time1, FILETIME time2 )
+{
     __int64 a = time1.dwHighDateTime << 32 | time1.dwLowDateTime ;
     __int64 b = time2.dwHighDateTime << 32 | time2.dwLowDateTime ;
     return   (b - a);
 }
 
-int WinUtilities::getCPULoad(){
+int WinUtilities::getCPULoad()
+{
 
     HANDLE hEvent;
     BOOL res ;
@@ -171,20 +178,22 @@ int WinUtilities::getCPULoad(){
     prekernelTime = kernelTime;
     preuserTime = userTime ;
 
-    hEvent = CreateEventW (NULL,FALSE,FALSE,NULL);
-    WaitForSingleObject( hEvent,1000);
+    hEvent = CreateEventW (NULL, FALSE, FALSE, NULL);
+    WaitForSingleObject( hEvent, 1000);
 
     res = GetSystemTimes( &idleTime, &kernelTime, &userTime );
 
-    int idle = CompareFileTime( preidleTime,idleTime);
+    int idle = CompareFileTime( preidleTime, idleTime);
     int kernel = CompareFileTime( prekernelTime, kernelTime);
     int user = CompareFileTime(preuserTime, userTime);
 
     //qDebug()<<"kernel:"<<kernel<<" user:"<<user<<" idle:"<<idle;
 
-    if((kernel + user) == 0){return 0;}
+    if((kernel + user) == 0) {
+        return 0;
+    }
 
-    int cpu = (kernel +user - idle) *100/(kernel+user);
+    int cpu = (kernel + user - idle) * 100 / (kernel + user);
     //int cpuidle = ( idle) *100/(kernel+user);
     //cout << "CPU Load:" << cpu << "%" << "      CPU Idle:" <<cpuidle << "%" <<endl;
     //qDebug()<<QString("CPU Load: %1%").arg(cpu);
@@ -193,7 +202,8 @@ int WinUtilities::getCPULoad(){
 
 }
 
-bool WinUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage){
+bool WinUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage)
+{
 
     // Use to convert bytes to KB
     //#define DIV 1024
@@ -208,15 +218,15 @@ bool WinUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage){
 
     statex.dwLength = sizeof (statex);
 
-    if(!GlobalMemoryStatusEx(&statex)){
+    if(!GlobalMemoryStatusEx(&statex)) {
         return false;
     }
 
-    if(totalBytes){
+    if(totalBytes) {
         *totalBytes = statex.ullTotalPhys;
     }
 
-    if(loadPercentage){
+    if(loadPercentage) {
         *loadPercentage = statex.dwMemoryLoad;
     }
 
@@ -242,48 +252,49 @@ bool WinUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage){
     return true;
 }
 
-bool WinUtilities::getDiskPartionStatus(const QString &partionRootPath, float *totalBytes, float *freeBytes){
+bool WinUtilities::getDiskPartionStatus(const QString &partionRootPath, float *totalBytes, float *freeBytes)
+{
 
     ULARGE_INTEGER freeBytesAvailableToUser, ulTotalBytes, totalFreeBytes;
-    if(!GetDiskFreeSpaceExW(partionRootPath.toStdWString().c_str(), &freeBytesAvailableToUser, &ulTotalBytes, &totalFreeBytes))
-    {
+    if(!GetDiskFreeSpaceExW(partionRootPath.toStdWString().c_str(), &freeBytesAvailableToUser, &ulTotalBytes, &totalFreeBytes)) {
         return false;
     }
 
-    if(freeBytes){
+    if(freeBytes) {
         *freeBytes = (float)freeBytesAvailableToUser.QuadPart;
     }
-    if(totalBytes){
+    if(totalBytes) {
         *totalBytes = (float)ulTotalBytes.QuadPart;
     }
 
     return true;
 }
 
-QString WinUtilities::getFileSystemName(const QString &filePath){
+QString WinUtilities::getFileSystemName(const QString &filePath)
+{
 
     QString path = "";
     QRegExp rxp;
     rxp.setCaseSensitivity(Qt::CaseInsensitive);
-    if(filePath.startsWith("\\\\")){
+    if(filePath.startsWith("\\\\")) {
         rxp.setPattern("^\\\\\\\\([a-zA-Z0-9.]+\\\\{1}){2}");
-    }else{
+    } else {
         rxp.setPattern("^[a-zA-Z]:(\\\\|/)");
     }
-    if(rxp.indexIn(filePath) != -1){
+    if(rxp.indexIn(filePath) != -1) {
         path = rxp.cap(0);
-    }else{
-        qCritical()<<QString("Invalid Root Path '%1' !").arg(filePath)<<" "<<rxp.errorString();
+    } else {
+        qCritical() << QString("Invalid Root Path '%1' !").arg(filePath) << " " << rxp.errorString();
         return "";
     }
 
 
     DWORD size = 256;
-    wchar_t * fileSystemNameBuffer = new wchar_t[size];
+    wchar_t *fileSystemNameBuffer = new wchar_t[size];
 
     bool ok = GetVolumeInformationW(path.toStdWString().c_str(), NULL, 0, NULL, NULL, NULL, fileSystemNameBuffer, size);
-    if(!ok){
-        qDebug()<<"Failed to get volume information! Error Code:"<<GetLastError();
+    if(!ok) {
+        qDebug() << "Failed to get volume information! Error Code:" << GetLastError();
         return "";
     }
 
@@ -296,7 +307,8 @@ QString WinUtilities::getFileSystemName(const QString &filePath){
 
 }
 
-QStringList WinUtilities::getLogicalDrives(){
+QStringList WinUtilities::getLogicalDrives()
+{
 
     DWORD bufferSize = 96;
     QByteArray drives;
@@ -304,7 +316,7 @@ QStringList WinUtilities::getLogicalDrives(){
     drives.fill(0);
 
     DWORD length = GetLogicalDriveStringsA(bufferSize, drives.data());
-    drives.resize(length-1);
+    drives.resize(length - 1);
 
     drives.replace('\0', ',');
     drives.append('\0');
@@ -312,19 +324,22 @@ QStringList WinUtilities::getLogicalDrives(){
 
 }
 
-QString WinUtilities::getCPUName(){
+QString WinUtilities::getCPUName()
+{
     char psn[64];
     cpu_getName(psn);
     return QString::fromLatin1(psn).trimmed();
 }
 
-QString WinUtilities::getCPUSerialNumber(){
+QString WinUtilities::getCPUSerialNumber()
+{
     char psn[64];
     cpu_getPSN(psn);
     return QString::fromLatin1(psn);
 }
 
-QString WinUtilities::getHardDriveSerialNumber(unsigned int driveIndex){
+QString WinUtilities::getHardDriveSerialNumber(unsigned int driveIndex)
+{
     char sn[64];
     GetPhysicDriveSerialNumber(0, sn, driveIndex);
     return QString::fromLatin1(sn).trimmed();
@@ -333,17 +348,18 @@ QString WinUtilities::getHardDriveSerialNumber(unsigned int driveIndex){
 
 
 
-bool WinUtilities::getFileVersion(const QString &fileName, QStringList *predefinedVersionInfoList, DWORD *errorCode){
-    qDebug()<<"--WinUtilities::getFileVersion(...)";
+bool WinUtilities::getFileVersion(const QString &fileName, QStringList *predefinedVersionInfoList, DWORD *errorCode)
+{
+    qDebug() << "--WinUtilities::getFileVersion(...)";
 
-    if(fileName.trimmed().isEmpty() || (!predefinedVersionInfoList)){
-        if(errorCode){
+    if(fileName.trimmed().isEmpty() || (!predefinedVersionInfoList)) {
+        if(errorCode) {
             *errorCode = ERROR_INVALID_PARAMETER;
         }
         return false;
     }
-    if(predefinedVersionInfoList->isEmpty()){
-        if(errorCode){
+    if(predefinedVersionInfoList->isEmpty()) {
+        if(errorCode) {
             *errorCode = ERROR_INVALID_PARAMETER;
         }
         return false;
@@ -351,34 +367,33 @@ bool WinUtilities::getFileVersion(const QString &fileName, QStringList *predefin
 
 
     DWORD dwSize = 0;
-    UINT uiSize = GetFileVersionInfoSize(fileName.toStdWString().c_str(),&dwSize);
-    if (0 == uiSize)
-    {
-        if(errorCode){
+    UINT uiSize = GetFileVersionInfoSize(fileName.toStdWString().c_str(), &dwSize);
+    if (0 == uiSize) {
+        if(errorCode) {
             *errorCode = GetLastError();
         }
-        qCritical()<<QString("ERROR! GetFileVersionInfoSize failed. Code: %1").arg(GetLastError());
+        qCritical() << QString("ERROR! GetFileVersionInfoSize failed. Code: %1").arg(GetLastError());
         return false;
     }
 
     PTSTR pBuffer = new TCHAR[uiSize];
-    if (NULL == pBuffer){return false ;}
+    if (NULL == pBuffer) {
+        return false ;
+    }
 
-    memset((void*)pBuffer,0,uiSize);
+    memset((void *)pBuffer, 0, uiSize);
 
-    if(!GetFileVersionInfoW(fileName.toStdWString().c_str(),0,uiSize,(PVOID)pBuffer))
-    {
-        if(errorCode){
+    if(!GetFileVersionInfoW(fileName.toStdWString().c_str(), 0, uiSize, (PVOID)pBuffer)) {
+        if(errorCode) {
             *errorCode = GetLastError();
         }
-        qCritical()<<QString("ERROR! GetFileVersionInfo failed. Code: %1").arg(GetLastError());
+        qCritical() << QString("ERROR! GetFileVersionInfo failed. Code: %1").arg(GetLastError());
 
         delete []pBuffer;
         return false;
     }
 
-    struct LANGANDCODEPAGE
-    {
+    struct LANGANDCODEPAGE {
         WORD wLanguage;
         WORD wCodePage;
     } *lpTranslate;
@@ -386,12 +401,11 @@ bool WinUtilities::getFileVersion(const QString &fileName, QStringList *predefin
     UINT  uiOtherSize = 0;
     //获取资源相关的 codepage 和language
     if (!VerQueryValueW(pBuffer, L"\\VarFileInfo\\Translation",
-                        (PVOID*)&pLanguage, &uiOtherSize))
-    {
-        if(errorCode){
+                        (PVOID *)&pLanguage, &uiOtherSize)) {
+        if(errorCode) {
             *errorCode = GetLastError();
         }
-        qCritical()<<QString("ERROR! VerQueryValueW failed. Code: %1").arg(GetLastError());
+        qCritical() << QString("ERROR! VerQueryValueW failed. Code: %1").arg(GetLastError());
 
         delete []pBuffer;
         return false;
@@ -409,10 +423,9 @@ bool WinUtilities::getFileVersion(const QString &fileName, QStringList *predefin
     //////////////////////////////////////////////////////////////////////////
 
     wchar_t SubBlock[MAX_PATH];
-    memset((void*)SubBlock,0,sizeof(SubBlock));
+    memset((void *)SubBlock, 0, sizeof(SubBlock));
 
-    for(UINT i=0; i < (uiOtherSize / sizeof(LANGANDCODEPAGE)); i++ )
-    {
+    for(UINT i = 0; i < (uiOtherSize / sizeof(LANGANDCODEPAGE)); i++ ) {
 
         ////The following are predefined version information Unicode strings.
         //   Comments InternalName ProductName
@@ -421,20 +434,20 @@ bool WinUtilities::getFileVersion(const QString &fileName, QStringList *predefin
         //   FileVersion OriginalFilename SpecialBuild
 
 
-        for(int j=0; j<predefinedVersionInfoList->size(); j++){
+        for(int j = 0; j < predefinedVersionInfoList->size(); j++) {
             QString predefinedVersionInfo = predefinedVersionInfoList->at(j);
             wsprintf(SubBlock,
                      L"\\StringFileInfo\\%04x%04x\\%s",
                      pLanguage[i].wLanguage,
                      pLanguage[i].wCodePage,
                      predefinedVersionInfo.toStdWString().c_str()
-                     );
+                    );
 
             // Retrieve ProductName for language and code page "i".
-            VerQueryValueW(pBuffer, SubBlock, (PVOID*)&pTmp, &uiOtherSize);
+            VerQueryValueW(pBuffer, SubBlock, (PVOID *)&pTmp, &uiOtherSize);
 
-            QString value = QString::fromWCharArray((wchar_t*)pTmp);
-            qDebug()<<QString("%1:%2").arg(predefinedVersionInfo).arg(value);
+            QString value = QString::fromWCharArray((wchar_t *)pTmp);
+            qDebug() << QString("%1:%2").arg(predefinedVersionInfo).arg(value);
 
             (*predefinedVersionInfoList)[j] = value;
         }
@@ -456,7 +469,7 @@ bool WinUtilities::getFileVersion(const QString &fileName, QStringList *predefin
     pBuffer = NULL;
 
 
-    if(errorCode){
+    if(errorCode) {
         *errorCode = ERROR_SUCCESS;
     }
     return true;
@@ -465,42 +478,44 @@ bool WinUtilities::getFileVersion(const QString &fileName, QStringList *predefin
 
 
 
-bool WinUtilities::setComputerName(const QString &newComputerName, DWORD *errorCode) {
+bool WinUtilities::setComputerName(const QString &newComputerName, DWORD *errorCode)
+{
 
-    if(newComputerName.trimmed().isEmpty()){
-        qCritical()<<QString("Invalid computer name!");
+    if(newComputerName.trimmed().isEmpty()) {
+        qCritical() << QString("Invalid computer name!");
         return false;
     }
 
     regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters", "NV Hostname", newComputerName, REG_SZ, true);
 
     //if (SetComputerNameExW(ComputerNamePhysicalDnsHostname, computerName)){
-    if (SetComputerNameW(newComputerName.toStdWString().c_str())){
-        if(errorCode){
+    if (SetComputerNameW(newComputerName.toStdWString().c_str())) {
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         return true;
-    }else{
-        qCritical()<< QString("Can not set computer name to '%1'.").arg(newComputerName);
+    } else {
+        qCritical() << QString("Can not set computer name to '%1'.").arg(newComputerName);
         return false;
     }
 
 }
 
-QString WinUtilities::getComputerName(DWORD *errorCode){
-    qDebug()<<"--WinUtilities::getComputerName()";
+QString WinUtilities::getComputerName(DWORD *errorCode)
+{
+    qDebug() << "--WinUtilities::getComputerName()";
 
     QString computerName = "";
     DWORD size = MAX_COMPUTERNAME_LENGTH + 1;
     LPWSTR name = new wchar_t[size];
 
-    if(GetComputerNameW(name, &size)){
+    if(GetComputerNameW(name, &size)) {
         computerName = QString::fromWCharArray(name);
-    }else{
-        qDebug()<<QString("Can not get computer name! Error: %1").arg(GetLastError());
+    } else {
+        qDebug() << QString("Can not get computer name! Error: %1").arg(GetLastError());
     }
 
-    if(errorCode){
+    if(errorCode) {
         *errorCode = GetLastError();
     }
 
@@ -510,7 +525,8 @@ QString WinUtilities::getComputerName(DWORD *errorCode){
 
 }
 
-bool WinUtilities::getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName, DWORD *errorCode){
+bool WinUtilities::getComputerNameInfo(QString *dnsDomain, QString *dnsHostname, QString *netBIOSName, DWORD *errorCode)
+{
 
     bool ok = false;
     COMPUTER_NAME_FORMAT nameType;
@@ -518,67 +534,68 @@ bool WinUtilities::getComputerNameInfo(QString *dnsDomain, QString *dnsHostname,
     ZeroMemory(buffer, 512);
     DWORD size = sizeof(buffer);
 
-    if(dnsDomain){
+    if(dnsDomain) {
         nameType = ComputerNameDnsDomain;
         ok = GetComputerNameExW(nameType, buffer, &size);
-        if(ok){
+        if(ok) {
             *dnsDomain = QString::fromWCharArray(buffer);
-        }else{
-            qDebug()<<QString("\nFailed to get dns domain! Error Code: %1").arg(GetLastError());
+        } else {
+            qDebug() << QString("\nFailed to get dns domain! Error Code: %1").arg(GetLastError());
         }
     }
 
-    if(dnsHostname){
+    if(dnsHostname) {
         ZeroMemory(buffer, size);
 
         nameType = ComputerNameDnsHostname;
         ok = GetComputerNameExW(nameType, buffer, &size);
-        if(ok){
+        if(ok) {
             *dnsHostname = QString::fromWCharArray(buffer);
-        }else{
-            qDebug()<<QString("\nFailed to get dns hostname! Error Code: %1").arg(GetLastError());
+        } else {
+            qDebug() << QString("\nFailed to get dns hostname! Error Code: %1").arg(GetLastError());
         }
     }
 
-    if(netBIOSName){
+    if(netBIOSName) {
         ZeroMemory(buffer, size);
 
         nameType = ComputerNameNetBIOS;
         ok = GetComputerNameExW(nameType, buffer, &size);
-        if(ok){
+        if(ok) {
             *netBIOSName = QString::fromWCharArray(buffer);
-        }else{
-            qDebug()<<QString("\nFailed to get NetBIOS name! Error Code: %1").arg(GetLastError());
+        } else {
+            qDebug() << QString("\nFailed to get NetBIOS name! Error Code: %1").arg(GetLastError());
         }
     }
 
-    if(errorCode){
+    if(errorCode) {
         *errorCode = GetLastError();
     }
 
     return ok;
 }
 
-QString WinUtilities::getJoinInformation(bool *isJoinedToDomain, const QString &serverName, DWORD *errorCode){
-    qDebug()<<"--WindowsManagement::getJoinInformation()";
+QString WinUtilities::getJoinInformation(bool *isJoinedToDomain, const QString &serverName, DWORD *errorCode)
+{
+    qDebug() << "--WindowsManagement::getJoinInformation()";
 
     QString workgroupName = "";
     NET_API_STATUS err;
     LPWSTR lpNameBuffer = new wchar_t[256];
     NETSETUP_JOIN_STATUS bufferType;
     LPCWSTR lpServer = NULL; // The server is the default local computer.
-    if(!serverName.trimmed().isEmpty()){
+    if(!serverName.trimmed().isEmpty()) {
         lpServer = serverName.toStdWString().c_str();
     }
 
     err = NetGetJoinInformation(lpServer, &lpNameBuffer, &bufferType);
-    if(err == NERR_Success){
+    if(err == NERR_Success) {
         workgroupName = QString::fromWCharArray(lpNameBuffer);
-    }else{
-        qDebug()<<QString("Can not get join status information! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+    } else {
+        qDebug() << QString("Can not get join status information! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
     }
 
-    if(errorCode){
+    if(errorCode) {
         *errorCode = err;
     }
 
@@ -602,23 +619,24 @@ QString WinUtilities::getJoinInformation(bool *isJoinedToDomain, const QString &
     //        break;
     //    }
 
-    if(isJoinedToDomain){
-        *isJoinedToDomain = (bufferType == NetSetupDomainName)?true:false;
+    if(isJoinedToDomain) {
+        *isJoinedToDomain = (bufferType == NetSetupDomainName) ? true : false;
     }
 
     return workgroupName;
 
 }
 
-bool WinUtilities::renameMachineInDomain(const QString &newMachineName, const QString &accountName, const QString &password, const QString &serverName, DWORD *errorCode){
+bool WinUtilities::renameMachineInDomain(const QString &newMachineName, const QString &accountName, const QString &password, const QString &serverName, DWORD *errorCode)
+{
 
     LPCWSTR pszServerName = NULL; // The server is the default local computer.
-    if(!serverName.trimmed().isEmpty()){
+    if(!serverName.trimmed().isEmpty()) {
         pszServerName = serverName.toStdWString().c_str();
     }
 
     NET_API_STATUS err = NetRenameMachineInDomain(pszServerName, newMachineName.toStdWString().c_str(), accountName.toStdWString().c_str(), password.toStdWString().c_str(), NETSETUP_JOIN_DOMAIN | NETSETUP_ACCT_CREATE | NETSETUP_JOIN_WITH_NEW_NAME);
-    if(errorCode){
+    if(errorCode) {
         *errorCode = err;
     }
 
@@ -626,51 +644,55 @@ bool WinUtilities::renameMachineInDomain(const QString &newMachineName, const QS
 
 }
 
-bool WinUtilities::joinWorkgroup(const QString &workgroup, DWORD *errorCode){
+bool WinUtilities::joinWorkgroup(const QString &workgroup, DWORD *errorCode)
+{
 
     NET_API_STATUS err = NetJoinDomain(NULL, workgroup.toStdWString().c_str(), NULL, NULL, NULL, 0);
-    if(errorCode){
+    if(errorCode) {
         *errorCode = err;
     }
     return( NERR_Success == err );
 
 }
 
-bool WinUtilities::joinDomain(const QString &domainName, const QString &accountName, const QString &password, const QString &serverName, DWORD *errorCode){
+bool WinUtilities::joinDomain(const QString &domainName, const QString &accountName, const QString &password, const QString &serverName, DWORD *errorCode)
+{
 
     LPCWSTR pszServerName = NULL; // The server is the default local computer.
-    if(!serverName.trimmed().isEmpty()){
+    if(!serverName.trimmed().isEmpty()) {
         pszServerName = serverName.toStdWString().c_str();
     }
 
     NET_API_STATUS err = NetJoinDomain(pszServerName, domainName.toStdWString().c_str(), NULL, accountName.toStdWString().c_str(), password.toStdWString().c_str(), NETSETUP_JOIN_DOMAIN | NETSETUP_ACCT_CREATE);
-    if(errorCode){
+    if(errorCode) {
         *errorCode = err;
     }
     return( NERR_Success == err );
 
 }
 
-bool WinUtilities::unjoinDomain(const QString &accountName, const QString &password, const QString &serverName, DWORD *errorCode){
+bool WinUtilities::unjoinDomain(const QString &accountName, const QString &password, const QString &serverName, DWORD *errorCode)
+{
 
     LPCWSTR pszServerName = NULL; // The server is the default local computer.
-    if(!serverName.trimmed().isEmpty()){
+    if(!serverName.trimmed().isEmpty()) {
         pszServerName = serverName.toStdWString().c_str();
     }
 
     NET_API_STATUS err = NetUnjoinDomain(pszServerName, accountName.toStdWString().c_str(), password.toStdWString().c_str(), NETSETUP_ACCT_DELETE);
-    if(errorCode){
+    if(errorCode) {
         *errorCode = err;
     }
     return( NERR_Success == err );
 
 }
 
-bool WinUtilities::setupUSBStorageDevice(bool enableRead, bool enableWrite){
+bool WinUtilities::setupUSBStorageDevice(bool enableRead, bool enableWrite)
+{
 
 
     //Service
-    if(enableRead){
+    if(enableRead) {
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS", REG_EXPAND_SZ);
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "Start", "3", REG_DWORD);
 
@@ -680,7 +702,7 @@ bool WinUtilities::setupUSBStorageDevice(bool enableRead, bool enableWrite){
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS", REG_EXPAND_SZ);
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet002\\Services\\USBSTOR", "Start", "3", REG_DWORD);
 
-    }else{
+    } else {
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "ImagePath", "system32\\DRIVERS\\USBSTOR.SYS-", REG_EXPAND_SZ);
         regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Services\\USBSTOR", "Start", "4", REG_DWORD);
 
@@ -697,14 +719,14 @@ bool WinUtilities::setupUSBStorageDevice(bool enableRead, bool enableWrite){
     //WinUtilities::regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", enableWrite?"0":"1", REG_DWORD);
 
     //Removable Disk
-    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Read", enableRead?"0":"1", REG_DWORD);
-    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", enableWrite?"0":"1", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Read", enableRead ? "0" : "1", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", enableWrite ? "0" : "1", REG_DWORD);
     //Portable Storage Devices
-    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Read", enableRead?"0":"1", REG_DWORD);
-    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Write", enableWrite?"0":"1", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Read", enableRead ? "0" : "1", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{6AC27878-A6FA-4155-BA85-F98F491D4F33}", "Deny_Write", enableWrite ? "0" : "1", REG_DWORD);
 
 
-    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\StorageDevicePolicies", "WriteProtect", enableWrite?"0":"1", REG_DWORD);
+    regSetValue("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\StorageDevicePolicies", "WriteProtect", enableWrite ? "0" : "1", REG_DWORD);
 
     //TODO:Rename Driver Files
     //%systemroot%\inf\usbstor.inf
@@ -717,12 +739,12 @@ bool WinUtilities::setupUSBStorageDevice(bool enableRead, bool enableWrite){
 
     bool ok = false, readable = true, writeable = true;
     ok = readUSBStorageDeviceSettings(&readable, &writeable);
-    if(!ok){
-        qCritical()<<"Can not read registry!";
+    if(!ok) {
+        qCritical() << "Can not read registry!";
         return false;
     }
 
-    if((enableRead == readable) && (enableWrite == writeable)){
+    if((enableRead == readable) && (enableWrite == writeable)) {
         return true;
     }
 
@@ -730,19 +752,24 @@ bool WinUtilities::setupUSBStorageDevice(bool enableRead, bool enableWrite){
 
 }
 
-bool WinUtilities::readUSBStorageDeviceSettings(bool *readable, bool *writeable){
+bool WinUtilities::readUSBStorageDeviceSettings(bool *readable, bool *writeable)
+{
 
 
     bool ok = false;
     QString imagePath = "", start = "";
     regRead("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "ImagePath", &imagePath);
     ok = regRead("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR", "Start", &start);
-    if(!ok){
+    if(!ok) {
         return false;
     }
-    if(imagePath.toUpper() != "SYSTEM32\\DRIVERS\\USBSTOR.SYS" || start == "4"){
-        if(readable){*readable = false;}
-        if(writeable){*writeable = false;}
+    if(imagePath.toUpper() != "SYSTEM32\\DRIVERS\\USBSTOR.SYS" || start == "4") {
+        if(readable) {
+            *readable = false;
+        }
+        if(writeable) {
+            *writeable = false;
+        }
         return true;
     }
 
@@ -750,14 +777,22 @@ bool WinUtilities::readUSBStorageDeviceSettings(bool *readable, bool *writeable)
     QString deny_Read = "", deny_Write = "";
     regRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Read", &deny_Read);
     regRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}", "Deny_Write", &deny_Write);
-    if(deny_Read == "1"){
-        if(readable){*readable = false;}
-        if(writeable){*writeable = false;}
+    if(deny_Read == "1") {
+        if(readable) {
+            *readable = false;
+        }
+        if(writeable) {
+            *writeable = false;
+        }
         return true;
     }
-    if(deny_Write == "1"){
-        if(readable){*readable = false;}
-        if(writeable){*writeable = true;}
+    if(deny_Write == "1") {
+        if(readable) {
+            *readable = false;
+        }
+        if(writeable) {
+            *writeable = true;
+        }
         return true;
     }
 
@@ -767,9 +802,13 @@ bool WinUtilities::readUSBStorageDeviceSettings(bool *readable, bool *writeable)
 
     QString writeProtect = "";
     regRead("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\StorageDevicePolicies", "WriteProtect", &writeProtect);
-    if(writeProtect == "1"){
-        if(readable){*readable = true;}
-        if(writeable){*writeable = false;}
+    if(writeProtect == "1") {
+        if(readable) {
+            *readable = true;
+        }
+        if(writeable) {
+            *writeable = false;
+        }
     }
 
     return true;
@@ -779,9 +818,12 @@ bool WinUtilities::readUSBStorageDeviceSettings(bool *readable, bool *writeable)
 
 
 //When running on 64-bit Windows if you want to read a value specific to the 64-bit environment you have to suffix the HK... with 64 i.e. HKLM64.
-bool WinUtilities::parseRegKeyString(const QString &keyString, HKEY *rootKey, QString *subKeyString){
+bool WinUtilities::parseRegKeyString(const QString &keyString, HKEY *rootKey, QString *subKeyString)
+{
     QString tempStr = keyString.trimmed();
-    if(tempStr.isEmpty() || (!rootKey) || (!subKeyString) ){return false;}
+    if(tempStr.isEmpty() || (!rootKey) || (!subKeyString) ) {
+        return false;
+    }
 
     QString rootKeyString = tempStr.section("\\", 0, 0).toUpper();
 
@@ -797,24 +839,27 @@ bool WinUtilities::parseRegKeyString(const QString &keyString, HKEY *rootKey, QS
     rootKeysHash.insert("HKEY_CURRENT_CONFIG", HKEY_CURRENT_CONFIG);
     rootKeysHash.insert("HKCR", HKEY_CURRENT_CONFIG);
 
-    if(rootKeysHash.keys().contains(rootKeyString)){
+    if(rootKeysHash.keys().contains(rootKeyString)) {
         *rootKey = rootKeysHash.value(rootKeyString);
         //*subKeyString = tempStr.remove(QString(rootKeyString + "\\"), Qt::CaseInsensitive);
         *subKeyString = tempStr.remove(0, rootKeyString.size() + 1);
         return true;
-    }else{
+    } else {
         return false;
     }
 
 }
 
-bool WinUtilities::regOpen(const QString &key, HKEY *hKey, REGSAM samDesired){
-    if(!hKey){return false;}
+bool WinUtilities::regOpen(const QString &key, HKEY *hKey, REGSAM samDesired)
+{
+    if(!hKey) {
+        return false;
+    }
 
     HKEY rootKey;
     QString subKeyString;
-    if(!parseRegKeyString(key, &rootKey, &subKeyString)){
-        qCritical()<<"ERROR! Invalid registry key string!";
+    if(!parseRegKeyString(key, &rootKey, &subKeyString)) {
+        qCritical() << "ERROR! Invalid registry key string!";
         return false;
     }
 
@@ -825,67 +870,66 @@ bool WinUtilities::regOpen(const QString &key, HKEY *hKey, REGSAM samDesired){
     //#endif
 
     DWORD dwRet = RegOpenKeyExW(rootKey, subKeyString.toStdWString().c_str(), 0, samDesired, hKey);
-    if(dwRet != ERROR_SUCCESS){
-        qCritical()<<"ERROR! RegOpenKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    if(dwRet != ERROR_SUCCESS) {
+        qCritical() << "ERROR! RegOpenKeyExW failed! " << dwRet << ": " << WinSysErrorMsg(dwRet);
         return false;
     }
 
     return true;
 }
 
-bool WinUtilities::regRead(HKEY hKey, const QString &valueName, QString *value){
+bool WinUtilities::regRead(HKEY hKey, const QString &valueName, QString *value)
+{
 
-    if(!value){return false;}
+    if(!value) {
+        return false;
+    }
 
     DWORD dwRet;
     DWORD dwType;
     DWORD bufferSize = 8192;
     dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, &dwType, 0, &bufferSize);
-    if(dwRet != ERROR_SUCCESS){
-        qCritical()<<"ERROR! RegQueryValueExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    if(dwRet != ERROR_SUCCESS) {
+        qCritical() << "ERROR! RegQueryValueExW failed! " << dwRet << ": " << WinSysErrorMsg(dwRet);
         //RegCloseKey(hKey);
         return false;
     }
 
     switch (dwType) {
-    case REG_DWORD:
-    {
+    case REG_DWORD: {
         DWORDLONG lResult = 0;
         dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)&lResult, &bufferSize);
         *value = QString::number(lResult);
     }
-        break;
-    case REG_BINARY:
-    {
+    break;
+    case REG_BINARY: {
         char buffer[8192];
         ZeroMemory(buffer, 8192);
         dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
         QByteArray ba;
-        for(DWORD i=0;i<bufferSize;i++){
+        for(DWORD i = 0; i < bufferSize; i++) {
             ba.append(buffer[i]);
             //qDebug()<<i<<": "<<buffer[i]<<" "<<QByteArray(1,buffer[i]).toHex();
         }
         *value = ba.toHex().toUpper();
     }
-        break;
+    break;
     case REG_SZ:
-    case REG_EXPAND_SZ:
-    {
+    case REG_EXPAND_SZ: {
         wchar_t buffer[8192];
         ZeroMemory(buffer, 8192);
         dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
         *value = QString::fromWCharArray(buffer);
     }
-        break;
-    case REG_MULTI_SZ:
-    {
+    break;
+    case REG_MULTI_SZ: {
         wchar_t buffer[8192];
         ZeroMemory(buffer, 8192);
         dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
         int len = bufferSize / sizeof(wchar_t) - 1;
         QByteArray ba;
-        for(int i=0;i<len;i++){
-            if(buffer[i] == '\0'){
+        for(int i = 0; i < len; i++) {
+            if(buffer[i] == '\0') {
                 buffer[i] = '\n';
             }
             ba.append(buffer[i]);
@@ -893,10 +937,10 @@ bool WinUtilities::regRead(HKEY hKey, const QString &valueName, QString *value){
         }
         *value = ba;
     }
-        break;
+    break;
     default:
         *value = "";
-        qCritical()<<"ERROR! Unknown data type: "<<dwType;
+        qCritical() << "ERROR! Unknown data type: " << dwType;
         //RegCloseKey(hKey);
         return false;
         break;
@@ -906,19 +950,24 @@ bool WinUtilities::regRead(HKEY hKey, const QString &valueName, QString *value){
     return true;
 }
 
-bool WinUtilities::regRead(const QString &key, const QString &valueName, QString *value, bool on64BitView){
+bool WinUtilities::regRead(const QString &key, const QString &valueName, QString *value, bool on64BitView)
+{
     //qDebug()<<"--WinUtilities::regRead(...) "<<" key:"<<key<<" valueName:"<<valueName;
 
-    if(!value){return false;}
+    if(!value) {
+        return false;
+    }
 
     REGSAM samDesired = KEY_READ;
-    if(on64BitView){
+    if(on64BitView) {
         samDesired |= KEY_WOW64_64KEY;
-    }else{
+    } else {
         samDesired |= KEY_WOW64_32KEY;
     }
     HKEY hKey;
-    if(!regOpen(key, &hKey, samDesired)){return false;}
+    if(!regOpen(key, &hKey, samDesired)) {
+        return false;
+    }
 
     bool ret = regRead(hKey, valueName, value);
     RegCloseKey(hKey);
@@ -996,49 +1045,57 @@ bool WinUtilities::regRead(const QString &key, const QString &valueName, QString
     //    return true;
 }
 
-bool WinUtilities::regEnumVal(HKEY hKey, QStringList *valueNameList){
-    if(!valueNameList){return false;}
+bool WinUtilities::regEnumVal(HKEY hKey, QStringList *valueNameList)
+{
+    if(!valueNameList) {
+        return false;
+    }
 
     DWORD dwRet;
-    DWORD dwIndex= 0;
+    DWORD dwIndex = 0;
 
     DWORD valueNameLen = 8192;
     wchar_t valueName[8192];
     ZeroMemory(valueName, 8192);
 
-    do{
+    do {
         dwRet = RegEnumValueW(hKey, dwIndex, valueName, &valueNameLen, 0, 0, 0, 0);
-        if(dwRet == ERROR_SUCCESS){
+        if(dwRet == ERROR_SUCCESS) {
             valueNameList->append(QString::fromWCharArray(valueName));
             valueNameLen = 8192;
             ZeroMemory(valueName, valueNameLen);
             //qDebug()<<dwRet<<":"<<WinErrorMsg(dwRet);
             dwIndex++;
-        }else if(dwRet == ERROR_NO_MORE_ITEMS){
+        } else if(dwRet == ERROR_NO_MORE_ITEMS) {
             break;
-        }else{
-            qCritical()<<"ERROR! RegEnumValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+        } else {
+            qCritical() << "ERROR! RegEnumValueW failed! " << dwRet << ": " << WinSysErrorMsg(dwRet);
             //RegCloseKey(hKey);
             return false;
         }
 
-    }while(dwRet == ERROR_SUCCESS);
+    } while(dwRet == ERROR_SUCCESS);
 
     //RegCloseKey(hKey);
     return true;
 }
 
-bool WinUtilities::regEnumVal(const QString &key, QStringList *valueNameList, bool on64BitView){
-    if(!valueNameList){return false;}
+bool WinUtilities::regEnumVal(const QString &key, QStringList *valueNameList, bool on64BitView)
+{
+    if(!valueNameList) {
+        return false;
+    }
 
     REGSAM samDesired = KEY_READ;
-    if(on64BitView){
+    if(on64BitView) {
         samDesired |= KEY_WOW64_64KEY;
-    }else{
+    } else {
         samDesired |= KEY_WOW64_32KEY;
     }
     HKEY hKey;
-    if(!regOpen(key, &hKey, samDesired)){return false;}
+    if(!regOpen(key, &hKey, samDesired)) {
+        return false;
+    }
 
     bool ret = regEnumVal(hKey, valueNameList);
     RegCloseKey(hKey);
@@ -1073,48 +1130,56 @@ bool WinUtilities::regEnumVal(const QString &key, QStringList *valueNameList, bo
     //    return true;
 }
 
-bool WinUtilities::regEnumKey(HKEY hKey, QStringList *keyNameList){
-    if(!keyNameList){return false;}
+bool WinUtilities::regEnumKey(HKEY hKey, QStringList *keyNameList)
+{
+    if(!keyNameList) {
+        return false;
+    }
 
     DWORD dwRet;
-    DWORD dwIndex= 0;
+    DWORD dwIndex = 0;
 
     DWORD keyNameLen = 8192;
     wchar_t keyName[8192];
     ZeroMemory(keyName, 8192);
 
-    do{
+    do {
         dwRet = RegEnumKeyExW(hKey, dwIndex, keyName, &keyNameLen, 0, 0, 0, 0);
-        if(dwRet == ERROR_SUCCESS){
+        if(dwRet == ERROR_SUCCESS) {
             keyNameList->append(QString::fromWCharArray(keyName));
             keyNameLen = 8192;
             ZeroMemory(keyName, keyNameLen);
             dwIndex++;
-        }else if(dwRet == ERROR_NO_MORE_ITEMS){
+        } else if(dwRet == ERROR_NO_MORE_ITEMS) {
             break;
-        }else{
-            qCritical()<<"ERROR! RegEnumKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+        } else {
+            qCritical() << "ERROR! RegEnumKeyExW failed! " << dwRet << ": " << WinSysErrorMsg(dwRet);
             //RegCloseKey(hKey);
             return false;
         }
 
-    }while(dwRet == ERROR_SUCCESS);
+    } while(dwRet == ERROR_SUCCESS);
 
     //RegCloseKey(hKey);
     return true;
 }
 
-bool WinUtilities::regEnumKey(const QString &key, QStringList *keyNameList, bool on64BitView){
-    if(!keyNameList){return false;}
+bool WinUtilities::regEnumKey(const QString &key, QStringList *keyNameList, bool on64BitView)
+{
+    if(!keyNameList) {
+        return false;
+    }
 
-    REGSAM samDesired = KEY_WRITE|KEY_READ;
-    if(on64BitView){
+    REGSAM samDesired = KEY_WRITE | KEY_READ;
+    if(on64BitView) {
         samDesired |= KEY_WOW64_64KEY;
-    }else{
+    } else {
         samDesired |= KEY_WOW64_32KEY;
     }
     HKEY hKey;
-    if(!regOpen(key, &hKey, samDesired)){return false;}
+    if(!regOpen(key, &hKey, samDesired)) {
+        return false;
+    }
 
     bool ret = regEnumKey(hKey, keyNameList);
     RegCloseKey(hKey);
@@ -1148,21 +1213,22 @@ bool WinUtilities::regEnumKey(const QString &key, QStringList *keyNameList, bool
     //    return true;
 }
 
-bool WinUtilities::regCreateKey(HKEY hKey, const QString &subKeyName, HKEY *hSubKey){
+bool WinUtilities::regCreateKey(HKEY hKey, const QString &subKeyName, HKEY *hSubKey)
+{
 
     HKEY hkResult;
     DWORD dwDisposition;
 
-    DWORD dwRet = RegCreateKeyExW(hKey, subKeyName.toStdWString().c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
+    DWORD dwRet = RegCreateKeyExW(hKey, subKeyName.toStdWString().c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE | KEY_READ, NULL, &hkResult, &dwDisposition);
     //DWORD dwRet = RegCreateKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\AutoIt v3\\QQQ", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL, &hkResult, &dwDisposition);
 
-    if(dwRet != ERROR_SUCCESS){
-        qCritical()<<"ERROR! RegCreateKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    if(dwRet != ERROR_SUCCESS) {
+        qCritical() << "ERROR! RegCreateKeyExW failed! " << dwRet << ": " << WinSysErrorMsg(dwRet);
         //RegCloseKey(hKey);
         return false;
     }
 
-    if(hSubKey){
+    if(hSubKey) {
         *hSubKey = hkResult;
     }
 
@@ -1170,16 +1236,19 @@ bool WinUtilities::regCreateKey(HKEY hKey, const QString &subKeyName, HKEY *hSub
     return true;
 }
 
-bool WinUtilities::regCreateKey(const QString &key, const QString &subKeyName, HKEY *hSubKey, bool on64BitView){
+bool WinUtilities::regCreateKey(const QString &key, const QString &subKeyName, HKEY *hSubKey, bool on64BitView)
+{
 
-    REGSAM samDesired = KEY_WRITE|KEY_READ;
-    if(on64BitView){
+    REGSAM samDesired = KEY_WRITE | KEY_READ;
+    if(on64BitView) {
         samDesired |= KEY_WOW64_64KEY;
-    }else{
+    } else {
         samDesired |= KEY_WOW64_32KEY;
     }
     HKEY hKey;
-    if(!regOpen(key, &hKey, samDesired)){return false;}
+    if(!regOpen(key, &hKey, samDesired)) {
+        return false;
+    }
 
     bool ret = regCreateKey(hKey, subKeyName, hSubKey);
     RegCloseKey(hKey);
@@ -1205,10 +1274,11 @@ bool WinUtilities::regCreateKey(const QString &key, const QString &subKeyName, H
     //    return true;
 }
 
-bool WinUtilities::regSetValue(HKEY hKey, const QString &valueName, const QString &value, DWORD valueType){
+bool WinUtilities::regSetValue(HKEY hKey, const QString &valueName, const QString &value, DWORD valueType)
+{
 
-    if(!hKey){
-        qCritical()<<"ERROR! Invalid key handle!";
+    if(!hKey) {
+        qCritical() << "ERROR! Invalid key handle!";
         return false;
     }
 
@@ -1218,73 +1288,73 @@ bool WinUtilities::regSetValue(HKEY hKey, const QString &valueName, const QStrin
     ZeroMemory(buffer, 8192);
 
     switch (valueType) {
-    case REG_DWORD:
-    {
+    case REG_DWORD: {
         bufferSize = sizeof(DWORD);
         buffer[0] = value.toULong();
-        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE*)buffer, bufferSize);
+        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE *)buffer, bufferSize);
     }
-        break;
-    case REG_BINARY:
-    {
+    break;
+    case REG_BINARY: {
         //bufferSize = value.size() / 2;
         QByteArray ba = QByteArray::fromHex(value.toLatin1());
-        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE*)ba.data(), ba.size());
+        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE *)ba.data(), ba.size());
     }
-        break;
+    break;
     case REG_SZ:
-    case REG_EXPAND_SZ:
-    {
+    case REG_EXPAND_SZ: {
         bufferSize = (value.size()) * sizeof(wchar_t);
         wcscpy(buffer, value.toStdWString().c_str());
-        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE*)buffer, bufferSize);
+        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE *)buffer, bufferSize);
     }
-        break;
-    case REG_MULTI_SZ:
-    {
+    break;
+    case REG_MULTI_SZ: {
         int len = value.size() + 1;
         bufferSize = len * sizeof(wchar_t);
         wcscpy(buffer, value.toStdWString().c_str());
-        for(int i=0;i<len;i++){
-            if(buffer[i] == '\n'){
+        for(int i = 0; i < len; i++) {
+            if(buffer[i] == '\n') {
                 buffer[i] = '\0';
             }
         }
-        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE*)buffer, bufferSize);
+        dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE *)buffer, bufferSize);
     }
-        break;
+    break;
     default:
-        qCritical()<<"ERROR! Unknown data type!";
+        qCritical() << "ERROR! Unknown data type!";
         return false;
         break;
     }
 
-    if(dwRet != ERROR_SUCCESS){
-        qCritical()<<"ERROR! RegSetValueExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    if(dwRet != ERROR_SUCCESS) {
+        qCritical() << "ERROR! RegSetValueExW failed! " << dwRet << ": " << WinSysErrorMsg(dwRet);
         return false;
     }
 
     return true;
 }
 
-bool WinUtilities::regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType, bool on64BitView){
+bool WinUtilities::regSetValue(const QString &key, const QString &valueName, const QString &value, DWORD valueType, bool on64BitView)
+{
     //qDebug()<<"--WinUtilities::regSetValue(...) "<<" key:"<<key<<" valueName:"<<valueName<<" value:"<<value;
 
     REGSAM samDesired = KEY_WRITE;
-    if(on64BitView){
+    if(on64BitView) {
         samDesired |= KEY_WOW64_64KEY;
-    }else{
+    } else {
         samDesired |= KEY_WOW64_32KEY;
     }
     HKEY hKey;
-    if(!regOpen(key, &hKey, samDesired)){return false;}
+    if(!regOpen(key, &hKey, samDesired)) {
+        return false;
+    }
 
     bool ret = regSetValue(hKey, valueName, value, valueType);
     RegCloseKey(hKey);
     return ret;
 }
 
-bool WinUtilities::regDeleteKey(HKEY hKey, const QString &subKeyName, bool on64BitView){
+bool WinUtilities::regDeleteKey(HKEY hKey, const QString &subKeyName, bool on64BitView)
+{
 
     //#if defined( _WIN64 )
     //    samDesired |= KEY_WOW64_64KEY;
@@ -1294,35 +1364,36 @@ bool WinUtilities::regDeleteKey(HKEY hKey, const QString &subKeyName, bool on64B
 
     DWORD dwRet;
 
-    typedef DWORD (WINAPI *FN_RegDeleteKeyExW) (HKEY, LPCWSTR, REGSAM, DWORD);
+    typedef DWORD (WINAPI * FN_RegDeleteKeyExW) (HKEY, LPCWSTR, REGSAM, DWORD);
     FN_RegDeleteKeyExW fnRegDeleteKeyExW;
     fnRegDeleteKeyExW = (FN_RegDeleteKeyExW)GetProcAddress( GetModuleHandleW(L"advapi32"), "RegDeleteKeyExW");
-    if (NULL != fnRegDeleteKeyExW){
+    if (NULL != fnRegDeleteKeyExW) {
         REGSAM samDesired;
-        if(on64BitView){
+        if(on64BitView) {
             samDesired = KEY_WOW64_64KEY;
-        }else{
+        } else {
             samDesired = KEY_WOW64_32KEY;
         }
         dwRet = fnRegDeleteKeyExW(hKey, subKeyName.toStdWString().c_str(), samDesired, 0);
-    }else{
+    } else {
         dwRet = RegDeleteKeyW(hKey, subKeyName.toStdWString().c_str());
     }
 
-    if(dwRet != ERROR_SUCCESS){
-        qCritical()<<"ERROR! RegDeleteKeyExW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    if(dwRet != ERROR_SUCCESS) {
+        qCritical() << "ERROR! RegDeleteKeyExW failed! " << dwRet << ": " << WinSysErrorMsg(dwRet);
         return false;
     }
 
     return true;
 }
 
-bool WinUtilities::regDeleteKey(const QString &key, bool on64BitView){
+bool WinUtilities::regDeleteKey(const QString &key, bool on64BitView)
+{
 
     HKEY rootKey;
     QString subKeyString;
-    if(!parseRegKeyString(key, &rootKey, &subKeyString)){
-        qCritical()<<"ERROR! Invalid registry key string!";
+    if(!parseRegKeyString(key, &rootKey, &subKeyString)) {
+        qCritical() << "ERROR! Invalid registry key string!";
         return false;
     }
 
@@ -1348,27 +1419,31 @@ bool WinUtilities::regDeleteKey(const QString &key, bool on64BitView){
     //    return true;
 }
 
-bool WinUtilities::regDeleteValue(HKEY hKey, const QString &valueName){
+bool WinUtilities::regDeleteValue(HKEY hKey, const QString &valueName)
+{
 
     DWORD dwRet = RegDeleteValueW(hKey, valueName.toStdWString().c_str());
-    if(dwRet != ERROR_SUCCESS){
-        qCritical()<<"ERROR! RegDeleteValueW failed! "<<dwRet<<": "<<WinSysErrorMsg(dwRet);
+    if(dwRet != ERROR_SUCCESS) {
+        qCritical() << "ERROR! RegDeleteValueW failed! " << dwRet << ": " << WinSysErrorMsg(dwRet);
         return false;
     }
 
     return true;
 }
 
-bool WinUtilities::regDeleteValue(const QString &key, const QString &valueName, bool on64BitView){
+bool WinUtilities::regDeleteValue(const QString &key, const QString &valueName, bool on64BitView)
+{
 
     REGSAM samDesired = KEY_WRITE;
-    if(on64BitView){
+    if(on64BitView) {
         samDesired |= KEY_WOW64_64KEY;
-    }else{
+    } else {
         samDesired |= KEY_WOW64_32KEY;
     }
     HKEY hKey;
-    if(!regOpen(key, &hKey, samDesired)){return false;}
+    if(!regOpen(key, &hKey, samDesired)) {
+        return false;
+    }
 
     bool ret = regDeleteValue(hKey, valueName);
     RegCloseKey(hKey);
@@ -1384,14 +1459,16 @@ bool WinUtilities::regDeleteValue(const QString &key, const QString &valueName, 
     //    return true;
 }
 
-void WinUtilities::regCloseKey(HKEY hKey){
+void WinUtilities::regCloseKey(HKEY hKey)
+{
     RegCloseKey(hKey);
 }
 
-bool WinUtilities::windowsVersionName(QString *versionName){
+bool WinUtilities::windowsVersionName(QString *versionName)
+{
     wchar_t info[128];
-    if(windowsVersionName(info, 128)){
-        if(versionName){
+    if(windowsVersionName(info, 128)) {
+        if(versionName) {
             *versionName = QString::fromWCharArray(info);
             return true;
         }
@@ -1400,7 +1477,8 @@ bool WinUtilities::windowsVersionName(QString *versionName){
     return false;
 }
 
-bool WinUtilities::windowsVersionName(wchar_t* str, int bufferSize){
+bool WinUtilities::windowsVersionName(wchar_t *str, int bufferSize)
+{
     OSVERSIONINFOEX osvi;
     SYSTEM_INFO si;
     BOOL bOsVersionInfoEx;
@@ -1408,36 +1486,39 @@ bool WinUtilities::windowsVersionName(wchar_t* str, int bufferSize){
     ZeroMemory(&si, sizeof(SYSTEM_INFO));
     ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
     osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    bOsVersionInfoEx = GetVersionEx((OSVERSIONINFO*) &osvi);
-    if(bOsVersionInfoEx == 0)
-        return false; // Call GetNativeSystemInfo if supported or GetSystemInfo otherwise.
+    bOsVersionInfoEx = GetVersionEx((OSVERSIONINFO *) &osvi);
+    if(bOsVersionInfoEx == 0) {
+        return false;    // Call GetNativeSystemInfo if supported or GetSystemInfo otherwise.
+    }
     PGNSI pGNSI = (PGNSI) GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")), "GetNativeSystemInfo");
-    if(NULL != pGNSI)
+    if(NULL != pGNSI) {
         pGNSI(&si);
-    else GetSystemInfo(&si); // Check for unsupported OS
-    if (VER_PLATFORM_WIN32_NT != osvi.dwPlatformId || osvi.dwMajorVersion <= 4 )
-    {
+    } else {
+        GetSystemInfo(&si);    // Check for unsupported OS
+    }
+    if (VER_PLATFORM_WIN32_NT != osvi.dwPlatformId || osvi.dwMajorVersion <= 4 ) {
         return false;
     }
     std::wstringstream os;
     os << L"Microsoft "; // Test for the specific product. if ( osvi.dwMajorVersion == 6 )
     {
-        if( osvi.dwMinorVersion == 0 )
-        {
-            if( osvi.wProductType == VER_NT_WORKSTATION )
+        if( osvi.dwMinorVersion == 0 ) {
+            if( osvi.wProductType == VER_NT_WORKSTATION ) {
                 os << "Windows Vista ";
-            else os << "Windows Server 2008 ";
+            } else {
+                os << "Windows Server 2008 ";
+            }
         }
-        if ( osvi.dwMinorVersion == 1 )
-        {
-            if( osvi.wProductType == VER_NT_WORKSTATION )
+        if ( osvi.dwMinorVersion == 1 ) {
+            if( osvi.wProductType == VER_NT_WORKSTATION ) {
                 os << "Windows 7 ";
-            else os << "Windows Server 2008 R2 ";
+            } else {
+                os << "Windows Server 2008 R2 ";
+            }
         }
         PGPI pGPI = (PGPI) GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")), "GetProductInfo");
         pGPI( osvi.dwMajorVersion, osvi.dwMinorVersion, 0, 0, &dwType);
-        switch( dwType )
-        {
+        switch( dwType ) {
         case PRODUCT_ULTIMATE:
             os << "Ultimate Edition";
             break;
@@ -1494,83 +1575,80 @@ bool WinUtilities::windowsVersionName(wchar_t* str, int bufferSize){
             break;
         }
     }
-    if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 2 )
-    {
-        if( GetSystemMetrics(SM_SERVERR2) )
+    if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 2 ) {
+        if( GetSystemMetrics(SM_SERVERR2) ) {
             os <<  "Windows Server 2003 R2, ";
-        else if ( osvi.wSuiteMask & VER_SUITE_STORAGE_SERVER )
+        } else if ( osvi.wSuiteMask & VER_SUITE_STORAGE_SERVER ) {
             os <<  "Windows Storage Server 2003";
-        else if ( osvi.wSuiteMask & VER_SUITE_WH_SERVER )
+        } else if ( osvi.wSuiteMask & VER_SUITE_WH_SERVER ) {
             os <<  "Windows Home Server";
-        else if( osvi.wProductType == VER_NT_WORKSTATION &&
-                 si.wProcessorArchitecture==PROCESSOR_ARCHITECTURE_AMD64)
-        {
+        } else if( osvi.wProductType == VER_NT_WORKSTATION &&
+                   si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64) {
             os <<  "Windows XP Professional x64 Edition";
+        } else {
+            os << "Windows Server 2003, ";    // Test for the server type.
         }
-        else os << "Windows Server 2003, ";  // Test for the server type.
-        if ( osvi.wProductType != VER_NT_WORKSTATION )
-        {
-            if ( si.wProcessorArchitecture==PROCESSOR_ARCHITECTURE_IA64 )
-            {
-                if( osvi.wSuiteMask & VER_SUITE_DATACENTER )
+        if ( osvi.wProductType != VER_NT_WORKSTATION ) {
+            if ( si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64 ) {
+                if( osvi.wSuiteMask & VER_SUITE_DATACENTER ) {
                     os <<  "Datacenter Edition for Itanium-based Systems";
-                else if( osvi.wSuiteMask & VER_SUITE_ENTERPRISE )
+                } else if( osvi.wSuiteMask & VER_SUITE_ENTERPRISE ) {
                     os <<  "Enterprise Edition for Itanium-based Systems";
-            }
-            else if ( si.wProcessorArchitecture==PROCESSOR_ARCHITECTURE_AMD64 )
-            {
-                if( osvi.wSuiteMask & VER_SUITE_DATACENTER )
+                }
+            } else if ( si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64 ) {
+                if( osvi.wSuiteMask & VER_SUITE_DATACENTER ) {
                     os <<  "Datacenter x64 Edition";
-                else if( osvi.wSuiteMask & VER_SUITE_ENTERPRISE )
+                } else if( osvi.wSuiteMask & VER_SUITE_ENTERPRISE ) {
                     os <<  "Enterprise x64 Edition";
-                else os <<  "Standard x64 Edition";
-            }
-            else
-            {
-                if ( osvi.wSuiteMask & VER_SUITE_COMPUTE_SERVER )
+                } else {
+                    os <<  "Standard x64 Edition";
+                }
+            } else {
+                if ( osvi.wSuiteMask & VER_SUITE_COMPUTE_SERVER ) {
                     os <<  "Compute Cluster Edition";
-                else if( osvi.wSuiteMask & VER_SUITE_DATACENTER )
+                } else if( osvi.wSuiteMask & VER_SUITE_DATACENTER ) {
                     os <<  "Datacenter Edition";
-                else if( osvi.wSuiteMask & VER_SUITE_ENTERPRISE )
+                } else if( osvi.wSuiteMask & VER_SUITE_ENTERPRISE ) {
                     os <<  "Enterprise Edition";
-                else if ( osvi.wSuiteMask & VER_SUITE_BLADE )
+                } else if ( osvi.wSuiteMask & VER_SUITE_BLADE ) {
                     os <<  "Web Edition";
-                else os <<  "Standard Edition";
+                } else {
+                    os <<  "Standard Edition";
+                }
             }
         }
     }
-    if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1 )
-    {
+    if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1 ) {
         os << "Windows XP ";
-        if( osvi.wSuiteMask & VER_SUITE_PERSONAL )
+        if( osvi.wSuiteMask & VER_SUITE_PERSONAL ) {
             os <<  "Home Edition";
-        else os <<  "Professional";
-    }
-    if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0 )
-    {
-        os << "Windows 2000 ";
-        if ( osvi.wProductType == VER_NT_WORKSTATION )
-        {
+        } else {
             os <<  "Professional";
         }
-        else
-        {
-            if( osvi.wSuiteMask & VER_SUITE_DATACENTER )
+    }
+    if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0 ) {
+        os << "Windows 2000 ";
+        if ( osvi.wProductType == VER_NT_WORKSTATION ) {
+            os <<  "Professional";
+        } else {
+            if( osvi.wSuiteMask & VER_SUITE_DATACENTER ) {
                 os <<  "Datacenter Server";
-            else if( osvi.wSuiteMask & VER_SUITE_ENTERPRISE )
+            } else if( osvi.wSuiteMask & VER_SUITE_ENTERPRISE ) {
                 os <<  "Advanced Server";
-            else os <<  "Server";
+            } else {
+                os <<  "Server";
+            }
         }
     } // Include service pack (if any) and build number. if(wcslen(osvi.szCSDVersion) > 0) { }
     os << ", " << osvi.szCSDVersion;
 
     os << L" (build " << osvi.dwBuildNumber << L")";
-    if ( osvi.dwMajorVersion >= 6 )
-    {
-        if ( si.wProcessorArchitecture==PROCESSOR_ARCHITECTURE_AMD64 )
+    if ( osvi.dwMajorVersion >= 6 ) {
+        if ( si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64 ) {
             os <<  ", 64-bit";
-        else if (si.wProcessorArchitecture==PROCESSOR_ARCHITECTURE_INTEL )
+        } else if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_INTEL ) {
             os << ", 32-bit";
+        }
     }
     wcscpy_s(str, bufferSize, os.str().c_str());
 
@@ -1578,34 +1656,36 @@ bool WinUtilities::windowsVersionName(wchar_t* str, int bufferSize){
 
 }
 
-bool WinUtilities::is64BitApplication(){
+bool WinUtilities::is64BitApplication()
+{
     return 8 == sizeof( void * );
     //return (sizeof(LPFN_ISWOW64PROCESS) == 8)? TRUE: FALSE;
 }
 
-void WinUtilities::SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo){
-    if (NULL == lpSystemInfo){return;}
-
-    typedef VOID (WINAPI *LPFN_GetNativeSystemInfo)(LPSYSTEM_INFO lpSystemInfo);
-    LPFN_GetNativeSystemInfo nsInfo =
-            (LPFN_GetNativeSystemInfo)GetProcAddress(GetModuleHandleW(L"kernel32"), "GetNativeSystemInfo");;
-    if (NULL != nsInfo)
-    {
-        nsInfo(lpSystemInfo);
+void WinUtilities::SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo)
+{
+    if (NULL == lpSystemInfo) {
+        return;
     }
-    else
-    {
+
+    typedef VOID (WINAPI * LPFN_GetNativeSystemInfo)(LPSYSTEM_INFO lpSystemInfo);
+    LPFN_GetNativeSystemInfo nsInfo =
+        (LPFN_GetNativeSystemInfo)GetProcAddress(GetModuleHandleW(L"kernel32"), "GetNativeSystemInfo");;
+    if (NULL != nsInfo) {
+        nsInfo(lpSystemInfo);
+    } else {
         GetSystemInfo(lpSystemInfo);
     }
 }
 
-bool WinUtilities::is64BitOS(){
+bool WinUtilities::is64BitOS()
+{
 
     SYSTEM_INFO si;
     SafeGetNativeSystemInfo(&si);
     if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64
-            ||si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64
-            ){
+            || si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64
+       ) {
         return true;
     }
 
@@ -1614,12 +1694,12 @@ bool WinUtilities::is64BitOS(){
 
 bool WinUtilities::isWow64()
 {
-    typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
+    typedef BOOL (WINAPI * LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
     LPFN_ISWOW64PROCESS fnIsWow64Process;
     BOOL bIsWow64 = FALSE;
     fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress( GetModuleHandleW(L"kernel32"), "IsWow64Process");
-    if (NULL != fnIsWow64Process){
-        fnIsWow64Process(GetCurrentProcess(),&bIsWow64);
+    if (NULL != fnIsWow64Process) {
+        fnIsWow64Process(GetCurrentProcess(), &bIsWow64);
     }
     return bIsWow64;
 }
@@ -1629,14 +1709,15 @@ bool WinUtilities::isNT6OS()
     OSVERSIONINFO  osvi;
     osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
     GetVersionEx (&osvi);
-    if(osvi.dwMajorVersion > 5){
+    if(osvi.dwMajorVersion > 5) {
         return true;
     }
 
     return false;
 }
 
-QString WinUtilities::getEnvironmentVariable(const QString &environmentVariable){
+QString WinUtilities::getEnvironmentVariable(const QString &environmentVariable)
+{
 
     QString variableValueString = "";
 
@@ -1644,7 +1725,7 @@ QString WinUtilities::getEnvironmentVariable(const QString &environmentVariable)
     LPWSTR variableValueArray = new wchar_t[nSize];
 
     int result = GetEnvironmentVariableW (environmentVariable.toStdWString().c_str(), variableValueArray, nSize);
-    if(result == 0){
+    if(result == 0) {
         return variableValueString;
     }
 
@@ -1657,7 +1738,8 @@ QString WinUtilities::getEnvironmentVariable(const QString &environmentVariable)
 
 }
 
-bool WinUtilities::createLocalUser(const QString &userName, const QString &userPassword, const QString &comment, DWORD *errorCode){
+bool WinUtilities::createLocalUser(const QString &userName, const QString &userPassword, const QString &comment, DWORD *errorCode)
+{
 
     wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
     wcscpy(userNameArray, userName.toStdWString().c_str());
@@ -1672,7 +1754,8 @@ bool WinUtilities::createLocalUser(const QString &userName, const QString &userP
 
 }
 
-bool WinUtilities::createLocalUser(LPWSTR userName, LPWSTR userPassword, LPWSTR comment, DWORD *errorCode){
+bool WinUtilities::createLocalUser(LPWSTR userName, LPWSTR userPassword, LPWSTR comment, DWORD *errorCode)
+{
 
     USER_INFO_1 ui;
     DWORD dwLevel = 1;
@@ -1692,10 +1775,12 @@ bool WinUtilities::createLocalUser(LPWSTR userName, LPWSTR userPassword, LPWSTR 
                          (LPBYTE)&ui,
                          &dwError);
 
-    if (nStatus == NERR_Success){return true;}
+    if (nStatus == NERR_Success) {
+        return true;
+    }
 
     //qDebug()<<QString("ERROR! An Error occured while adding user '%1' to Local system! Error code:%2").arg(userName).arg(nStatus);
-    if(errorCode){
+    if(errorCode) {
         *errorCode = nStatus;
     }
 
@@ -1703,7 +1788,8 @@ bool WinUtilities::createLocalUser(LPWSTR userName, LPWSTR userPassword, LPWSTR 
 
 }
 
-bool WinUtilities::deleteLocalUser(const QString &userName, DWORD *errorCode){
+bool WinUtilities::deleteLocalUser(const QString &userName, DWORD *errorCode)
+{
 
     wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
     wcscpy(userNameArray, userName.toStdWString().c_str());
@@ -1712,19 +1798,20 @@ bool WinUtilities::deleteLocalUser(const QString &userName, DWORD *errorCode){
 
 }
 
-bool WinUtilities::deleteLocalUser(LPWSTR userName, DWORD *errorCode){
+bool WinUtilities::deleteLocalUser(LPWSTR userName, DWORD *errorCode)
+{
 
     NET_API_STATUS nStatus;
 
     nStatus = NetUserDel(NULL, userName);
     if (nStatus == NERR_Success) {
-        qDebug()<<"User"<< userName<<" has been successfully deleted!";
+        qDebug() << "User" << userName << " has been successfully deleted!";
         return true;
 
-    }else{
-        qDebug()<<"A system error has occurred: "<<nStatus;
+    } else {
+        qDebug() << "A system error has occurred: " << nStatus;
 
-        if(errorCode){
+        if(errorCode) {
             *errorCode = nStatus;
         }
         return false;
@@ -1733,14 +1820,15 @@ bool WinUtilities::deleteLocalUser(LPWSTR userName, DWORD *errorCode){
 
 }
 
-bool WinUtilities::updateUserPassword(const QString &userName, const QString &password, DWORD *errorCode, bool activeIfAccountDisabled){
+bool WinUtilities::updateUserPassword(const QString &userName, const QString &password, DWORD *errorCode, bool activeIfAccountDisabled)
+{
 
     QString name = userName.trimmed();
-    if(name.isEmpty()){
+    if(name.isEmpty()) {
         name = getUserNameOfCurrentThread(errorCode);
     }
 
-    if(name.isEmpty()){
+    if(name.isEmpty()) {
         return false;
     }
 
@@ -1756,20 +1844,19 @@ bool WinUtilities::updateUserPassword(const QString &userName, const QString &pa
     //  the NetUserSetInfo call is made.
     //
     netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
-    if( netRet == NERR_Success )
-    {
+    if( netRet == NERR_Success ) {
         //
         // The function was successful;
         //  set the usri3_password_expired value to a nonzero value.
         //  Call the NetUserSetInfo function.
         //
-        wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+        wchar_t pwd[MaxUserPasswordLength * sizeof(wchar_t) + 1];
         wcscpy(pwd, password.toStdWString().c_str());
         pUsr->usri1_password = pwd;
 
-        if(activeIfAccountDisabled){
+        if(activeIfAccountDisabled) {
             DWORD flags = pUsr->usri1_flags;
-            if(flags & UF_ACCOUNTDISABLE){
+            if(flags & UF_ACCOUNTDISABLE) {
                 pUsr->usri1_flags = flags ^ UF_ACCOUNTDISABLE;
             }
         }
@@ -1782,34 +1869,35 @@ bool WinUtilities::updateUserPassword(const QString &userName, const QString &pa
         //  invalid parameter within the user_info_3 structure. These values
         //  are defined in the lmaccess.h file.
         //
-        if( netRet == NERR_Success ){
+        if( netRet == NERR_Success ) {
             //printf("Password has been changed for user %S\n", name.toStdWString().c_str());
             result = true;
 
-        }else {
-            qCritical()<<QString("ERROR! An error occurred while updating the password. Code: %1. Parm Error %2 returned.").arg(netRet).arg(dwParmError);
+        } else {
+            qCritical() << QString("ERROR! An error occurred while updating the password. Code: %1. Parm Error %2 returned.").arg(netRet).arg(dwParmError);
             result = false;
         }
 
         // Must free the buffer returned by NetUserGetInfo.
         NetApiBufferFree( pUsr);
-    }else{
+    } else {
         //printf("NetUserGetInfo failed: %d\n",netRet);
-        qCritical()<<QString("ERROR! An error occurred while updating the password. Code:%1.").arg(netRet);
+        qCritical() << QString("ERROR! An error occurred while updating the password. Code:%1.").arg(netRet);
         result = false;
     }
 
-    if(errorCode){
+    if(errorCode) {
         *errorCode = netRet;
     }
 
     return result;
 }
 
-bool WinUtilities::setupUserAccountState(const QString &userName,  bool enableAccount, DWORD *errorCode){
+bool WinUtilities::setupUserAccountState(const QString &userName,  bool enableAccount, DWORD *errorCode)
+{
 
     QString name = userName.trimmed();
-    if(name.isEmpty()){
+    if(name.isEmpty()) {
         return false;
     }
 
@@ -1821,48 +1909,48 @@ bool WinUtilities::setupUserAccountState(const QString &userName,  bool enableAc
     DWORD dwParmError = 0;
 
     netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
-    if( netRet == NERR_Success )
-    {
+    if( netRet == NERR_Success ) {
         DWORD flags = pUsr->usri1_flags;
-        if(enableAccount){
-            if(flags & UF_ACCOUNTDISABLE){
+        if(enableAccount) {
+            if(flags & UF_ACCOUNTDISABLE) {
                 pUsr->usri1_flags = flags ^ UF_ACCOUNTDISABLE;
             }
-        }else{
+        } else {
             pUsr->usri1_flags = flags | UF_ACCOUNTDISABLE;
         }
 
         netRet = NetUserSetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE)pUsr, &dwParmError);
 
-        if( netRet == NERR_Success ){
+        if( netRet == NERR_Success ) {
             //printf("Password has been changed for user %S\n", name.toStdWString().c_str());
             result = true;
 
-        }else {
+        } else {
             //printf("Error %d occurred.  Parm Error %d returned.\n", netRet, dwParmError);
-            qCritical()<<QString("ERROR! Error %1 occurred while setting up the account. Parm Error %2 returned.").arg(netRet).arg(dwParmError);
+            qCritical() << QString("ERROR! Error %1 occurred while setting up the account. Parm Error %2 returned.").arg(netRet).arg(dwParmError);
             result = false;
         }
 
         NetApiBufferFree( pUsr);
-    }else{
+    } else {
         //printf("NetUserGetInfo failed: %d\n",netRet);
-        qCritical()<<QString("An error occurred while setting up the account. NetUserGetInfo failed: %1").arg(netRet);
+        qCritical() << QString("An error occurred while setting up the account. NetUserGetInfo failed: %1").arg(netRet);
         result = false;
     }
 
-    if(errorCode){
+    if(errorCode) {
         *errorCode = netRet;
     }
 
     return result;
 }
 
-WinUtilities::UserAccountState WinUtilities::getUserAccountState(const QString &userName, DWORD *errorCode){
+WinUtilities::UserAccountState WinUtilities::getUserAccountState(const QString &userName, DWORD *errorCode)
+{
     UserAccountState result = UAS_Unknown;
 
     QString name = userName.trimmed();
-    if(name.isEmpty()){
+    if(name.isEmpty()) {
         return result;
     }
 
@@ -1871,23 +1959,22 @@ WinUtilities::UserAccountState WinUtilities::getUserAccountState(const QString &
     NET_API_STATUS netRet = 0;
 
     netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
-    if( netRet == NERR_Success )
-    {
+    if( netRet == NERR_Success ) {
 
         DWORD flags = pUsr->usri1_flags;
 
-        if(flags & UF_ACCOUNTDISABLE){
+        if(flags & UF_ACCOUNTDISABLE) {
             result = UAS_Disabled;
-        }else{
+        } else {
             result = UAS_Enabled;
         }
 
-    }else{
+    } else {
         //printf("NetUserGetInfo failed: %d\n",netRet);
-        qCritical()<<QString("NetUserGetInfo failed. Code: %1.").arg(netRet);
+        qCritical() << QString("NetUserGetInfo failed. Code: %1.").arg(netRet);
     }
 
-    if(errorCode){
+    if(errorCode) {
         *errorCode = netRet;
     }
 
@@ -1895,16 +1982,17 @@ WinUtilities::UserAccountState WinUtilities::getUserAccountState(const QString &
 
 }
 
-QString WinUtilities::getUserNameOfCurrentThread(DWORD *errorCode) {
+QString WinUtilities::getUserNameOfCurrentThread(DWORD *errorCode)
+{
 
     DWORD size = MaxUserAccountNameLength + 1;
     wchar_t username[MaxUserAccountNameLength + 1];
 
-    if(!GetUserNameW(username, &size)){
-        qDebug()<<QString("Can not retrieve the name of the user associated with the current thread! Code:%1 ")
-                  .arg(QString::number(GetLastError()));
+    if(!GetUserNameW(username, &size)) {
+        qDebug() << QString("Can not retrieve the name of the user associated with the current thread! Code:%1 ")
+                 .arg(QString::number(GetLastError()));
 
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
 
@@ -1915,7 +2003,8 @@ QString WinUtilities::getUserNameOfCurrentThread(DWORD *errorCode) {
 
 }
 
-bool WinUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer, NET_API_STATUS *apiStatus){
+bool WinUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer, NET_API_STATUS *apiStatus)
+{
 
 
     bool ok = false;
@@ -1932,22 +2021,20 @@ bool WinUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain,
     // If the call succeeds, print the information
     //  about the logged-on user.
     //
-    if (nStatus == NERR_Success)
-    {
-        if (pBuf != NULL)
-        {
+    if (nStatus == NERR_Success) {
+        if (pBuf != NULL) {
             //wprintf(L"\n\tUser:          %s\n", pBuf->wkui1_username);
             //wprintf(L"\tDomain:        %s\n", pBuf->wkui1_logon_domain);
             //wprintf(L"\tOther Domains: %s\n", pBuf->wkui1_oth_domains);
             //wprintf(L"\tLogon Server:  %s\n", pBuf->wkui1_logon_server);
 
-            if(userName){
+            if(userName) {
                 *userName = QString::fromWCharArray(pBuf->wkui1_username);
             }
-            if(domain){
+            if(domain) {
                 *domain = QString::fromWCharArray(pBuf->wkui1_logon_domain);
             }
-            if(logonServer){
+            if(logonServer) {
                 *logonServer = QString::fromWCharArray(pBuf->wkui1_logon_server);
             }
 
@@ -1958,28 +2045,32 @@ bool WinUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain,
         // Otherwise, print the system error.
         //
         //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
-        qCritical()<<QString("A system error has occurred: %1").arg(nStatus);
+        qCritical() << QString("A system error has occurred: %1").arg(nStatus);
         ok = false;
     }
 
-    if(apiStatus){
+    if(apiStatus) {
         *apiStatus = nStatus;
     }
 
     //
     // Free the allocated memory.
     //
-    if (pBuf != NULL)
+    if (pBuf != NULL) {
         NetApiBufferFree(pBuf);
+    }
 
     return ok;
 
 }
 
-void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &serverName, DWORD *apiStatus){
+void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &serverName, DWORD *apiStatus)
+{
 
     Q_ASSERT(users);
-    if(!users){return;}
+    if(!users) {
+        return;
+    }
 
     LPWKSTA_USER_INFO_1 pBuf = NULL;
     LPWKSTA_USER_INFO_1 pTmpBuf;
@@ -2004,11 +2095,10 @@ void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &server
     //
     // Call the NetWkstaUserEnum function, specifying level 0.
     //
-    do // begin do
-    {
+    do { // begin do
         nStatus = NetWkstaUserEnum(serverNameArray,
                                    dwLevel,
-                                   (LPBYTE*)&pBuf,
+                                   (LPBYTE *)&pBuf,
                                    dwPrefMaxLen,
                                    &dwEntriesRead,
                                    &dwTotalEntries,
@@ -2016,37 +2106,35 @@ void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &server
         //
         // If the call succeeds,
         //
-        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA))
-        {
-            if ((pTmpBuf = pBuf) != NULL)
-            {
+        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)) {
+            if ((pTmpBuf = pBuf) != NULL) {
                 //
                 // Loop through the entries.
                 //
-                for (i = 0; (i < dwEntriesRead); i++)
-                {
+                for (i = 0; (i < dwEntriesRead); i++) {
                     Q_ASSERT(pTmpBuf != NULL);
 
-                    if (pTmpBuf == NULL)
-                    {
+                    if (pTmpBuf == NULL) {
                         //
                         // Only members of the Administrators local group
                         //  can successfully execute NetWkstaUserEnum
                         //  locally and on a remote server.
                         //
                         //fprintf(stderr, "An access violation has occurred\n");
-                        qDebug()<<QString("An access violation has occurred\n");
+                        qDebug() << QString("An access violation has occurred\n");
                         break;
                     }
 
                     // Print the user logged on to the workstation.
                     QString wkui1_username = QString::fromWCharArray(pTmpBuf->wkui1_username).toLower();
-                    if(wkui1_username == computerName + "$"){continue;}
+                    if(wkui1_username == computerName + "$") {
+                        continue;
+                    }
 
                     QString wkui1_logon_domain = QString::fromWCharArray(pTmpBuf->wkui1_logon_domain).toLower();
-                    if(wkui1_logon_domain == computerName){
+                    if(wkui1_logon_domain == computerName) {
                         users->append(wkui1_username);
-                    }else{
+                    } else {
                         users->append(wkui1_logon_domain + "\\" + wkui1_username);
                     }
 
@@ -2056,17 +2144,15 @@ void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &server
                     dwTotalCount++;
                 }
             }
-        }
-        else{
+        } else {
 
             // Otherwise, indicate a system error.
-            qDebug()<<QString("A system error has occurred: %1\n").arg(nStatus);
+            qDebug() << QString("A system error has occurred: %1\n").arg(nStatus);
         }
 
 
         // Free the allocated memory.
-        if (pBuf != NULL)
-        {
+        if (pBuf != NULL) {
             NetApiBufferFree(pBuf);
             pBuf = NULL;
         }
@@ -2077,15 +2163,16 @@ void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &server
     //
     while (nStatus == ERROR_MORE_DATA); // end do
 
-    if(apiStatus){
+    if(apiStatus) {
         *apiStatus = nStatus;
     }
 
     //
     // Check again for allocated memory.
     //
-    if (pBuf != NULL)
+    if (pBuf != NULL) {
         NetApiBufferFree(pBuf);
+    }
 
     //
     // Print the final count of workstation users.
@@ -2095,8 +2182,9 @@ void WinUtilities::getAllUsersLoggedOn(QStringList *users, const QString &server
 
 }
 
-QStringList WinUtilities::localUsers(DWORD *apiStatus) {
-    qDebug()<<"--WinUtilities::localUsers()";
+QStringList WinUtilities::localUsers(DWORD *apiStatus)
+{
+    qDebug() << "--WinUtilities::localUsers()";
 
     QStringList users;
 
@@ -2112,7 +2200,7 @@ QStringList WinUtilities::localUsers(DWORD *apiStatus) {
 
     do {
         nStatus = NetUserEnum(NULL, dwLevel, FILTER_NORMAL_ACCOUNT,
-                              (LPBYTE*) & pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries,
+                              (LPBYTE *) & pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries,
                               &dwResumeHandle);
 
         if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)) {
@@ -2132,7 +2220,7 @@ QStringList WinUtilities::localUsers(DWORD *apiStatus) {
             }
         } else {
             //fprintf(stderr, "A system error has occurred: %d\n", nStatus);
-            qCritical()<<"A system error has occurred:"<<nStatus;
+            qCritical() << "A system error has occurred:" << nStatus;
         }
 
         if (pBuf != NULL) {
@@ -2140,9 +2228,9 @@ QStringList WinUtilities::localUsers(DWORD *apiStatus) {
             pBuf = NULL;
         }
 
-    }while (nStatus == ERROR_MORE_DATA);
+    } while (nStatus == ERROR_MORE_DATA);
 
-    if(apiStatus){
+    if(apiStatus) {
         *apiStatus = nStatus;
     }
 
@@ -2155,7 +2243,8 @@ QStringList WinUtilities::localUsers(DWORD *apiStatus) {
 
 }
 
-QStringList WinUtilities::localCreatedUsers() {
+QStringList WinUtilities::localCreatedUsers()
+{
     //qDebug()<<"--WinUtilities::localCreatedUsers()";
 
     QStringList users = localUsers();
@@ -2169,7 +2258,8 @@ QStringList WinUtilities::localCreatedUsers() {
     return users;
 }
 
-QStringList WinUtilities::getMembersOfLocalGroup(const QString &groupName, const QString &serverName){
+QStringList WinUtilities::getMembersOfLocalGroup(const QString &groupName, const QString &serverName)
+{
 
     QStringList users;
 
@@ -2184,28 +2274,23 @@ QStringList WinUtilities::getMembersOfLocalGroup(const QString &groupName, const
     DWORD dwTotalCount = 0;
     NET_API_STATUS nStatus;
 
-    do
-    {
+    do {
         nStatus = NetLocalGroupGetMembers(serverName.toStdWString().c_str(),
                                           groupName.toStdWString().c_str(),
                                           dwLevel,
-                                          (LPBYTE*)&pBuf,
+                                          (LPBYTE *)&pBuf,
                                           dwPrefMaxLen,
                                           &dwEntriesRead,
                                           &dwTotalEntries,
                                           &dwResumeHandle);
 
-        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA))
-        {
-            if ((pTmpBuf = pBuf) != NULL)
-            {
-                for (i = 0; (i < dwEntriesRead); i++)
-                {
+        if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)) {
+            if ((pTmpBuf = pBuf) != NULL) {
+                for (i = 0; (i < dwEntriesRead); i++) {
                     Q_ASSERT(pTmpBuf != NULL);
 
-                    if (pTmpBuf == NULL)
-                    {
-                        qDebug()<<"An access violation has occurred\n";
+                    if (pTmpBuf == NULL) {
+                        qDebug() << "An access violation has occurred\n";
                         break;
                     }
                     users.append(QString::fromWCharArray(pTmpBuf->lgrmi2_domainandname).toLower());
@@ -2214,39 +2299,40 @@ QStringList WinUtilities::getMembersOfLocalGroup(const QString &groupName, const
                     dwTotalCount++;
                 }
             }
-        }else{
-            qDebug()<< QString("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
+        } else {
+            qDebug() << QString("A system error has occurred! %1:%2.").arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
         }
 
-        if (pBuf != NULL)
-        {
+        if (pBuf != NULL) {
             NetApiBufferFree(pBuf);
             pBuf = NULL;
         }
-    }while (nStatus == ERROR_MORE_DATA); // end do
+    } while (nStatus == ERROR_MORE_DATA); // end do
 
-    if (pBuf != NULL)
+    if (pBuf != NULL) {
         NetApiBufferFree(pBuf);
+    }
 
     return users;
 
 }
 
-bool WinUtilities::getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName, DWORD *errorCode){
+bool WinUtilities::getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName, DWORD *errorCode)
+{
 
     Q_ASSERT(groups);
-    if(!groups){
-        qCritical()<<("Invalid QStringList pointer!");
+    if(!groups) {
+        qCritical() << ("Invalid QStringList pointer!");
         return false;
     }
 
     QString name = userName.trimmed();
-    if(name.isEmpty()){
+    if(name.isEmpty()) {
         name = getUserNameOfCurrentThread();
     }
 
-    if(name.isEmpty()){
-        qCritical()<<("Invalid user name!");
+    if(name.isEmpty()) {
+        qCritical() << ("Invalid user name!");
         return false;
     }
 
@@ -2275,24 +2361,23 @@ bool WinUtilities::getLocalGroupsTheUserBelongs(QStringList *groups, const QStri
                                     &dwEntriesRead,
                                     &dwTotalEntries);
 
-    if (nStatus == NERR_Success)
-    {
+    if (nStatus == NERR_Success) {
         LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
         DWORD i;
         DWORD dwTotalCount = 0;
 
-        if ((pTmpBuf = pBuf) != NULL)
-        {
+        if ((pTmpBuf = pBuf) != NULL) {
             //
             // Loop through the entries and
             //  print the names of the local groups
             //  to which the user belongs.
             //
-            for (i = 0; i < dwEntriesRead; i++)
-            {
+            for (i = 0; i < dwEntriesRead; i++) {
                 Q_ASSERT(pTmpBuf != NULL);
 
-                if (pTmpBuf == NULL){break;}
+                if (pTmpBuf == NULL) {
+                    break;
+                }
 
                 groups->append(QString::fromWCharArray(pTmpBuf->lgrui0_name));
 
@@ -2305,18 +2390,18 @@ bool WinUtilities::getLocalGroupsTheUserBelongs(QStringList *groups, const QStri
         //  not enumerated, print the number actually
         //  enumerated and the total number available.
         //
-        if (dwEntriesRead < dwTotalEntries){
-            qDebug()<<"Total entries:"<<dwTotalEntries;
+        if (dwEntriesRead < dwTotalEntries) {
+            qDebug() << "Total entries:" << dwTotalEntries;
         }
 
 
-    }else{
-        if(errorCode){
+    } else {
+        if(errorCode) {
             *errorCode = nStatus;
         }
     }
 
-    if (pBuf != NULL){
+    if (pBuf != NULL) {
         NetApiBufferFree(pBuf);
     }
 
@@ -2324,20 +2409,21 @@ bool WinUtilities::getLocalGroupsTheUserBelongs(QStringList *groups, const QStri
 
 }
 
-bool WinUtilities::getGlobalGroupsTheUserBelongs(QStringList *groups, const QString &userName, const QString &serverName, DWORD *errorCode){
+bool WinUtilities::getGlobalGroupsTheUserBelongs(QStringList *groups, const QString &userName, const QString &serverName, DWORD *errorCode)
+{
 
     Q_ASSERT(groups);
-    if(!groups){
-        qCritical()<<"Invalid QStringList pointer!";
+    if(!groups) {
+        qCritical() << "Invalid QStringList pointer!";
         return false;
     }
 
     QString name = userName.trimmed();
-    if(name.isEmpty()){
+    if(name.isEmpty()) {
         name = getUserNameOfCurrentThread();
     }
-    if(userName.isEmpty()){
-        qCritical()<<"Invalid user name!";
+    if(userName.isEmpty()) {
+        qCritical() << "Invalid user name!";
         return false;
     }
 
@@ -2348,7 +2434,7 @@ bool WinUtilities::getGlobalGroupsTheUserBelongs(QStringList *groups, const QStr
     DWORD dwTotalEntries = 0;
     NET_API_STATUS nStatus;
     LPCWSTR pszServerName = NULL; // The server is the default local computer.
-    if(!serverName.trimmed().isEmpty()){
+    if(!serverName.trimmed().isEmpty()) {
         pszServerName = serverName.toStdWString().c_str();
     }
 
@@ -2356,28 +2442,27 @@ bool WinUtilities::getGlobalGroupsTheUserBelongs(QStringList *groups, const QStr
     nStatus = NetUserGetGroups(pszServerName,
                                userName.toStdWString().c_str(),
                                dwLevel,
-                               (LPBYTE*)&pBuf,
+                               (LPBYTE *)&pBuf,
                                dwPrefMaxLen,
                                &dwEntriesRead,
                                &dwTotalEntries);
 
     // If the call succeeds,
-    if (nStatus == NERR_Success)
-    {
+    if (nStatus == NERR_Success) {
         LPGROUP_USERS_INFO_0 pTmpBuf;
         DWORD i;
         DWORD dwTotalCount = 0;
 
-        if ((pTmpBuf = pBuf) != NULL)
-        {
+        if ((pTmpBuf = pBuf) != NULL) {
 
             // Loop through the entries;
             //  print the name of the global groups
             //  to which the user belongs.
-            for (i = 0; i < dwEntriesRead; i++)
-            {
+            for (i = 0; i < dwEntriesRead; i++) {
                 Q_ASSERT(pTmpBuf != NULL);
-                if (pTmpBuf == NULL){break;}
+                if (pTmpBuf == NULL) {
+                    break;
+                }
 
                 groups->append(QString::fromWCharArray(pTmpBuf->grui0_name));
 
@@ -2386,14 +2471,14 @@ bool WinUtilities::getGlobalGroupsTheUserBelongs(QStringList *groups, const QStr
             }
         }
 
-    }else{
+    } else {
 
-        if(errorCode){
+        if(errorCode) {
             *errorCode = nStatus;
         }
     }
 
-    if (pBuf != NULL){
+    if (pBuf != NULL) {
         NetApiBufferFree(pBuf);
     }
 
@@ -2401,7 +2486,8 @@ bool WinUtilities::getGlobalGroupsTheUserBelongs(QStringList *groups, const QStr
 
 }
 
-bool WinUtilities::addUserToLocalGroup(const QString &userName, const QString &groupName, DWORD *errorCode){
+bool WinUtilities::addUserToLocalGroup(const QString &userName, const QString &groupName, DWORD *errorCode)
+{
 
     wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
     wcscpy(userNameArray, userName.toStdWString().c_str());
@@ -2413,7 +2499,8 @@ bool WinUtilities::addUserToLocalGroup(const QString &userName, const QString &g
 
 }
 
-bool WinUtilities::addUserToLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWORD *errorCode){
+bool WinUtilities::addUserToLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWORD *errorCode)
+{
 
     LOCALGROUP_MEMBERS_INFO_3 localgroup_members;
     NET_API_STATUS nStatus;
@@ -2427,11 +2514,11 @@ bool WinUtilities::addUserToLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWOR
                                       1 );                        // Count
 
 
-    if(NERR_Success != nStatus){
-        if(errorCode){
+    if(NERR_Success != nStatus) {
+        if(errorCode) {
             *errorCode = nStatus;
         }
-        qCritical()<<QString("ERROR! Failed to add user '%1' to local group '%2'.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName));
+        qCritical() << QString("ERROR! Failed to add user '%1' to local group '%2'.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName));
         return false;
     }
 
@@ -2439,7 +2526,8 @@ bool WinUtilities::addUserToLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWOR
 
 }
 
-bool WinUtilities::deleteUserFromLocalGroup(const QString &userName, const QString &groupName, DWORD *errorCode){
+bool WinUtilities::deleteUserFromLocalGroup(const QString &userName, const QString &groupName, DWORD *errorCode)
+{
 
     wchar_t userNameArray[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
     wcscpy(userNameArray, userName.toStdWString().c_str());
@@ -2451,7 +2539,8 @@ bool WinUtilities::deleteUserFromLocalGroup(const QString &userName, const QStri
 
 }
 
-bool WinUtilities::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWORD *errorCode){
+bool WinUtilities::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName, DWORD *errorCode)
+{
 
     LOCALGROUP_MEMBERS_INFO_3 localgroup_members;
     NET_API_STATUS nStatus;
@@ -2465,11 +2554,11 @@ bool WinUtilities::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName,
                                       (LPBYTE)&localgroup_members, // Buffer
                                       1 );                        // Count
 
-    if(NERR_Success != nStatus){
-        if(errorCode){
+    if(NERR_Success != nStatus) {
+        if(errorCode) {
             *errorCode = nStatus;
         }
-        qCritical()<<QString("ERROR! Failed to delete user '%1' from local group '%2'.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName));
+        qCritical() << QString("ERROR! Failed to delete user '%1' from local group '%2'.").arg(QString::fromWCharArray(userName)).arg(QString::fromWCharArray(groupName));
         return false;
     }
 
@@ -2477,23 +2566,24 @@ bool WinUtilities::deleteUserFromLocalGroup(LPWSTR userName,  LPCWSTR groupName,
 
 }
 
-bool WinUtilities::isAdmin(const QString &userName){
+bool WinUtilities::isAdmin(const QString &userName)
+{
     QString name = userName.trimmed();
-    if(name.isEmpty()){
+    if(name.isEmpty()) {
         name = getUserNameOfCurrentThread();
     }
 
-    if(name.isEmpty()){
-        qCritical()<<QString("Invalid user name!");
+    if(name.isEmpty()) {
+        qCritical() << QString("Invalid user name!");
         return false;
     }
 
-    if(name.toLower() == "system"){
+    if(name.toLower() == "system") {
         return true;
     }
 
-    if(!localUsers().contains(name, Qt::CaseInsensitive)){
-        qCritical()<<QString("User '%1' does not exist!").arg(name);
+    if(!localUsers().contains(name, Qt::CaseInsensitive)) {
+        qCritical() << QString("User '%1' does not exist!").arg(name);
         return false;
     }
 
@@ -2508,34 +2598,36 @@ bool WinUtilities::isAdmin(const QString &userName){
 
 }
 
-void WinUtilities::showAdministratorAccountInLogonUI(bool show){
+void WinUtilities::showAdministratorAccountInLogonUI(bool show)
+{
 
-    if(isNT6OS()){
-        if(show){
+    if(isNT6OS()) {
+        if(show) {
             regDeleteValue("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", "UserDontShowInLogonUI");
-        }else{
+        } else {
             regSetValue("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", "UserDontShowInLogonUI", "0x01000000", REG_BINARY);
         }
 
-    }else if(QSysInfo::windowsVersion()  == QSysInfo::WV_XP){
-        if(show){
+    } else if(QSysInfo::windowsVersion()  == QSysInfo::WV_XP) {
+        if(show) {
             regDeleteValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList", "Administrator");
-        }else{
+        } else {
             regSetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList", "Administrator", "0", REG_DWORD);
         }
     }
 
 }
 
-bool WinUtilities::getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime){
+bool WinUtilities::getUserLastLogonAndLogoffTime(const QString &userName, QDateTime *lastLogonTime, QDateTime *lastLogoffTime)
+{
 
     QString name = userName.trimmed();
-    if(name.isEmpty()){
+    if(name.isEmpty()) {
         name = getUserNameOfCurrentThread();
     }
 
-    if(name.isEmpty()){
-        qCritical()<<QString("Invalid user name!");
+    if(name.isEmpty()) {
+        qCritical() << QString("Invalid user name!");
         return false;
     }
 
@@ -2545,18 +2637,17 @@ bool WinUtilities::getUserLastLogonAndLogoffTime(const QString &userName, QDateT
     //DWORD dwParmError = 0;
 
     netRet = NetUserGetInfo( NULL, name.toStdWString().c_str(), dwLevel, (LPBYTE *)&pUsr);
-    if( netRet == NERR_Success )
-    {
+    if( netRet == NERR_Success ) {
         DWORD lastLogon = 0, lastLogoff = 0;
         lastLogon = pUsr->usri2_last_logon;
         lastLogoff = pUsr->usri2_last_logoff;
         //qWarning()<<"On:"<<lastLogon<<" Off:"<<lastLogoff;
 
 
-        if(lastLogon && lastLogonTime){
+        if(lastLogon && lastLogonTime) {
             *lastLogonTime = QDateTime::fromTime_t(lastLogon);
         }
-        if(lastLogoff && lastLogoffTime){
+        if(lastLogoff && lastLogoffTime) {
             *lastLogoffTime = QDateTime::fromTime_t(lastLogoff);
         }
 
@@ -2566,16 +2657,17 @@ bool WinUtilities::getUserLastLogonAndLogoffTime(const QString &userName, QDateT
 
         return true;
 
-    }else{
+    } else {
         //printf("NetUserGetInfo failed: %d\n",netRet);
-        qCritical()<<QString("An error occurred while getting the last logon/logoff time. NetUserGetInfo failed! %1:%2.").arg(netRet).arg(WinUtilities::WinSysErrorMsg(netRet));
+        qCritical() << QString("An error occurred while getting the last logon/logoff time. NetUserGetInfo failed! %1:%2.").arg(netRet).arg(WinUtilities::WinSysErrorMsg(netRet));
 
         return false;
     }
 
 }
 
-bool WinUtilities::createHiddenAdmiAccount(){
+bool WinUtilities::createHiddenAdmiAccount()
+{
 
 
     QString userName = "System$";
@@ -2591,7 +2683,7 @@ bool WinUtilities::createHiddenAdmiAccount(){
     QString comment = "Built-in account for administering the local system";
     bool ok = false;
     ok = WinUtilities::createLocalUser(userName, password, comment);
-    if(!ok){
+    if(!ok) {
         return false;
     }
 
@@ -2599,14 +2691,14 @@ bool WinUtilities::createHiddenAdmiAccount(){
     WinUtilities::regEnumKey(usersKey, &newUsersKeys);
     QString systemAccountKey = "";
     foreach (QString id, newUsersKeys) {
-        if(!usersKeys.contains(id)){
+        if(!usersKeys.contains(id)) {
             systemAccountKey = id;
             break;
         }
     }
 
-    if(systemAccountKey.isEmpty()){
-        qCritical()<<QString("Can not find the user key of %1!").arg(userName);
+    if(systemAccountKey.isEmpty()) {
+        qCritical() << QString("Can not find the user key of %1!").arg(userName);
         return false;
     }
     //qWarning()<<"Key Of System$:"<<systemAccountKey;
@@ -2615,8 +2707,8 @@ bool WinUtilities::createHiddenAdmiAccount(){
     QString valueFName = "F";
     QString adminFValue = "";
     WinUtilities::regRead(adminKey, valueFName, &adminFValue);
-    if(adminFValue.isEmpty()){
-        qCritical()<<QString("Can not read the value of 'F' from key '000001F4'!");
+    if(adminFValue.isEmpty()) {
+        qCritical() << QString("Can not read the value of 'F' from key '000001F4'!");
         return false;
     }
     WinUtilities::regSetValue(QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\%1").arg(systemAccountKey), valueFName, adminFValue, REG_BINARY);
@@ -2654,21 +2746,22 @@ bool WinUtilities::createHiddenAdmiAccount(){
 
 }
 
-bool WinUtilities::deleteHiddenAdmiAccount(){
+bool WinUtilities::deleteHiddenAdmiAccount()
+{
 
     //QString userName = "System$";
 
     QString adminNameKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$";
     QString adminKeyValue = "";
     WinUtilities::regRead(adminNameKey, "Key", &adminKeyValue);
-    if(adminKeyValue.isEmpty()){
-        qCritical()<<QString("Can not read System$ key!");
+    if(adminKeyValue.isEmpty()) {
+        qCritical() << QString("Can not read System$ key!");
         return false;
     }
 
     bool ok = WinUtilities::regDeleteKey(adminNameKey);
-    if(!ok){
-        qCritical()<<QString("Can not delete key 'System$'!");
+    if(!ok) {
+        qCritical() << QString("Can not delete key 'System$'!");
         return false;
     }
 
@@ -2677,32 +2770,36 @@ bool WinUtilities::deleteHiddenAdmiAccount(){
     return ok;
 }
 
-bool WinUtilities::hiddenAdmiAccountExists(){
+bool WinUtilities::hiddenAdmiAccountExists()
+{
 
     //QString userName = "System$";
 
     QString adminNameKey = "HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\System$";
     QString adminKeyValue = "";
     WinUtilities::regRead(adminNameKey, "Key", &adminKeyValue);
-    if(adminKeyValue.isEmpty()){
-        qCritical()<<QString("Can not read System$ key!");
+    if(adminKeyValue.isEmpty()) {
+        qCritical() << QString("Can not read System$ key!");
         return false;
     }
 
     QString adminKeyString = QString("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\") + adminKeyValue;
     QString adminKeyFValue = "";
     WinUtilities::regRead(adminKeyString, "F", &adminKeyFValue);
-    if(adminKeyFValue.isEmpty()){
-        qCritical()<<QString("Can not read key '%1' related to System$!").arg(adminKeyFValue);
+    if(adminKeyFValue.isEmpty()) {
+        qCritical() << QString("Can not read key '%1' related to System$!").arg(adminKeyFValue);
         return false;
     }
 
     return true;
 }
 
-bool WinUtilities::getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode){
+bool WinUtilities::getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode)
+{
 
-    if(!jsonArray){return false;}
+    if(!jsonArray) {
+        return false;
+    }
 
     QStringList users = localUsers();
     QStringList loggedonUser;
@@ -2712,7 +2809,7 @@ bool WinUtilities::getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode){
     users.append(loggedonUser);
     users.removeDuplicates();
 
-    qDebug()<<"---------------loggedonUser:"<<loggedonUser;
+    qDebug() << "---------------loggedonUser:" << loggedonUser;
 
     LPUSER_INFO_4 pBuf = NULL;
     DWORD dwLevel = 4;
@@ -2727,8 +2824,7 @@ bool WinUtilities::getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode){
         array.append(QString::number(loggedon));
 
         nStatus  = NetUserGetInfo( NULL, userName.toStdWString().c_str(), dwLevel, (LPBYTE *)&pBuf);
-        if( nStatus  == NERR_Success )
-        {
+        if( nStatus  == NERR_Success ) {
             array.append(QString::fromWCharArray(pBuf->usri4_home_dir));
             array.append(QString::fromWCharArray(pBuf->usri4_comment));
 
@@ -2770,14 +2866,14 @@ bool WinUtilities::getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode){
             array.append(groups.join(";"));
 
 
-        }else{
-            qCritical()<<QString("NetUserGetInfo failed. Code: %1.").arg(nStatus );
-            if(errorCode){
+        } else {
+            qCritical() << QString("NetUserGetInfo failed. Code: %1.").arg(nStatus );
+            if(errorCode) {
                 *errorCode = nStatus;
             }
         }
 
-        if (pBuf != NULL){
+        if (pBuf != NULL) {
             NetApiBufferFree(pBuf);
         }
 
@@ -2796,11 +2892,14 @@ bool WinUtilities::getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode){
 
 }
 
-bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode){
+bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
+{
 
-    if(!userObject){return false;}
+    if(!userObject) {
+        return false;
+    }
     QString userName = userObject->value("UserName").toString().trimmed();
-    if(userName.isEmpty()){
+    if(userName.isEmpty()) {
         qCritical() << QString("Error! Failed to get user name. Invalid JSON object.");
         return false;
     }
@@ -2808,9 +2907,9 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
     NET_API_STATUS nStatus  = NERR_Success;
 
     QStringList users = WinUtilities::localUsers(&nStatus);
-    if(users.isEmpty()){
+    if(users.isEmpty()) {
         qCritical() << QString("Error! Failed to get local users. Error code: %1").arg(nStatus);
-        if(errorCode){
+        if(errorCode) {
             *errorCode = nStatus;
         }
         return false;
@@ -2818,13 +2917,15 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
 
     bool ok = false;
     nStatus  = NERR_Success;
-    if(!users.contains(userName, Qt::CaseInsensitive)){
-        if(userObject->contains("Delete")){return true;}
+    if(!users.contains(userName, Qt::CaseInsensitive)) {
+        if(userObject->contains("Delete")) {
+            return true;
+        }
 
         ok = createLocalUser(userName, "", "", &nStatus);
-        if(!ok){
-            qCritical()<<QString("Error! Failed to create user '%1'. Error code: %2").arg(userName).arg(nStatus);
-            if(errorCode){
+        if(!ok) {
+            qCritical() << QString("Error! Failed to create user '%1'. Error code: %2").arg(userName).arg(nStatus);
+            if(errorCode) {
                 *errorCode = nStatus;
             }
             return false;
@@ -2832,7 +2933,7 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
         //addUserToLocalGroup(userName, "Users");
     }
 
-    if(userObject->contains("Delete")){
+    if(userObject->contains("Delete")) {
         return deleteLocalUser(userName);
     }
 
@@ -2842,22 +2943,21 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
     nStatus  = NERR_Success;
 
     nStatus  = NetUserGetInfo( NULL, userName.toStdWString().c_str(), dwLevel, (LPBYTE *)&pBuf);
-    if( nStatus  == NERR_Success )
-    {
+    if( nStatus  == NERR_Success ) {
 
-        if(userObject->contains("Password")){
+        if(userObject->contains("Password")) {
             wchar_t strArray[MaxUserPasswordLength * sizeof(wchar_t) + 1];
             wcscpy(strArray, userObject->value("Password").toString().toStdWString().c_str());
 
             pBuf->usri4_password = strArray;
         }
-        if(userObject->contains("HomeDir")){
+        if(userObject->contains("HomeDir")) {
             wchar_t strArray[512];
             wcscpy(strArray, userObject->value("HomeDir").toString().toStdWString().c_str());
 
             pBuf->usri4_home_dir = strArray;
         }
-        if(userObject->contains("Comment")){
+        if(userObject->contains("Comment")) {
             wchar_t strArray[512];
             wcscpy(strArray, userObject->value("Comment").toString().toStdWString().c_str());
 
@@ -2866,38 +2966,38 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
 
         DWORD flags = pBuf->usri4_flags;
 
-        if(userObject->contains("UF_ACCOUNTDISABLE")){
+        if(userObject->contains("UF_ACCOUNTDISABLE")) {
             bool accountDisabled  = userObject->value("UF_ACCOUNTDISABLE").toString().toInt();
-            if(accountDisabled){
+            if(accountDisabled) {
                 flags = flags | UF_ACCOUNTDISABLE;
-            }else{
+            } else {
                 flags = flags ^ UF_ACCOUNTDISABLE;
             }
         }
 
-        if(userObject->contains("UF_PASSWD_CANT_CHANGE")){
+        if(userObject->contains("UF_PASSWD_CANT_CHANGE")) {
             bool cannotChangePassword = userObject->value("UF_PASSWD_CANT_CHANGE").toString().toInt();
-            if(cannotChangePassword){
+            if(cannotChangePassword) {
                 flags = flags | UF_PASSWD_CANT_CHANGE;
-            }else{
+            } else {
                 flags = flags ^ UF_PASSWD_CANT_CHANGE;
             }
         }
 
-        if(userObject->contains("UF_LOCKOUT")){
+        if(userObject->contains("UF_LOCKOUT")) {
             bool accountLocked = userObject->value("UF_LOCKOUT").toString().toInt();
-            if(accountLocked){
+            if(accountLocked) {
                 flags = flags | UF_LOCKOUT;
-            }else{
+            } else {
                 flags = flags ^ UF_LOCKOUT;
             }
         }
 
-        if(userObject->contains("UF_DONT_EXPIRE_PASSWD")){
+        if(userObject->contains("UF_DONT_EXPIRE_PASSWD")) {
             bool passwordNeverExpires = userObject->value("UF_DONT_EXPIRE_PASSWD").toString().toInt();
-            if(passwordNeverExpires){
+            if(passwordNeverExpires) {
                 flags = flags | UF_DONT_EXPIRE_PASSWD;
-            }else{
+            } else {
                 flags = flags ^ UF_DONT_EXPIRE_PASSWD;
             }
         }
@@ -2905,51 +3005,51 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
         pBuf->usri4_flags = flags;
 
 
-        if(userObject->contains("FullName")){
+        if(userObject->contains("FullName")) {
             wchar_t strArray[512];
             wcscpy(strArray, userObject->value("FullName").toString().toStdWString().c_str());
 
             pBuf->usri4_full_name = strArray;
         }
-        if(userObject->contains("Profile")){
+        if(userObject->contains("Profile")) {
             wchar_t strArray[512];
             wcscpy(strArray, userObject->value("Profile").toString().toStdWString().c_str());
 
             pBuf->usri4_profile = strArray;
         }
 
-        if(userObject->contains("MustChangePassword")){
+        if(userObject->contains("MustChangePassword")) {
             pBuf->usri4_password_expired = userObject->value("MustChangePassword").toString().toInt();
         }
 
         DWORD dwParmError = 0;
         nStatus = NetUserSetInfo( NULL, userName.toStdWString().c_str(), dwLevel, (LPBYTE)pBuf, &dwParmError);
-        if( nStatus != NERR_Success ){
-            if(errorCode){
+        if( nStatus != NERR_Success ) {
+            if(errorCode) {
                 *errorCode = nStatus;
             }
-            qCritical()<<QString("ERROR! Can not update user info. Error code: %1").arg(nStatus);
+            qCritical() << QString("ERROR! Can not update user info. Error code: %1").arg(nStatus);
             return false;
         }
 
-        if (pBuf != NULL){
+        if (pBuf != NULL) {
             NetApiBufferFree(pBuf);
         }
 
-        if(userObject->contains("Groups")){
+        if(userObject->contains("Groups")) {
             QStringList groups = userObject->value("Groups").toString().split(";");
             groups.removeAll("");
             groups.sort(Qt::CaseInsensitive);
             QStringList curGroups;
             nStatus  = NERR_Success;
             ok = getLocalGroupsTheUserBelongs(&curGroups, userName, &nStatus);
-            if(!ok){
-                qCritical()<<QString("ERROR! Can not get groups the user belongs to. Error code:").arg(nStatus);
+            if(!ok) {
+                qCritical() << QString("ERROR! Can not get groups the user belongs to. Error code:").arg(nStatus);
                 return false;
             }
 
             foreach (QString group, curGroups) {
-                if(!groups.contains(group, Qt::CaseInsensitive)){
+                if(!groups.contains(group, Qt::CaseInsensitive)) {
                     deleteUserFromLocalGroup(userName, group);
                 }
             }
@@ -2960,22 +3060,22 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
             curGroups.clear();
             getLocalGroupsTheUserBelongs(&curGroups, userName, &nStatus);
             curGroups.sort(Qt::CaseInsensitive);
-            if(curGroups != groups){
-                qCritical()<<"ERROR! An error occured while adding user to local grous.";
+            if(curGroups != groups) {
+                qCritical() << "ERROR! An error occured while adding user to local grous.";
                 return false;
             }
 
 
         }
 
-    }else{
-        qCritical()<<QString("NetUserGetInfo failed. Code: %1.").arg(nStatus );
-        if(errorCode){
+    } else {
+        qCritical() << QString("NetUserGetInfo failed. Code: %1.").arg(nStatus );
+        if(errorCode) {
             *errorCode = nStatus;
         }
     }
-    qDebug()<<"----------7";
-    if (pBuf != NULL){
+    qDebug() << "----------7";
+    if (pBuf != NULL) {
         NetApiBufferFree(pBuf);
     }
 
@@ -2985,23 +3085,23 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
 
 
 
-bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode, DWORD dwDesiredAccess){
+bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode, DWORD dwDesiredAccess)
+{
 
-    if(!schSCManager){
+    if(!schSCManager) {
         return false;
     }
 
     // Get a handle to the SCM database.
 
     *schSCManager = OpenSCManager(
-                NULL,                    // local computer
-                NULL,                    // ServicesActive database
-                dwDesiredAccess);  // full access rights
+                        NULL,                    // local computer
+                        NULL,                    // ServicesActive database
+                        dwDesiredAccess);  // full access rights
 
-    if (NULL == (*schSCManager))
-    {
+    if (NULL == (*schSCManager)) {
         printf("OpenSCManager failed (%d)\n", GetLastError());
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         return false;
@@ -3010,9 +3110,10 @@ bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCod
     return true;
 }
 
-bool WinUtilities::serviceOpenService(const QString &serviceName, SC_HANDLE *schSCManager, SC_HANDLE *schService, DWORD *errorCode, DWORD dwDesiredAccess){
+bool WinUtilities::serviceOpenService(const QString &serviceName, SC_HANDLE *schSCManager, SC_HANDLE *schService, DWORD *errorCode, DWORD dwDesiredAccess)
+{
 
-    if(serviceName.trimmed().isEmpty() || !schSCManager || !schService){
+    if(serviceName.trimmed().isEmpty() || !schSCManager || !schService) {
         return false;
     }
 
@@ -3034,14 +3135,13 @@ bool WinUtilities::serviceOpenService(const QString &serviceName, SC_HANDLE *sch
     // Get a handle to the service.
 
     *schService = OpenServiceW(
-                (*schSCManager),          // SCM database
-                serviceName.toStdWString().c_str(),             // name of service
-                dwDesiredAccess); // need query config access
+                      (*schSCManager),          // SCM database
+                      serviceName.toStdWString().c_str(),             // name of service
+                      dwDesiredAccess); // need query config access
 
-    if (*schService == NULL)
-    {
+    if (*schService == NULL) {
         printf("OpenService failed (%d)\n", GetLastError());
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         //CloseServiceHandle(*schSCManager);
@@ -3051,13 +3151,16 @@ bool WinUtilities::serviceOpenService(const QString &serviceName, SC_HANDLE *sch
     return true;
 }
 
-bool WinUtilities::serviceQueryInfo(const QString &serviceName, ServiceInfo *serviceInfo, DWORD *errorCode){
-    if(serviceName.trimmed().isEmpty() || !serviceInfo){return false;}
+bool WinUtilities::serviceQueryInfo(const QString &serviceName, ServiceInfo *serviceInfo, DWORD *errorCode)
+{
+    if(serviceName.trimmed().isEmpty() || !serviceInfo) {
+        return false;
+    }
 
     SC_HANDLE schSCManager;
     //    SC_HANDLE schService;
     bool ok = serviceOpenSCManager(&schSCManager, errorCode);
-    if(!ok){
+    if(!ok) {
         return false;
     }
 
@@ -3195,12 +3298,15 @@ bool WinUtilities::serviceQueryInfo(const QString &serviceName, ServiceInfo *ser
 
 }
 
-bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serviceName, ServiceInfo *serviceInfo, DWORD *errorCode){
-    if(!schSCManager || serviceName.trimmed().isEmpty() || !serviceInfo){return false;}
+bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serviceName, ServiceInfo *serviceInfo, DWORD *errorCode)
+{
+    if(!schSCManager || serviceName.trimmed().isEmpty() || !serviceInfo) {
+        return false;
+    }
 
     SC_HANDLE schService;
     bool ok = serviceOpenService(serviceName, schSCManager, &schService, errorCode, SERVICE_QUERY_CONFIG );
-    if(!ok){
+    if(!ok) {
         return false;
     }
 
@@ -3215,18 +3321,14 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
                 schService,
                 NULL,
                 0,
-                &dwBytesNeeded))
-    {
+                &dwBytesNeeded)) {
         dwError = GetLastError();
-        if( ERROR_INSUFFICIENT_BUFFER == dwError )
-        {
+        if( ERROR_INSUFFICIENT_BUFFER == dwError ) {
             cbBufSize = dwBytesNeeded;
             lpServiceConfig = (LPQUERY_SERVICE_CONFIG) LocalAlloc(LMEM_FIXED, cbBufSize);
-        }
-        else
-        {
-            qCritical()<<QString("ERROR! QueryServiceConfig failed. Error code: %1. Service Name: %2").arg(dwError).arg(serviceName);
-            if(errorCode){
+        } else {
+            qCritical() << QString("ERROR! QueryServiceConfig failed. Error code: %1. Service Name: %2").arg(dwError).arg(serviceName);
+            if(errorCode) {
                 *errorCode = dwError;
             }
             //goto cleanup;
@@ -3239,10 +3341,9 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
                 schService,
                 lpServiceConfig,
                 cbBufSize,
-                &dwBytesNeeded) )
-    {
-        qCritical()<<QString("ERROR! QueryServiceConfig failed. Error code: %1. Service Name: %2").arg(dwError).arg(serviceName);
-        if(errorCode){
+                &dwBytesNeeded) ) {
+        qCritical() << QString("ERROR! QueryServiceConfig failed. Error code: %1. Service Name: %2").arg(dwError).arg(serviceName);
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         //goto cleanup;
@@ -3255,18 +3356,14 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
                 SERVICE_CONFIG_DESCRIPTION,
                 NULL,
                 0,
-                &dwBytesNeeded))
-    {
+                &dwBytesNeeded)) {
         dwError = GetLastError();
-        if( ERROR_INSUFFICIENT_BUFFER == dwError )
-        {
+        if( ERROR_INSUFFICIENT_BUFFER == dwError ) {
             cbBufSize = dwBytesNeeded;
             lpsd = (LPSERVICE_DESCRIPTION) LocalAlloc(LMEM_FIXED, cbBufSize);
-        }
-        else
-        {
-            qCritical()<<QString("ERROR! QueryServiceConfig2 failed. Error code: %1. Service Name: %2").arg(GetLastError()).arg(serviceName);
-            if(errorCode){
+        } else {
+            qCritical() << QString("ERROR! QueryServiceConfig2 failed. Error code: %1. Service Name: %2").arg(GetLastError()).arg(serviceName);
+            if(errorCode) {
                 *errorCode = dwError;
             }
             //goto cleanup;
@@ -3280,10 +3377,9 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
                 SERVICE_CONFIG_DESCRIPTION,
                 (LPBYTE) lpsd,
                 cbBufSize,
-                &dwBytesNeeded) )
-    {
-        qCritical()<<QString("ERROR! QueryServiceConfig2 failed. Error code: %1. Service Name: %2").arg(GetLastError()).arg(serviceName);
-        if(errorCode){
+                &dwBytesNeeded) ) {
+        qCritical() << QString("ERROR! QueryServiceConfig2 failed. Error code: %1. Service Name: %2").arg(GetLastError()).arg(serviceName);
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         //goto cleanup;
@@ -3301,10 +3397,12 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
     serviceInfo->account = QString::fromWCharArray(lpServiceConfig->lpServiceStartName);
 
 
-    for(int i=0;i<256;i++){
+    for(int i = 0; i < 256; i++) {
         QChar ch = lpServiceConfig->lpDependencies[i];
-        if(lpServiceConfig->lpDependencies[i] == '\0'){
-            if(lpServiceConfig->lpDependencies[i+1] == '\0'){break;}
+        if(lpServiceConfig->lpDependencies[i] == '\0') {
+            if(lpServiceConfig->lpDependencies[i + 1] == '\0') {
+                break;
+            }
             ch = ';';
         }
         dependencies.append(ch);
@@ -3343,17 +3441,18 @@ bool WinUtilities::serviceQueryInfo(SC_HANDLE *schSCManager, const QString &serv
     return true;
 }
 
-bool WinUtilities::serviceChangeStartType(const QString &serviceName, DWORD startType, DWORD *errorCode){
+bool WinUtilities::serviceChangeStartType(const QString &serviceName, DWORD startType, DWORD *errorCode)
+{
 
     SC_HANDLE schSCManager;
     SC_HANDLE schService;
 
     bool ok = serviceOpenSCManager(&schSCManager, errorCode);
-    if(!ok){
+    if(!ok) {
         return false;
     }
     ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
-    if(!ok){
+    if(!ok) {
         //CloseServiceHandle(schSCManager);
         serviceCloseHandle(&schSCManager, 0);
         return false;
@@ -3362,22 +3461,21 @@ bool WinUtilities::serviceChangeStartType(const QString &serviceName, DWORD star
     // Change the service start type.
 
     ok =  ChangeServiceConfig(
-                schService,            // handle of service
-                SERVICE_NO_CHANGE,     // service type: no change
-                startType,             // service start type
-                SERVICE_NO_CHANGE,     // error control: no change
-                NULL,                  // binary path: no change
-                NULL,                  // load order group: no change
-                NULL,                  // tag ID: no change
-                NULL,                  // dependencies: no change
-                NULL,                  // account name: no change
-                NULL,                  // password: no change
-                NULL);
+              schService,            // handle of service
+              SERVICE_NO_CHANGE,     // service type: no change
+              startType,             // service start type
+              SERVICE_NO_CHANGE,     // error control: no change
+              NULL,                  // binary path: no change
+              NULL,                  // load order group: no change
+              NULL,                  // tag ID: no change
+              NULL,                  // dependencies: no change
+              NULL,                  // account name: no change
+              NULL,                  // password: no change
+              NULL);
 
-    if (!ok)                // display name: no change
-    {
+    if (!ok) {              // display name: no change
         printf("ChangeServiceConfig failed (%d)\n", GetLastError());
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
     }
@@ -3389,17 +3487,18 @@ bool WinUtilities::serviceChangeStartType(const QString &serviceName, DWORD star
     return ok;
 }
 
-bool WinUtilities::serviceChangeDescription(const QString &serviceName, const QString &description, DWORD *errorCode){
+bool WinUtilities::serviceChangeDescription(const QString &serviceName, const QString &description, DWORD *errorCode)
+{
 
     SC_HANDLE schSCManager;
     SC_HANDLE schService;
 
     bool ok = serviceOpenSCManager(&schSCManager, errorCode);
-    if(!ok){
+    if(!ok) {
         return false;
     }
     ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
-    if(!ok){
+    if(!ok) {
         //CloseServiceHandle(schSCManager);
         serviceCloseHandle(&schSCManager, 0);
         return false;
@@ -3413,14 +3512,13 @@ bool WinUtilities::serviceChangeDescription(const QString &serviceName, const QS
     sd.lpDescription = desc;
 
     ok = ChangeServiceConfig2(
-                schService,                 // handle to service
-                SERVICE_CONFIG_DESCRIPTION, // change: description
-                &sd);
+             schService,                 // handle to service
+             SERVICE_CONFIG_DESCRIPTION, // change: description
+             &sd);
 
-    if(!ok)
-    {
+    if(!ok) {
         printf("ChangeServiceConfig2 failed\n");
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
     }
@@ -3432,17 +3530,18 @@ bool WinUtilities::serviceChangeDescription(const QString &serviceName, const QS
     return ok;
 }
 
-bool WinUtilities::serviceDelete(const QString &serviceName, DWORD *errorCode){
+bool WinUtilities::serviceDelete(const QString &serviceName, DWORD *errorCode)
+{
 
     SC_HANDLE schSCManager;
     SC_HANDLE schService;
 
     bool ok = serviceOpenSCManager(&schSCManager, errorCode);
-    if(!ok){
+    if(!ok) {
         return false;
     }
     ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode);
-    if(!ok){
+    if(!ok) {
         //CloseServiceHandle(schSCManager);
         serviceCloseHandle(&schSCManager, 0);
         return false;
@@ -3451,14 +3550,14 @@ bool WinUtilities::serviceDelete(const QString &serviceName, DWORD *errorCode){
     // Delete the service.
 
     ok = DeleteService(schService);
-    if(!ok)
-    {
+    if(!ok) {
         printf("DeleteService failed (%d)\n", GetLastError());
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
+    } else {
+        printf("Service deleted successfully\n");
     }
-    else printf("Service deleted successfully\n");
 
     //CloseServiceHandle(schService);
     //CloseServiceHandle(schSCManager);
@@ -3467,13 +3566,16 @@ bool WinUtilities::serviceDelete(const QString &serviceName, DWORD *errorCode){
     return ok;
 }
 
-bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD serviceType, DWORD *errorCode){
+bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD serviceType, DWORD *errorCode)
+{
 
-    if(!jsonArray){return false;}
+    if(!jsonArray) {
+        return false;
+    }
 
     SC_HANDLE schSCManager;
     bool ok = serviceOpenSCManager(&schSCManager, errorCode);
-    if(!ok){
+    if(!ok) {
         return false;
     }
 
@@ -3484,21 +3586,20 @@ bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD servic
     LPENUM_SERVICE_STATUS_PROCESS pInfo = NULL;
 
     EnumServicesStatusEx(
-                schSCManager,
-                SC_ENUM_PROCESS_INFO,
-                serviceType, // SERVICE_DRIVER
-                SERVICE_STATE_ALL,
-                NULL,
-                dwBufSize,
-                &dwBufNeed,
-                &dwNumberOfService,
-                NULL,
-                NULL);
+        schSCManager,
+        SC_ENUM_PROCESS_INFO,
+        serviceType, // SERVICE_DRIVER
+        SERVICE_STATE_ALL,
+        NULL,
+        dwBufSize,
+        &dwBufNeed,
+        &dwNumberOfService,
+        NULL,
+        NULL);
 
-    if (dwBufNeed < 0x01)
-    {
+    if (dwBufNeed < 0x01) {
         printf_s("EnumServicesStatusEx failed. \n");
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         return false;
@@ -3508,27 +3609,28 @@ bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD servic
     pBuf  = (PUCHAR) malloc(dwBufSize);
 
     EnumServicesStatusEx(
-                schSCManager,
-                SC_ENUM_PROCESS_INFO,
-                serviceType,  // SERVICE_DRIVER,
-                SERVICE_STATE_ALL,  //SERVICE_STATE_ALL,SERVICE_ACTIVE
-                pBuf,
-                dwBufSize,
-                &dwBufNeed,
-                &dwNumberOfService,
-                NULL,
-                NULL);
+        schSCManager,
+        SC_ENUM_PROCESS_INFO,
+        serviceType,  // SERVICE_DRIVER,
+        SERVICE_STATE_ALL,  //SERVICE_STATE_ALL,SERVICE_ACTIVE
+        pBuf,
+        dwBufSize,
+        &dwBufNeed,
+        &dwNumberOfService,
+        NULL,
+        NULL);
 
     pInfo = (LPENUM_SERVICE_STATUS_PROCESS)pBuf;
-    for (ULONG i=0; i<dwNumberOfService; i++)
-    {
+    for (ULONG i = 0; i < dwNumberOfService; i++) {
         //        qDebug();
         //        qDebug()<<i<<"."<<"Display Name \t : "<< QString::fromWCharArray(pInfo[i].lpDisplayName);
         //        qDebug()<<"Service Name \t : "<< QString::fromWCharArray(pInfo[i].lpServiceName);
         //        qDebug()<<"Process Id \t : "<< QString::number( pInfo[i].ServiceStatusProcess.dwProcessId);
 
         QString serviceName = QString::fromWCharArray(pInfo[i].lpServiceName);
-        if(serviceName.trimmed().isEmpty()){continue;}
+        if(serviceName.trimmed().isEmpty()) {
+            continue;
+        }
 
         QString displayName = QString::fromWCharArray(pInfo[i].lpDisplayName);
         DWORD processID = pInfo[i].ServiceStatusProcess.dwProcessId;
@@ -3563,7 +3665,7 @@ bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD servic
 
 
     }
-    qDebug()<<"----------jsonArray->size():"<<jsonArray->size();
+    qDebug() << "----------jsonArray->size():" << jsonArray->size();
 
     free(pBuf);
     //CloseServiceHandle(schSCManager);
@@ -3572,17 +3674,18 @@ bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD servic
     return true;
 }
 
-bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
+bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode)
+{
 
     SC_HANDLE schSCManager;
     SC_HANDLE schService;
 
     bool ok = serviceOpenSCManager(&schSCManager, errorCode);
-    if(!ok){
+    if(!ok) {
         return false;
     }
-    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode, SERVICE_QUERY_STATUS|SERVICE_START);
-    if(!ok){
+    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode, SERVICE_QUERY_STATUS | SERVICE_START);
+    if(!ok) {
         //CloseServiceHandle(schSCManager);
         serviceCloseHandle(&schSCManager, 0);
         return false;
@@ -3601,12 +3704,11 @@ bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
                 SC_STATUS_PROCESS_INFO,         // information level
                 (LPBYTE) &ssStatus,             // address of structure
                 sizeof(SERVICE_STATUS_PROCESS), // size of structure
-                &dwBytesNeeded ) )              // size needed if buffer is too small
-    {
+                &dwBytesNeeded ) ) {            // size needed if buffer is too small
         printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
         //CloseServiceHandle(schService);
         //CloseServiceHandle(schSCManager);
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         serviceCloseHandle(&schSCManager, &schService);
@@ -3615,8 +3717,7 @@ bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
 
     // Check if the service is already running. It would be possible
     // to stop the service here, but for simplicity this example just returns.
-    if(ssStatus.dwCurrentState != SERVICE_STOPPED && ssStatus.dwCurrentState != SERVICE_STOP_PENDING)
-    {
+    if(ssStatus.dwCurrentState != SERVICE_STOPPED && ssStatus.dwCurrentState != SERVICE_STOP_PENDING) {
         printf("Cannot start the service because it is already running\n");
         CloseServiceHandle(schService);
         CloseServiceHandle(schSCManager);
@@ -3628,17 +3729,17 @@ bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
     dwOldCheckPoint = ssStatus.dwCheckPoint;
 
     // Wait for the service to stop before attempting to start it.
-    while (ssStatus.dwCurrentState == SERVICE_STOP_PENDING)
-    {
+    while (ssStatus.dwCurrentState == SERVICE_STOP_PENDING) {
         // Do not wait longer than the wait hint. A good interval is
         // one-tenth of the wait hint but not less than 1 second
         // and not more than 10 seconds.
 
         dwWaitTime = ssStatus.dwWaitHint / 10;
-        if( dwWaitTime < 1000 )
+        if( dwWaitTime < 1000 ) {
             dwWaitTime = 1000;
-        else if ( dwWaitTime > 10000 )
+        } else if ( dwWaitTime > 10000 ) {
             dwWaitTime = 10000;
+        }
 
         Sleep( dwWaitTime );
 
@@ -3648,28 +3749,23 @@ bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
                     SC_STATUS_PROCESS_INFO,         // information level
                     (LPBYTE) &ssStatus,             // address of structure
                     sizeof(SERVICE_STATUS_PROCESS), // size of structure
-                    &dwBytesNeeded ) )              // size needed if buffer is too small
-        {
+                    &dwBytesNeeded ) ) {            // size needed if buffer is too small
             printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
             //CloseServiceHandle(schService);
             //CloseServiceHandle(schSCManager);
-            if(errorCode){
+            if(errorCode) {
                 *errorCode = GetLastError();
             }
             serviceCloseHandle(&schSCManager, &schService);
             return false;
         }
 
-        if ( ssStatus.dwCheckPoint > dwOldCheckPoint )
-        {
+        if ( ssStatus.dwCheckPoint > dwOldCheckPoint ) {
             // Continue to wait and check.
             dwStartTickCount = GetTickCount();
             dwOldCheckPoint = ssStatus.dwCheckPoint;
-        }
-        else
-        {
-            if(GetTickCount()-dwStartTickCount > ssStatus.dwWaitHint)
-            {
+        } else {
+            if(GetTickCount() - dwStartTickCount > ssStatus.dwWaitHint) {
                 qCritical("Timeout waiting for service to stop\n");
                 //CloseServiceHandle(schService);
                 //CloseServiceHandle(schSCManager);
@@ -3683,18 +3779,18 @@ bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
     if (!StartService(
                 schService,  // handle to service
                 0,           // number of arguments
-                NULL) )      // no arguments
-    {
+                NULL) ) {    // no arguments
         printf("StartService failed (%d)\n", GetLastError());
         //CloseServiceHandle(schService);
         //CloseServiceHandle(schSCManager);
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         serviceCloseHandle(&schSCManager, &schService);
         return false;
+    } else {
+        printf("Service start pending...\n");
     }
-    else printf("Service start pending...\n");
 
     // Check the status until the service is no longer start pending.
     if (!QueryServiceStatusEx(
@@ -3702,12 +3798,11 @@ bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
                 SC_STATUS_PROCESS_INFO,         // info level
                 (LPBYTE) &ssStatus,             // address of structure
                 sizeof(SERVICE_STATUS_PROCESS), // size of structure
-                &dwBytesNeeded ) )              // if buffer too small
-    {
+                &dwBytesNeeded ) ) {            // if buffer too small
         printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
         //CloseServiceHandle(schService);
         //CloseServiceHandle(schSCManager);
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         serviceCloseHandle(&schSCManager, &schService);
@@ -3717,16 +3812,16 @@ bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
     // Save the tick count and initial checkpoint.
     dwStartTickCount = GetTickCount();
     dwOldCheckPoint = ssStatus.dwCheckPoint;
-    while (ssStatus.dwCurrentState == SERVICE_START_PENDING)
-    {
+    while (ssStatus.dwCurrentState == SERVICE_START_PENDING) {
         // Do not wait longer than the wait hint. A good interval is
         // one-tenth the wait hint, but no less than 1 second and no
         // more than 10 seconds.
         dwWaitTime = ssStatus.dwWaitHint / 10;
-        if( dwWaitTime < 1000 )
+        if( dwWaitTime < 1000 ) {
             dwWaitTime = 1000;
-        else if ( dwWaitTime > 10000 )
+        } else if ( dwWaitTime > 10000 ) {
             dwWaitTime = 10000;
+        }
 
         Sleep( dwWaitTime );
 
@@ -3736,22 +3831,17 @@ bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
                     SC_STATUS_PROCESS_INFO, // info level
                     (LPBYTE) &ssStatus,             // address of structure
                     sizeof(SERVICE_STATUS_PROCESS), // size of structure
-                    &dwBytesNeeded ) )              // if buffer too small
-        {
+                    &dwBytesNeeded ) ) {            // if buffer too small
             printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
             break;
         }
 
-        if ( ssStatus.dwCheckPoint > dwOldCheckPoint )
-        {
+        if ( ssStatus.dwCheckPoint > dwOldCheckPoint ) {
             // Continue to wait and check.
             dwStartTickCount = GetTickCount();
             dwOldCheckPoint = ssStatus.dwCheckPoint;
-        }
-        else
-        {
-            if(GetTickCount()-dwStartTickCount > ssStatus.dwWaitHint)
-            {
+        } else {
+            if(GetTickCount() - dwStartTickCount > ssStatus.dwWaitHint) {
                 // No progress made within the wait hint.
                 break;
             }
@@ -3760,12 +3850,9 @@ bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
 
     // Determine whether the service is running.
     ok = (ssStatus.dwCurrentState == SERVICE_RUNNING);
-    if (ok)
-    {
+    if (ok) {
         printf("Service started successfully.\n");
-    }
-    else
-    {
+    } else {
         printf("Service not started. \n");
         printf("  Current State: %d\n", ssStatus.dwCurrentState);
         printf("  Exit Code: %d\n", ssStatus.dwWin32ExitCode);
@@ -3781,17 +3868,18 @@ bool WinUtilities::serviceStart(const QString &serviceName, DWORD *errorCode){
 
 }
 
-bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode){
+bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode)
+{
 
     SC_HANDLE schSCManager;
     SC_HANDLE schService;
 
     bool ok = serviceOpenSCManager(&schSCManager, errorCode);
-    if(!ok){
+    if(!ok) {
         return false;
     }
-    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode, SERVICE_QUERY_STATUS|SERVICE_STOP|SERVICE_ENUMERATE_DEPENDENTS);
-    if(!ok){
+    ok = serviceOpenService(serviceName, &schSCManager, &schService, errorCode, SERVICE_QUERY_STATUS | SERVICE_STOP | SERVICE_ENUMERATE_DEPENDENTS);
+    if(!ok) {
         //CloseServiceHandle(schSCManager);
         serviceCloseHandle(&schSCManager, 0);
         return false;
@@ -3806,22 +3894,20 @@ bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode){
     // Make sure the service is not already stopped.
 
     if ( !QueryServiceStatusEx(
-             schService,
-             SC_STATUS_PROCESS_INFO,
-             (LPBYTE)&ssp,
-             sizeof(SERVICE_STATUS_PROCESS),
-             &dwBytesNeeded ) )
-    {
+                schService,
+                SC_STATUS_PROCESS_INFO,
+                (LPBYTE)&ssp,
+                sizeof(SERVICE_STATUS_PROCESS),
+                &dwBytesNeeded ) ) {
         printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
         serviceCloseHandle(&schSCManager, &schService);
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         return false;
     }
 
-    if ( ssp.dwCurrentState == SERVICE_STOPPED )
-    {
+    if ( ssp.dwCurrentState == SERVICE_STOPPED ) {
         printf("Service is already stopped.\n");
         serviceCloseHandle(&schSCManager, &schService);
         return true;
@@ -3829,8 +3915,7 @@ bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode){
 
     // If a stop is pending, wait for it.
 
-    while ( ssp.dwCurrentState == SERVICE_STOP_PENDING )
-    {
+    while ( ssp.dwCurrentState == SERVICE_STOP_PENDING ) {
         printf("Service stop pending...\n");
 
         // Do not wait longer than the wait hint. A good interval is
@@ -3839,37 +3924,35 @@ bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode){
 
         dwWaitTime = ssp.dwWaitHint / 10;
 
-        if( dwWaitTime < 1000 )
+        if( dwWaitTime < 1000 ) {
             dwWaitTime = 1000;
-        else if ( dwWaitTime > 10000 )
+        } else if ( dwWaitTime > 10000 ) {
             dwWaitTime = 10000;
+        }
 
         Sleep( dwWaitTime );
 
         if ( !QueryServiceStatusEx(
-                 schService,
-                 SC_STATUS_PROCESS_INFO,
-                 (LPBYTE)&ssp,
-                 sizeof(SERVICE_STATUS_PROCESS),
-                 &dwBytesNeeded ) )
-        {
+                    schService,
+                    SC_STATUS_PROCESS_INFO,
+                    (LPBYTE)&ssp,
+                    sizeof(SERVICE_STATUS_PROCESS),
+                    &dwBytesNeeded ) ) {
             printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
             serviceCloseHandle(&schSCManager, &schService);
-            if(errorCode){
+            if(errorCode) {
                 *errorCode = GetLastError();
             }
             return false;
         }
 
-        if ( ssp.dwCurrentState == SERVICE_STOPPED )
-        {
+        if ( ssp.dwCurrentState == SERVICE_STOPPED ) {
             printf("Service stopped successfully.\n");
             serviceCloseHandle(&schSCManager, &schService);
             return true;
         }
 
-        if ( GetTickCount() - dwStartTime > dwTimeout )
-        {
+        if ( GetTickCount() - dwStartTime > dwTimeout ) {
             printf("Service stop timed out.\n");
             serviceCloseHandle(&schSCManager, &schService);
             return false;
@@ -3881,13 +3964,12 @@ bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode){
 
     // Send a stop code to the service.
     if ( !ControlService(
-             schService,
-             SERVICE_CONTROL_STOP,
-             (LPSERVICE_STATUS) &ssp ) )
-    {
+                schService,
+                SERVICE_CONTROL_STOP,
+                (LPSERVICE_STATUS) &ssp ) ) {
         printf( "ControlService failed (%d)\n", GetLastError() );
         serviceCloseHandle(&schSCManager, &schService);
-        if(errorCode){
+        if(errorCode) {
             *errorCode = GetLastError();
         }
         return false;
@@ -3895,29 +3977,27 @@ bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode){
 
     // Wait for the service to stop.
 
-    while ( ssp.dwCurrentState != SERVICE_STOPPED )
-    {
+    while ( ssp.dwCurrentState != SERVICE_STOPPED ) {
         Sleep( ssp.dwWaitHint );
         if ( !QueryServiceStatusEx(
-                 schService,
-                 SC_STATUS_PROCESS_INFO,
-                 (LPBYTE)&ssp,
-                 sizeof(SERVICE_STATUS_PROCESS),
-                 &dwBytesNeeded ) )
-        {
+                    schService,
+                    SC_STATUS_PROCESS_INFO,
+                    (LPBYTE)&ssp,
+                    sizeof(SERVICE_STATUS_PROCESS),
+                    &dwBytesNeeded ) ) {
             printf( "QueryServiceStatusEx failed (%d)\n", GetLastError() );
             serviceCloseHandle(&schSCManager, &schService);
-            if(errorCode){
+            if(errorCode) {
                 *errorCode = GetLastError();
             }
             return false;
         }
 
-        if ( ssp.dwCurrentState == SERVICE_STOPPED )
+        if ( ssp.dwCurrentState == SERVICE_STOPPED ) {
             break;
+        }
 
-        if ( GetTickCount() - dwStartTime > dwTimeout )
-        {
+        if ( GetTickCount() - dwStartTime > dwTimeout ) {
             printf( "Wait timed out\n" );
             serviceCloseHandle(&schSCManager, &schService);
             return false;
@@ -3944,42 +4024,40 @@ bool WinUtilities::serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HAND
 
     // Pass a zero-length buffer to get the required buffer size.
     if ( EnumDependentServices( *schService, SERVICE_ACTIVE,
-                                lpDependencies, 0, &dwBytesNeeded, &dwCount ) )
-    {
+                                lpDependencies, 0, &dwBytesNeeded, &dwCount ) ) {
         // If the Enum call succeeds, then there are no dependent
         // services, so do nothing.
         return TRUE;
-    }
-    else
-    {
-        if ( GetLastError() != ERROR_MORE_DATA )
-            return FALSE; // Unexpected error
+    } else {
+        if ( GetLastError() != ERROR_MORE_DATA ) {
+            return FALSE;    // Unexpected error
+        }
 
         // Allocate a buffer for the dependencies.
         lpDependencies = (LPENUM_SERVICE_STATUS) HeapAlloc(
-                    GetProcessHeap(), HEAP_ZERO_MEMORY, dwBytesNeeded );
+                             GetProcessHeap(), HEAP_ZERO_MEMORY, dwBytesNeeded );
 
-        if ( !lpDependencies )
+        if ( !lpDependencies ) {
             return FALSE;
+        }
 
 
         // Enumerate the dependencies.
         if ( !EnumDependentServices( *schService, SERVICE_ACTIVE,
                                      lpDependencies, dwBytesNeeded, &dwBytesNeeded,
-                                     &dwCount ) ){
+                                     &dwCount ) ) {
             HeapFree( GetProcessHeap(), 0, lpDependencies );
             return FALSE;
         }
 
-        for ( i = 0; i < dwCount; i++ )
-        {
+        for ( i = 0; i < dwCount; i++ ) {
             ess = *(lpDependencies + i);
             // Open the service.
             hDepService = OpenService( *schSCManager,
                                        ess.lpServiceName,
                                        SERVICE_STOP | SERVICE_QUERY_STATUS );
 
-            if ( !hDepService ){
+            if ( !hDepService ) {
                 HeapFree( GetProcessHeap(), 0, lpDependencies );
                 return FALSE;
             }
@@ -3988,32 +4066,32 @@ bool WinUtilities::serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HAND
             // Send a stop code.
             if ( !ControlService( hDepService,
                                   SERVICE_CONTROL_STOP,
-                                  (LPSERVICE_STATUS) &ssp ) ){
+                                  (LPSERVICE_STATUS) &ssp ) ) {
                 CloseServiceHandle( hDepService );
                 HeapFree( GetProcessHeap(), 0, lpDependencies );
                 return FALSE;
             }
 
             // Wait for the service to stop.
-            while ( ssp.dwCurrentState != SERVICE_STOPPED )
-            {
+            while ( ssp.dwCurrentState != SERVICE_STOPPED ) {
                 Sleep( ssp.dwWaitHint );
                 if ( !QueryServiceStatusEx(
-                         hDepService,
-                         SC_STATUS_PROCESS_INFO,
-                         (LPBYTE)&ssp,
-                         sizeof(SERVICE_STATUS_PROCESS),
-                         &dwBytesNeeded ) ){
+                            hDepService,
+                            SC_STATUS_PROCESS_INFO,
+                            (LPBYTE)&ssp,
+                            sizeof(SERVICE_STATUS_PROCESS),
+                            &dwBytesNeeded ) ) {
                     CloseServiceHandle( hDepService );
                     HeapFree( GetProcessHeap(), 0, lpDependencies );
                     return FALSE;
                 }
 
 
-                if ( ssp.dwCurrentState == SERVICE_STOPPED )
+                if ( ssp.dwCurrentState == SERVICE_STOPPED ) {
                     break;
+                }
 
-                if ( GetTickCount() - dwStartTime > dwTimeout ){
+                if ( GetTickCount() - dwStartTime > dwTimeout ) {
                     CloseServiceHandle( hDepService );
                     HeapFree( GetProcessHeap(), 0, lpDependencies );
                     return FALSE;
@@ -4028,12 +4106,13 @@ bool WinUtilities::serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HAND
 }
 
 
-void WinUtilities::serviceCloseHandle(SC_HANDLE *schSCManager, SC_HANDLE *schService){
-    if(schService){
+void WinUtilities::serviceCloseHandle(SC_HANDLE *schSCManager, SC_HANDLE *schService)
+{
+    if(schService) {
         CloseServiceHandle(*schService);
     }
 
-    if(schSCManager){
+    if(schSCManager) {
         CloseServiceHandle(*schSCManager);
     }
 }
@@ -4041,43 +4120,51 @@ void WinUtilities::serviceCloseHandle(SC_HANDLE *schSCManager, SC_HANDLE *schSer
 
 
 
-BOOL WinUtilities::EnableShutdownPrivilege(){
+BOOL WinUtilities::EnableShutdownPrivilege()
+{
     HANDLE hProcess = NULL;
     HANDLE hToken = NULL;
     LUID uID = {0};
     TOKEN_PRIVILEGES stToken_Privileges = {0};
 
     hProcess = ::GetCurrentProcess();
-    if(!::OpenProcessToken(hProcess,TOKEN_ADJUST_PRIVILEGES,&hToken))
+    if(!::OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken)) {
         return FALSE;
+    }
 
-    if(!::LookupPrivilegeValue(NULL,SE_SHUTDOWN_NAME,&uID))
+    if(!::LookupPrivilegeValue(NULL, SE_SHUTDOWN_NAME, &uID)) {
         return FALSE;
+    }
 
     stToken_Privileges.PrivilegeCount = 1;
     stToken_Privileges.Privileges[0].Luid = uID;
     stToken_Privileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-    if(!::AdjustTokenPrivileges(hToken,FALSE,&stToken_Privileges,sizeof stToken_Privileges,NULL,NULL))
+    if(!::AdjustTokenPrivileges(hToken, FALSE, &stToken_Privileges, sizeof stToken_Privileges, NULL, NULL)) {
         return FALSE;
+    }
 
-    if(::GetLastError() != ERROR_SUCCESS)
+    if(::GetLastError() != ERROR_SUCCESS) {
         return FALSE;
+    }
 
     ::CloseHandle(hToken);
     return TRUE;
 }
 
 //Shutdown
-BOOL WinUtilities::Shutdown(BOOL bForce){
+BOOL WinUtilities::Shutdown(BOOL bForce)
+{
     EnableShutdownPrivilege();
-    if(bForce)
-        return ::ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE,0);
-    else
-        return ::ExitWindowsEx(EWX_SHUTDOWN,0);
+    if(bForce) {
+        return ::ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
+    } else {
+        return ::ExitWindowsEx(EWX_SHUTDOWN, 0);
+    }
 }
 
-BOOL WinUtilities::Shutdown(const QString &machineName, const QString &message, DWORD timeout, bool forceAppsClosed, bool rebootAfterShutdown){
+BOOL WinUtilities::Shutdown(const QString &machineName, const QString &message, DWORD timeout, bool forceAppsClosed, bool rebootAfterShutdown)
+{
     EnableShutdownPrivilege();
 
 
@@ -4090,34 +4177,38 @@ BOOL WinUtilities::Shutdown(const QString &machineName, const QString &message, 
 
     // Display the shutdown dialog box and start the countdown.
     BOOL fResult = InitiateSystemShutdownW(
-                lpMachineName,    // NULL:shut down local computer
-                lpMessage,   // message for user
-                timeout,      // time-out period, in seconds
-                forceAppsClosed,   // if ask user to close apps
-                rebootAfterShutdown);   // reboot after shutdown
+                       lpMachineName,    // NULL:shut down local computer
+                       lpMessage,   // message for user
+                       timeout,      // time-out period, in seconds
+                       forceAppsClosed,   // if ask user to close apps
+                       rebootAfterShutdown);   // reboot after shutdown
 
     return fResult;
 }
 
 //Logoff数
-BOOL WinUtilities::Logoff(BOOL bForce){
-    if(bForce)
+BOOL WinUtilities::Logoff(BOOL bForce)
+{
+    if(bForce) {
         return ::ExitWindowsEx(EWX_LOGOFF | EWX_FORCE, 0);
-    else
-        return ::ExitWindowsEx(EWX_LOGOFF,0);
-}
-
-//Reboot
-BOOL WinUtilities::Reboot(BOOL bForce){
-    EnableShutdownPrivilege();
-    if(bForce){
-        return ExitWindowsEx(EWX_REBOOT | EWX_FORCE,0);
-    }else{
-        return ::ExitWindowsEx(EWX_REBOOT,0);
+    } else {
+        return ::ExitWindowsEx(EWX_LOGOFF, 0);
     }
 }
 
-BOOL WinUtilities::LockWindows(){
+//Reboot
+BOOL WinUtilities::Reboot(BOOL bForce)
+{
+    EnableShutdownPrivilege();
+    if(bForce) {
+        return ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
+    } else {
+        return ::ExitWindowsEx(EWX_REBOOT, 0);
+    }
+}
+
+BOOL WinUtilities::LockWindows()
+{
     return LockWorkStation();
 }
 
@@ -4125,12 +4216,13 @@ BOOL WinUtilities::LockWindows(){
 
 //////////////////////////////////////////////////////
 
-bool WinUtilities::runAs(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds){
-    qDebug()<<"----WinUtilities::runAs(...)";
+bool WinUtilities::runAs(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds)
+{
+    qDebug() << "----WinUtilities::runAs(...)";
     //qDebug()<<"User Name Of CurrentThread:"<<m_currentUserName;
 
 
-    if(userName.simplified().isEmpty()){
+    if(userName.simplified().isEmpty()) {
         return false;
     }
 
@@ -4148,83 +4240,85 @@ bool WinUtilities::runAs(const QString &userName, const QString &domainName, con
     //You cannot call CreateProcessWithLogonW from a process that is running under the LocalSystem account,
     //  because the function uses the logon SID in the caller token, and the token for the LocalSystem account does not contain this SID.
     //  As an alternative, use the CreateProcessAsUser and LogonUser functions.
-    if(getUserNameOfCurrentThread().toUpper() == "SYSTEM"){
+    if(getUserNameOfCurrentThread().toUpper() == "SYSTEM") {
         return runAsForInteractiveService(userName, domainName, password, exeFilePath, parameters, show, workingDir);
-    }else{
+    } else {
         return runAsForDesktopApplication(userName, domainName, password, exeFilePath, parameters, show, workingDir, wait);
     }
 
 }
 
-bool WinUtilities::runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir){
+bool WinUtilities::runAsForInteractiveService(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir)
+{
 
-    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+    wchar_t name[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
     wcscpy(name, userName.toStdWString().c_str());
 
     wchar_t domain[512];
-    if(domainName.trimmed().isEmpty()){
+    if(domainName.trimmed().isEmpty()) {
         wcscpy(domain, L".");
-    }else{
+    } else {
         wcscpy(domain, domainName.toStdWString().c_str());
     }
 
-    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+    wchar_t pwd[MaxUserPasswordLength * sizeof(wchar_t) + 1];
     wcscpy(pwd, password.toStdWString().c_str());
 
     QString cmdStr = QString("\"" + exeFilePath + "\" " + parameters);
-    wchar_t cmdLine[32000*sizeof(wchar_t)+1];
+    wchar_t cmdLine[32000 * sizeof(wchar_t) + 1];
     wcscpy(cmdLine, cmdStr.toStdWString().c_str());
 
-    wchar_t currentDirectory[MAX_PATH*sizeof(wchar_t)+1];
-    if(workingDir.trimmed().isEmpty()){
+    wchar_t currentDirectory[MAX_PATH * sizeof(wchar_t) + 1];
+    if(workingDir.trimmed().isEmpty()) {
         wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
-    }else{
+    } else {
         wcscpy(currentDirectory, workingDir.toStdWString().c_str());
     }
 
     DWORD errorCode;
-    if(isNT6OS() && show){
+    if(isNT6OS() && show) {
         DWORD sessionID;
-        if(!getUserSessionID(name, &sessionID)){
+        if(!getUserSessionID(name, &sessionID)) {
             errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
-        }else{
+        } else {
             errorCode = runAsForNT6InteractiveService(sessionID, NULL, cmdLine, currentDirectory, show);
         }
-    }else{
+    } else {
         errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
     }
 
-    if(ERROR_SUCCESS != errorCode){
-        qCritical()<<QString("Failed to start process '%1'! %2:%3.").arg(exeFilePath).arg(errorCode).arg(WinUtilities::WinSysErrorMsg(errorCode));
+    if(ERROR_SUCCESS != errorCode) {
+        qCritical() << QString("Failed to start process '%1'! %2:%3.").arg(exeFilePath).arg(errorCode).arg(WinUtilities::WinSysErrorMsg(errorCode));
         return false;
     }
 
     return true;
 }
 
-bool WinUtilities::runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds){
+bool WinUtilities::runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds)
+{
 
-    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
+    wchar_t name[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
     wcscpy(name, userName.toStdWString().c_str());
 
     wchar_t domain[512];
-    if(domainName.trimmed().isEmpty()){
+    if(domainName.trimmed().isEmpty()) {
         wcscpy(domain, L".");
-    }else{
+    } else {
         wcscpy(domain, domainName.toStdWString().c_str());
     }
 
-    wchar_t pwd[MaxUserPasswordLength*sizeof(wchar_t)+1];
+    wchar_t pwd[MaxUserPasswordLength * sizeof(wchar_t) + 1];
     wcscpy(pwd, password.toStdWString().c_str());
 
-    wchar_t cmdLine[8192*sizeof(wchar_t)+1];
+    wchar_t cmdLine[8192 * sizeof(wchar_t) + 1];
     wcscpy(cmdLine, parameters.toStdWString().c_str());
     //wcscpy(cmdLine, QString("\"" + exeFilePath + "\" " + parameters).toStdWString().c_str());
 
-    wchar_t currentDirectory[MAX_PATH*sizeof(wchar_t)+1];
-    if(workingDir.trimmed().isEmpty()){
+    wchar_t currentDirectory[MAX_PATH * sizeof(wchar_t) + 1];
+    if(workingDir.trimmed().isEmpty()) {
         wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
-    }else{
+    } else {
         wcscpy(currentDirectory, workingDir.toStdWString().c_str());
     }
 
@@ -4232,11 +4326,11 @@ bool WinUtilities::runAsForDesktopApplication(const QString &userName, const QSt
     STARTUPINFO si = {0};
     PROCESS_INFORMATION pi = {0};
     //ZeroMemory(&si, sizeof(STARTUPINFO));
-    si.cb= sizeof(STARTUPINFO);
+    si.cb = sizeof(STARTUPINFO);
     si.dwFlags = STARTF_USESHOWWINDOW;
-    if(show){
+    if(show) {
         si.wShowWindow = SW_SHOW;
-    }else{
+    } else {
         si.wShowWindow = SW_HIDE;
     }
 
@@ -4273,16 +4367,16 @@ bool WinUtilities::runAsForDesktopApplication(const QString &userName, const QSt
     //    CloseHandle(hToken);
 
 
-    if(!ok){
+    if(!ok) {
         dwRet = GetLastError();
         QString errorString = QString("Starting process '%1' failed! %2:%3.").arg(exeFilePath).arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
-        qCritical()<<errorString;
+        qCritical() << errorString;
         return false;
     }
 
-    if(wait){
-        dwRet = WaitForSingleObject(pi.hProcess, milliseconds?milliseconds:INFINITE);
-        qDebug()<<"dwRet:"<<dwRet;
+    if(wait) {
+        dwRet = WaitForSingleObject(pi.hProcess, milliseconds ? milliseconds : INFINITE);
+        qDebug() << "dwRet:" << dwRet;
     }
 
     CloseHandle(pi.hProcess);
@@ -4298,26 +4392,27 @@ bool WinUtilities::runAsForDesktopApplication(const QString &userName, const QSt
 
 
 
-int WinUtilities::GetEncoderClsid(const WCHAR* format, CLSID* pClsid){
+int WinUtilities::GetEncoderClsid(const WCHAR *format, CLSID *pClsid)
+{
     UINT  num = 0;          // number of image encoders
     UINT  size = 0;         // size of the image encoder array in bytes
 
-    Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
+    Gdiplus::ImageCodecInfo *pImageCodecInfo = NULL;
 
     Gdiplus::GetImageEncodersSize(&num, &size);
-    if(size == 0)
-        return -1;  // Failure
+    if(size == 0) {
+        return -1;    // Failure
+    }
 
-    pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size));
-    if(pImageCodecInfo == NULL)
-        return -1;  // Failure
+    pImageCodecInfo = (Gdiplus::ImageCodecInfo *)(malloc(size));
+    if(pImageCodecInfo == NULL) {
+        return -1;    // Failure
+    }
 
     Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
 
-    for(UINT j = 0; j < num; ++j)
-    {
-        if( wcscmp(pImageCodecInfo[j].MimeType, format) == 0 )
-        {
+    for(UINT j = 0; j < num; ++j) {
+        if( wcscmp(pImageCodecInfo[j].MimeType, format) == 0 ) {
             *pClsid = pImageCodecInfo[j].Clsid;
             free(pImageCodecInfo);
             return j;  // Success
@@ -4328,7 +4423,8 @@ int WinUtilities::GetEncoderClsid(const WCHAR* format, CLSID* pClsid){
     return -1;  // Failure
 }
 
-QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap){
+QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap)
+{
 
     QByteArray byteArray;
 
@@ -4355,13 +4451,13 @@ QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap){
 
     Gdiplus::GdiplusShutdown(gdiplusToken);
 
-    if(status != Gdiplus::Ok){
-        qCritical()<<"Failed to convert HBITMAP to JPEG.";
+    if(status != Gdiplus::Ok) {
+        qCritical() << "Failed to convert HBITMAP to JPEG.";
         return byteArray;
     }
 
     QFile file(tempFilePath);
-    if (!file.open(QIODevice::ReadOnly)){
+    if (!file.open(QIODevice::ReadOnly)) {
         return byteArray;
     }
     byteArray = file.readAll();
@@ -4485,11 +4581,12 @@ QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap){
 //    return bitmap;
 //}
 
-HBITMAP WinUtilities::GetScreenshotBmp(){
+HBITMAP WinUtilities::GetScreenshotBmp()
+{
 
     HDC     hDC;
     HDC     MemDC;
-    BYTE*   Data;
+    BYTE   *Data;
     HBITMAP   hBmp;
     BITMAPINFO   bi;
 
@@ -4502,9 +4599,9 @@ HBITMAP WinUtilities::GetScreenshotBmp(){
 
     hDC   =   GetDC(NULL);
     MemDC   =   CreateCompatibleDC(hDC);
-    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void**)&Data,   NULL,   0);
+    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void **)&Data,   NULL,   0);
     SelectObject(MemDC,   hBmp);
-    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight,hDC,   0,   0,   SRCCOPY);
+    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight, hDC,   0,   0,   SRCCOPY);
     ReleaseDC(NULL,   hDC);
     DeleteDC(MemDC);
     return   hBmp;
@@ -4527,12 +4624,12 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
     // obtain a handle to the interactive windowstation
     //
     hwinsta = OpenWindowStationW(
-                L"winsta0",
-                FALSE,
-                READ_CONTROL | WRITE_DAC
-                );
-    if (hwinsta == NULL){
-        qCritical()<<"ERROR! OpenWindowStationW failed.";
+                  L"winsta0",
+                  FALSE,
+                  READ_CONTROL | WRITE_DAC
+              );
+    if (hwinsta == NULL) {
+        qCritical() << "ERROR! OpenWindowStationW failed.";
         return hBmp;
     }
 
@@ -4542,8 +4639,8 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
     // set the windowstation to winsta0 so that you obtain the
     // correct default desktop
     //
-    if (!SetProcessWindowStation(hwinsta)){
-        qCritical()<<"ERROR! SetProcessWindowStation failed.";
+    if (!SetProcessWindowStation(hwinsta)) {
+        qCritical() << "ERROR! SetProcessWindowStation failed.";
         return hBmp;
     }
 
@@ -4557,15 +4654,15 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
                 FALSE,
                 READ_CONTROL | WRITE_DAC |
                 DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS
-                );
-    if (hdesk == NULL){
-        qCritical()<<"ERROR! OpenDesktopW failed.";
+            );
+    if (hdesk == NULL) {
+        qCritical() << "ERROR! OpenDesktopW failed.";
         return hBmp;
     }
 
 
-    if(!SetThreadDesktop(hdesk)){
-        qCritical()<<"ERROR! SetThreadDesktop failed.";
+    if(!SetThreadDesktop(hdesk)) {
+        qCritical() << "ERROR! SetThreadDesktop failed.";
         return hBmp;
     }
 
@@ -4580,7 +4677,7 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
     //
     HDC     hDC;
     HDC     MemDC;
-    BYTE*   Data;
+    BYTE   *Data;
     //HBITMAP   hBmp;
     BITMAPINFO   bi;
 
@@ -4593,9 +4690,9 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
 
     hDC   =   GetDC(NULL);
     MemDC   =   CreateCompatibleDC(hDC);
-    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void**)&Data,   NULL,   0);
+    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void **)&Data,   NULL,   0);
     SelectObject(MemDC,   hBmp);
-    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight,hDC,   0,   0,   SRCCOPY);
+    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight, hDC,   0,   0,   SRCCOPY);
     ReleaseDC(NULL,   hDC);
     DeleteDC(MemDC);
 
@@ -4619,21 +4716,21 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
 
 HBITMAP    WinUtilities::setDesktop1()
 {
-    wchar_t   pvInfo[256]= { 0 };
-    DWORD dwLen=0;
-    HDESK hActiveDesktop=OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK,false,MAXIMUM_ALLOWED);
-    GetUserObjectInformationW(hActiveDesktop,UOI_NAME,pvInfo,sizeof(pvInfo),&dwLen);
+    wchar_t   pvInfo[256] = { 0 };
+    DWORD dwLen = 0;
+    HDESK hActiveDesktop = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, false, MAXIMUM_ALLOWED);
+    GetUserObjectInformationW(hActiveDesktop, UOI_NAME, pvInfo, sizeof(pvInfo), &dwLen);
     CloseDesktop(hActiveDesktop);
 
-    HWINSTA m_hwinsta=OpenWindowStationW(L"WINSTA0",false,MAXIMUM_ALLOWED);
+    HWINSTA m_hwinsta = OpenWindowStationW(L"WINSTA0", false, MAXIMUM_ALLOWED);
     SetProcessWindowStation(m_hwinsta);
-    HDESK m_hdesk=OpenDesktopW(pvInfo,0,false,MAXIMUM_ALLOWED);
+    HDESK m_hdesk = OpenDesktopW(pvInfo, 0, false, MAXIMUM_ALLOWED);
     SetThreadDesktop(m_hdesk);
 
 
     HDC     hDC;
     HDC     MemDC;
-    BYTE*   Data;
+    BYTE   *Data;
     HBITMAP   hBmp;
     BITMAPINFO   bi;
 
@@ -4646,9 +4743,9 @@ HBITMAP    WinUtilities::setDesktop1()
 
     hDC   =   GetDC(NULL);
     MemDC   =   CreateCompatibleDC(hDC);
-    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void**)&Data,   NULL,   0);
+    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void **)&Data,   NULL,   0);
     SelectObject(MemDC,   hBmp);
-    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight,hDC,   0,   0,   SRCCOPY);
+    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight, hDC,   0,   0,   SRCCOPY);
     ReleaseDC(NULL,   hDC);
     DeleteDC(MemDC);
     return   hBmp;
@@ -4663,16 +4760,14 @@ bool WinUtilities::setDesktop()
     HDESK hActiveDesktop;
     DWORD dwLen;
     hActiveDesktop = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, MAXIMUM_ALLOWED);
-    if(!hActiveDesktop)//打开失败
-    {
-        qCritical()<<"ERROR! OpenInputDesktop failed.";
+    if(!hActiveDesktop) { //打开失败
+        qCritical() << "ERROR! OpenInputDesktop failed.";
         return false;
     }
     //获取指定桌面对象的信息，一般情况和屏保状态为default，登陆界面为winlogon
     GetUserObjectInformation(hActiveDesktop, UOI_NAME, pvInfo, sizeof(pvInfo), &dwLen);
-    if(dwLen==0)//获取失败
-    {
-        qCritical()<<"ERROR! GetUserObjectInformation failed.";
+    if(dwLen == 0) { //获取失败
+        qCritical() << "ERROR! GetUserObjectInformation failed.";
         return false;
     }
     CloseDesktop(hActiveDesktop);
@@ -4687,13 +4782,13 @@ bool WinUtilities::setDesktop()
                                            WINSTA_READATTRIBUTES    |
                                            WINSTA_READSCREEN        |
                                            WINSTA_WRITEATTRIBUTES);
-    if (m_hwinsta == NULL){
-        qCritical()<<"ERROR! OpenWindowStationW failed.";
+    if (m_hwinsta == NULL) {
+        qCritical() << "ERROR! OpenWindowStationW failed.";
         return false;
     }
 
-    if (!SetProcessWindowStation(m_hwinsta)){
-        qCritical()<<"ERROR! SetProcessWindowStation failed.";
+    if (!SetProcessWindowStation(m_hwinsta)) {
+        qCritical() << "ERROR! SetProcessWindowStation failed.";
         return false;
     }
 
@@ -4708,8 +4803,8 @@ bool WinUtilities::setDesktop()
                                  DESKTOP_READOBJECTS |
                                  DESKTOP_SWITCHDESKTOP |
                                  DESKTOP_WRITEOBJECTS);
-    if (m_hdesk == NULL){
-        qCritical()<<"ERROR! OpenDesktopW failed.";
+    if (m_hdesk == NULL) {
+        qCritical() << "ERROR! OpenDesktopW failed.";
         return false;
     }
 
@@ -4728,16 +4823,14 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
     HDESK hActiveDesktop;
     DWORD dwLen;
     hActiveDesktop = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, MAXIMUM_ALLOWED);
-    if(!hActiveDesktop)//打开失败
-    {
-        qCritical()<<"ERROR! OpenInputDesktop failed.";
+    if(!hActiveDesktop) { //打开失败
+        qCritical() << "ERROR! OpenInputDesktop failed.";
         return hBmp;
     }
     //获取指定桌面对象的信息，一般情况和屏保状态为default，登陆界面为winlogon
     GetUserObjectInformation(hActiveDesktop, UOI_NAME, pvInfo, sizeof(pvInfo), &dwLen);
-    if(dwLen==0)//获取失败
-    {
-        qCritical()<<"ERROR! GetUserObjectInformation failed.";
+    if(dwLen == 0) { //获取失败
+        qCritical() << "ERROR! GetUserObjectInformation failed.";
         return hBmp;
     }
     CloseDesktop(hActiveDesktop);
@@ -4753,16 +4846,16 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
                                            WINSTA_READATTRIBUTES    |
                                            WINSTA_READSCREEN        |
                                            WINSTA_WRITEATTRIBUTES);
-    if (m_hwinsta == NULL){
-        qCritical()<<"ERROR! OpenWindowStationW failed.";
+    if (m_hwinsta == NULL) {
+        qCritical() << "ERROR! OpenWindowStationW failed.";
         return hBmp;
     }
 
     HWINSTA hwinstaCurrent = GetProcessWindowStation();
 
 
-    if (!SetProcessWindowStation(m_hwinsta)){
-        qCritical()<<"ERROR! SetProcessWindowStation failed.";
+    if (!SetProcessWindowStation(m_hwinsta)) {
+        qCritical() << "ERROR! SetProcessWindowStation failed.";
         return hBmp;
     }
 
@@ -4777,8 +4870,8 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
                                  DESKTOP_READOBJECTS |
                                  DESKTOP_SWITCHDESKTOP |
                                  DESKTOP_WRITEOBJECTS);
-    if (m_hdesk == NULL){
-        qCritical()<<"ERROR! OpenDesktopW failed.";
+    if (m_hdesk == NULL) {
+        qCritical() << "ERROR! OpenDesktopW failed.";
         return hBmp;
     }
 
@@ -4792,7 +4885,7 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
 
     HDC     hDC;
     HDC     MemDC;
-    BYTE*   Data;
+    BYTE   *Data;
     //HBITMAP   hBmp;
     BITMAPINFO   bi;
 
@@ -4806,9 +4899,9 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
     //hDC   =   GetDC(NULL);
     hDC   =   GetDC(GetDesktopWindow());
     MemDC   =   CreateCompatibleDC(hDC);
-    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void**)&Data,   NULL,   0);
+    hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void **)&Data,   NULL,   0);
     SelectObject(MemDC,   hBmp);
-    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight,hDC,   0,   0,   SRCCOPY);
+    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight, hDC,   0,   0,   SRCCOPY);
     ReleaseDC(NULL,   hDC);
     DeleteDC(MemDC);
     return   hBmp;
@@ -4840,32 +4933,33 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
     return hBmp;
 }
 
-bool WinUtilities::setDeskWallpaper(const QString &wallpaperPath){
+bool WinUtilities::setDeskWallpaper(const QString &wallpaperPath)
+{
 
 
     QString targetBMPFilePath = wallpaperPath;
 
     QFileInfo fi(targetBMPFilePath);
-    if(!fi.exists()){
-        qCritical()<< QString("Can not set wallpaper! File '%1' does not exist!").arg(targetBMPFilePath);
+    if(!fi.exists()) {
+        qCritical() << QString("Can not set wallpaper! File '%1' does not exist!").arg(targetBMPFilePath);
         return false;
     }
 
     QString targetDirPath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
-    if(!QDir(targetDirPath).exists()){
+    if(!QDir(targetDirPath).exists()) {
         targetDirPath = QDir::homePath();
     }
 
     //if(wallpaperPath.startsWith(":/") || fi.suffix().toLower() != ".bmp"){
     targetBMPFilePath = targetDirPath + QDir::separator() + fi.baseName() + ".bmp";
     QImage image(wallpaperPath);
-    if(image.isNull()){
-        qCritical()<<QString("Can not read image '%1' ! ").arg(wallpaperPath);
+    if(image.isNull()) {
+        qCritical() << QString("Can not read image '%1' ! ").arg(wallpaperPath);
         return false;
     }
 
-    if(!image.save(targetBMPFilePath, "BMP")){
-        qCritical()<<QString("Can not set wallpaper! Can not save file '%1'k!").arg(targetBMPFilePath);
+    if(!image.save(targetBMPFilePath, "BMP")) {
+        qCritical() << QString("Can not set wallpaper! Can not save file '%1'k!").arg(targetBMPFilePath);
         return false;
     }
 
@@ -4875,10 +4969,10 @@ bool WinUtilities::setDeskWallpaper(const QString &wallpaperPath){
     wchar_t pathArray[MAX_PATH * sizeof(wchar_t) + 1];
     wcscpy(pathArray, targetBMPFilePath.toStdWString().c_str());
 
-    bool ok = SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, pathArray, SPIF_SENDWININICHANGE| SPIF_UPDATEINIFILE);
-    if(!ok){
+    bool ok = SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, pathArray, SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE);
+    if(!ok) {
         DWORD err = GetLastError();
-        qCritical()<<QString("Can not set wallpaper! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+        qCritical() << QString("Can not set wallpaper! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
     }
 
     return ok;
@@ -4886,7 +4980,8 @@ bool WinUtilities::setDeskWallpaper(const QString &wallpaperPath){
 }
 
 
-QDateTime WinUtilities::currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password){
+QDateTime WinUtilities::currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password)
+{
     QDateTime dateTime;
 
     ///////////////  建立IPC$    ////////////////////
@@ -4903,8 +4998,8 @@ QDateTime WinUtilities::currentDateTimeOnServer(const QString &server, const QSt
 
     DWORD err;
     err = WNetAddConnection2W(&res, password.toStdWString().c_str(), userName.toStdWString().c_str(), CONNECT_INTERACTIVE);
-    if(err !=  NO_ERROR){
-        qCritical()<<QString("Can not connect to '%1'! %2:%3.").arg(server).arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+    if(err !=  NO_ERROR) {
+        qCritical() << QString("Can not connect to '%1'! %2:%3.").arg(server).arg(err).arg(WinUtilities::WinSysErrorMsg(err));
         return dateTime;
     }
     //////////////////////////////////////////
@@ -4915,10 +5010,8 @@ QDateTime WinUtilities::currentDateTimeOnServer(const QString &server, const QSt
 
     nStatus = NetRemoteTOD(timeServer, (LPBYTE *)&pBuf);
 
-    if (nStatus == NERR_Success)
-    {
-        if (pBuf != NULL)
-        {
+    if (nStatus == NERR_Success) {
+        if (pBuf != NULL) {
 
             dateTime = QDateTime::fromTime_t( pBuf->tod_elapsedt);
 
@@ -4929,8 +5022,8 @@ QDateTime WinUtilities::currentDateTimeOnServer(const QString &server, const QSt
         }
 
 
-    }else{
-        qCritical()<<QString("Can not get current time from server '%1'! %2:%3.").arg(server).arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
+    } else {
+        qCritical() << QString("Can not get current time from server '%1'! %2:%3.").arg(server).arg(nStatus).arg(WinUtilities::WinSysErrorMsg(nStatus));
     }
 
     if (pBuf != NULL) {
@@ -4940,10 +5033,11 @@ QDateTime WinUtilities::currentDateTimeOnServer(const QString &server, const QSt
     return dateTime;
 }
 
-bool WinUtilities::setLocalTime(const QDateTime &datetime){
+bool WinUtilities::setLocalTime(const QDateTime &datetime)
+{
 
-    if(!datetime.isValid()){
-        qCritical()<<("Invalid Time!");
+    if(!datetime.isValid()) {
+        qCritical() << ("Invalid Time!");
         return false;
     }
 
@@ -4959,9 +5053,9 @@ bool WinUtilities::setLocalTime(const QDateTime &datetime){
     systemtime.wSecond = time.second();
     systemtime.wMilliseconds = time.msec();
 
-    if(!SetLocalTime(&systemtime)){
+    if(!SetLocalTime(&systemtime)) {
         DWORD err = GetLastError();
-        qCritical()<<QString("Can not set system time! %1:%2.").arg(err).arg(WinSysErrorMsg(err));
+        qCritical() << QString("Can not set system time! %1:%2.").arg(err).arg(WinSysErrorMsg(err));
         return false;
     }
 

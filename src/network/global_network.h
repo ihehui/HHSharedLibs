@@ -42,27 +42,27 @@
 //#endif
 
 #ifndef MAX_ETHERNET_UDP_DATAGRAM_SIZE
-#define MAX_ETHERNET_UDP_DATAGRAM_SIZE 1472 //Bytes
+    #define MAX_ETHERNET_UDP_DATAGRAM_SIZE 1472 //Bytes
 #endif
 
 #ifndef MAX_INTERNET_UDP_DATAGRAM_SIZE
-#define MAX_INTERNET_UDP_DATAGRAM_SIZE 548 //Bytes
+    #define MAX_INTERNET_UDP_DATAGRAM_SIZE 548 //Bytes
 #endif
 
 #ifndef PACKET_TERMINATING_SYMBOL
-#define PACKET_TERMINATING_SYMBOL 0xFFFF
+    #define PACKET_TERMINATING_SYMBOL 0xFFFF
 #endif
 
 #ifndef GROUP_SEPARTOR
-#define GROUP_SEPARTOR 0X1D
+    #define GROUP_SEPARTOR 0X1D
 #endif
 
 #ifndef PACKET_DATA_SEPARTOR
-#define PACKET_DATA_SEPARTOR 0X1E
+    #define PACKET_DATA_SEPARTOR 0X1E
 #endif
 
 #ifndef UNIT_SEPARTOR
-#define UNIT_SEPARTOR 0X1F
+    #define UNIT_SEPARTOR 0X1F
 #endif
 
 //#ifndef MAX_PACKET_SEQUENCE_NUMBER
@@ -70,7 +70,7 @@
 //#endif
 
 #ifndef PACKET_RETRANSMISSION_TIMES
-#define PACKET_RETRANSMISSION_TIMES 5
+    #define PACKET_RETRANSMISSION_TIMES 5
 #endif
 
 //#ifndef ONLINE_STATUS_CHECKING_TIMES
@@ -78,28 +78,29 @@
 //#endif
 
 #ifndef HEARTBEAT_TIMER_INTERVAL
-#define HEARTBEAT_TIMER_INTERVAL 60000 //1 minute
+    #define HEARTBEAT_TIMER_INTERVAL 60000 //1 minute
 #endif
 
 #ifndef UDP_PACKET_WAITING_FOR_REPLY_TIMEOUT
-#define UDP_PACKET_WAITING_FOR_REPLY_TIMEOUT 10000 //10 seconds
+    #define UDP_PACKET_WAITING_FOR_REPLY_TIMEOUT 10000 //10 seconds
 #endif
 
 
 #ifndef TCP_CONNECTION_TIMEOUT
-#define TCP_CONNECTION_TIMEOUT 5000
+    #define TCP_CONNECTION_TIMEOUT 5000
 #endif
 
 
 typedef unsigned int SOCKETID;
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 enum TransmissionProtocol {TP_UNKNOWN = 0, TP_TCP, TP_UDP, TP_ENET, TP_UDT, TP_RUDP};
 
 enum UDPTransmissionMode {UDP_TM_MULTICAST = 1, UDP_TM_BROADCAST = 2, UDP_TM_DIRECT = 3};
 
-enum PacketType{UnKnownPacket = 0, /*HeartbeatPacket = 1, ConfirmationOfReceiptPacket = 2,*/ TextPacket = 3, BinPacket = 4, UserDefinedPacket = 5};
+enum PacketType {UnKnownPacket = 0, /*HeartbeatPacket = 1, ConfirmationOfReceiptPacket = 2,*/ TextPacket = 3, BinPacket = 4, UserDefinedPacket = 5};
 
 
 

@@ -8,7 +8,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 class WMIQuery;
 
 

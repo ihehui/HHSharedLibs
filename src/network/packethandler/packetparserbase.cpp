@@ -50,11 +50,12 @@
 #endif
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 PacketsParserBase::PacketsParserBase(NetworkManagerBase *networkManagerBase, QObject *parent)
-    :QObject(parent), m_networkManagerBase(networkManagerBase)
+    : QObject(parent), m_networkManagerBase(networkManagerBase)
 {
 
     Q_ASSERT_X(m_networkManagerBase, "PacketsParserBase::PacketsParserBase(...)", "Invalid NetworkManagerBase!");
@@ -73,12 +74,13 @@ PacketsParserBase::PacketsParserBase(NetworkManagerBase *networkManagerBase, QOb
 
 }
 
-PacketsParserBase::~PacketsParserBase() {
+PacketsParserBase::~PacketsParserBase()
+{
     // TODO Auto-generated destructor stub
 
-    qDebug()<<"PacketsParserBase::~PacketsParserBase()";
+    qDebug() << "PacketsParserBase::~PacketsParserBase()";
 
-    if(!isAboutToQuit()){
+    if(!isAboutToQuit()) {
         aboutToQuit();
     }
 
@@ -86,9 +88,10 @@ PacketsParserBase::~PacketsParserBase() {
 
 }
 
-void PacketsParserBase::run(){
+void PacketsParserBase::run()
+{
 
-    while(!isAboutToQuit()){
+    while(!isAboutToQuit()) {
         parseIncomingPackets();
         processOutgoingPackets();
 //        processWaitingForReplyPackets();
@@ -97,9 +100,10 @@ void PacketsParserBase::run(){
 
 }
 
-void PacketsParserBase::startparseIncomingPackets(){
+void PacketsParserBase::startparseIncomingPackets()
+{
 
-    while(!isAboutToQuit()){
+    while(!isAboutToQuit()) {
         QCoreApplication::processEvents();
         parseIncomingPackets();
         msleep(50);
@@ -107,8 +111,9 @@ void PacketsParserBase::startparseIncomingPackets(){
 
 }
 
-void PacketsParserBase::startprocessOutgoingPackets(){
-    qDebug()<<"--PacketsParserBase::startprocessOutgoingPackets()";
+void PacketsParserBase::startprocessOutgoingPackets()
+{
+    qDebug() << "--PacketsParserBase::startprocessOutgoingPackets()";
 
 //    QTimer processWaitingForReplyPacketsTimer;
 //    processWaitingForReplyPacketsTimer.setSingleShot(false);
@@ -118,7 +123,7 @@ void PacketsParserBase::startprocessOutgoingPackets(){
 //    connect(this, SIGNAL(signalAboutToQuit()), &processWaitingForReplyPacketsTimer, SLOT(stop()));
 //    processWaitingForReplyPacketsTimer.start();
 
-    while(!isAboutToQuit()){
+    while(!isAboutToQuit()) {
         QCoreApplication::processEvents();
         processOutgoingPackets();
         msleep(50);
@@ -130,17 +135,19 @@ void PacketsParserBase::startprocessOutgoingPackets(){
 
 }
 
-bool PacketsParserBase::isAboutToQuit(){
+bool PacketsParserBase::isAboutToQuit()
+{
     QMutexLocker locker(&aboutToQuitMutex);
     return m_aboutToQuit;
 }
 
 
-void PacketsParserBase::aboutToQuit(int msecTimeout){
+void PacketsParserBase::aboutToQuit(int msecTimeout)
+{
     //{
-        QMutexLocker locker(&aboutToQuitMutex);
-        this->m_aboutToQuit = true;
-        emit signalAboutToQuit();
+    QMutexLocker locker(&aboutToQuitMutex);
+    this->m_aboutToQuit = true;
+    emit signalAboutToQuit();
     //}
 
     QCoreApplication::processEvents();
@@ -149,12 +156,13 @@ void PacketsParserBase::aboutToQuit(int msecTimeout){
 }
 
 
-void PacketsParserBase::parseIncomingPackets(){
+void PacketsParserBase::parseIncomingPackets()
+{
     //qDebug()<<"----PacketsParserBase::parseIncomingPackets()";
 
 
     //    qWarning()<<"incomingPacketsCount:"<<packetHandlerBase->incomingPacketsCount();
-    for(int i = 0; i < m_packetHandlerBase->incomingPacketsCount(); i++){
+    for(int i = 0; i < m_packetHandlerBase->incomingPacketsCount(); i++) {
         //        while(1){
         Packet *packet = m_packetHandlerBase->takeIncomingPacket();
 
@@ -178,11 +186,12 @@ void PacketsParserBase::parseIncomingPackets(){
 
 }
 
-void PacketsParserBase::processOutgoingPackets() {
+void PacketsParserBase::processOutgoingPackets()
+{
     //qDebug()<<"----PacketsParserBase::processOutgoingPackets()";
 
 
-    for(int i = 0; i < m_packetHandlerBase->outgoingPacketsCount(); i++){
+    for(int i = 0; i < m_packetHandlerBase->outgoingPacketsCount(); i++) {
         Packet *packet = m_packetHandlerBase->takeOutgoingPacket();
         if (!packet) {
             break;
@@ -207,29 +216,29 @@ void PacketsParserBase::processOutgoingPackets() {
 
         } else if (transmissionProtocol == TP_UDP) {
             result = m_networkManagerBase->slotSendNewUDPDatagram(packet->getPeerHostAddress(), packet->getPeerHostPort(), &block, packet->getLocalHostPort(), false);
-        }else if(transmissionProtocol == TP_RUDP){
+        } else if(transmissionProtocol == TP_RUDP) {
             result = m_networkManagerBase->slotSendNewUDPDatagram(packet->getPeerHostAddress(), packet->getPeerHostPort(), &block, packet->getLocalHostPort(), true);
         }
 
         if (!result) {
             packet->packetTransmissionFailed();
 
-            if((packet->getRemainingRetransmissionTimes() > 0)){
+            if((packet->getRemainingRetransmissionTimes() > 0)) {
                 m_packetHandlerBase->appendOutgoingPacket(packet);
-            }else{
-                if(transmissionProtocol == TP_RUDP){
+            } else {
+                if(transmissionProtocol == TP_RUDP) {
                     m_networkManagerBase->getRUDPServer(packet->getLocalHostPort(), packet->getLocalHostAddress())->closeChannel(packet->getPeerHostAddress(), packet->getPeerHostPort());
                 }
                 m_packetHandlerBase->recylePacket(packet);
             }
 
-            qCritical()<<"Packet Sent Failed! Peer Address:"<<packet->getPeerHostAddress().toString()<<":"<<packet->getPeerHostPort();
+            qCritical() << "Packet Sent Failed! Peer Address:" << packet->getPeerHostAddress().toString() << ":" << packet->getPeerHostPort();
         }
         //        else if (transmissionProtocol == TP_UDP) {
         //            packet->setLastTransmissionTime(QDateTime::currentDateTime());
         //            //m_packetHandlerBase->appendWaitingForReplyPacket(packet);
         //        }
-        else{
+        else {
             m_packetHandlerBase->recylePacket(packet);
         }
 

@@ -34,11 +34,11 @@
 
 #include <QtCore/QtGlobal>
 
- #if defined(UDT_LIBRARY_EXPORT)
- #  define UDT_LIB_API Q_DECL_EXPORT
- #else
- #  define UDT_LIB_API Q_DECL_IMPORT
- #endif
+#if defined(UDT_LIBRARY_EXPORT)
+    #define UDT_LIB_API Q_DECL_EXPORT
+#else
+    #define UDT_LIB_API Q_DECL_IMPORT
+#endif
 
 
 /*

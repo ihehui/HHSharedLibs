@@ -44,10 +44,12 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
-class CORE_LIB_API Utilities {
+class CORE_LIB_API Utilities
+{
 
 public:
     Utilities();

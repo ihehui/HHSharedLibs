@@ -44,10 +44,11 @@
 #include "dataprint.h"
 
 
-namespace HEHUI{
+namespace HEHUI
+{
 
 DataPrint::DataPrint(const QString &fileName, bool preview, QObject *parent)
-    :QObject(parent)
+    : QObject(parent)
 {
 
     document = new QTextDocument(this);
@@ -57,9 +58,9 @@ DataPrint::DataPrint(const QString &fileName, bool preview, QObject *parent)
     }
 
 
-    if(preview){
+    if(preview) {
         slotDataPrintPreview();
-    }else{
+    } else {
         slotDataPrint();
     }
 
@@ -68,7 +69,7 @@ DataPrint::DataPrint(const QString &fileName, bool preview, QObject *parent)
 }
 
 DataPrint::DataPrint(const QString &string, bool isRichText, bool preview, QObject *parent)
-    :QObject(parent)
+    : QObject(parent)
 {
     document = new QTextDocument(this);
     if (isRichText) {
@@ -77,30 +78,32 @@ DataPrint::DataPrint(const QString &string, bool isRichText, bool preview, QObje
         document->setPlainText(string);
     }
 
-    if(preview){
+    if(preview) {
         slotDataPrintPreview();
-    }else{
+    } else {
         slotDataPrint();
     }
 
 
 }
 
-DataPrint::~DataPrint() {
+DataPrint::~DataPrint()
+{
     document->clear();
     delete document;
     document = 0;
 
 }
 
-bool DataPrint::loadFile(const QString &fileName) {
+bool DataPrint::loadFile(const QString &fileName)
+{
     if (!QFile::exists(fileName)) {
         QMessageBox::critical(0, tr("Fatal Error"), tr("File '%1' does not exist!").arg(fileName));
         return false;
     }
 
     QFile file(fileName);
-    if (!file.open(QFile::ReadOnly)){
+    if (!file.open(QFile::ReadOnly)) {
         QMessageBox::critical(0, tr("Fatal Error"), tr("Can not open file '%1'!").arg(fileName));
         return false;
     }
@@ -118,7 +121,8 @@ bool DataPrint::loadFile(const QString &fileName) {
     return true;
 }
 
-void DataPrint::slotDataPrint() {
+void DataPrint::slotDataPrint()
+{
 #ifndef QT_NO_PRINTER
     QPrinter printer(QPrinter::HighResolution);
     QPrintDialog *dlg = new QPrintDialog(&printer, 0);
@@ -132,7 +136,8 @@ void DataPrint::slotDataPrint() {
 
 }
 
-void DataPrint::slotDataPrintPreview() {
+void DataPrint::slotDataPrintPreview()
+{
 #ifndef QT_NO_PRINTER
     QPrinter printer(QPrinter::HighResolution);
     QPrintPreviewDialog preview(&printer, 0);
@@ -144,7 +149,8 @@ void DataPrint::slotDataPrintPreview() {
 
 }
 
-void DataPrint::slotPrintPreview(QPrinter *printer) {
+void DataPrint::slotPrintPreview(QPrinter *printer)
+{
 #ifdef QT_NO_PRINTER
     Q_UNUSED(printer);
 #else
@@ -152,12 +158,14 @@ void DataPrint::slotPrintPreview(QPrinter *printer) {
 #endif
 }
 
-void DataPrint::slotFilePrintPdf() {
+void DataPrint::slotFilePrintPdf()
+{
 #ifndef QT_NO_PRINTER
     QString fileName = QFileDialog::getSaveFileName(0, "Export PDF", QString(), "*.pdf");
     if (!fileName.isEmpty()) {
-        if (QFileInfo(fileName).suffix().isEmpty())
+        if (QFileInfo(fileName).suffix().isEmpty()) {
             fileName.append(".pdf");
+        }
         QPrinter printer(QPrinter::HighResolution);
         printer.setOutputFormat(QPrinter::PdfFormat);
         printer.setOutputFileName(fileName);

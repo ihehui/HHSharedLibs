@@ -57,7 +57,8 @@
 #include "filterwidget_p.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 
@@ -112,7 +113,7 @@ bool ItemBoxWidget::eventFilter(QObject *o, QEvent *e)
             //autoHideTimer->start();
             //keyPressEvent(ke);
             return true;
-        }else if(ke->key() == Qt::Key_Escape){
+        } else if(ke->key() == Qt::Key_Escape) {
             setFilterWidgetVisible(false);
             return true;
         }
@@ -155,31 +156,38 @@ void ItemBoxWidget::removeCategory(int cat_idx)
     m_treeWidget->removeCategory(cat_idx);
 }
 
-void ItemBoxWidget::removeCategory(const QString &cat_id){
-     m_treeWidget->removeCategory(cat_id);
+void ItemBoxWidget::removeCategory(const QString &cat_id)
+{
+    m_treeWidget->removeCategory(cat_id);
 }
 
-void ItemBoxWidget::clearAllCategories(){
+void ItemBoxWidget::clearAllCategories()
+{
     m_treeWidget->clear();
 }
 
-void ItemBoxWidget::setCategoryHidden(int cat_idx, bool hide){
+void ItemBoxWidget::setCategoryHidden(int cat_idx, bool hide)
+{
     m_treeWidget->setCategoryHidden(cat_idx, hide);
 }
 
-void ItemBoxWidget::setCategoryHidden(const QString &cat_id, bool hide){
+void ItemBoxWidget::setCategoryHidden(const QString &cat_id, bool hide)
+{
     m_treeWidget->setCategoryHidden(cat_id, hide);
 }
 
-void ItemBoxWidget::setCategoryExpanded(int cat_idx, bool expand){
+void ItemBoxWidget::setCategoryExpanded(int cat_idx, bool expand)
+{
     m_treeWidget->setCategoryExpanded(cat_idx, expand);
 }
 
-void ItemBoxWidget::setCategoryExpanded(const QString &cat_id, bool expand){
+void ItemBoxWidget::setCategoryExpanded(const QString &cat_id, bool expand)
+{
     m_treeWidget->setCategoryExpanded(cat_id, expand);
 }
 
-void ItemBoxWidget::updateCategoryName(const QString &cat_id, const QString &new_cat_name){
+void ItemBoxWidget::updateCategoryName(const QString &cat_id, const QString &new_cat_name)
+{
     m_treeWidget->updateCategoryName(cat_id, new_cat_name);
 }
 
@@ -194,7 +202,8 @@ ItemBoxWidgetInterface::Item ItemBoxWidget::item(int cat_idx, int wgt_idx) const
     return m_treeWidget->item(cat_idx, wgt_idx);
 }
 
-ItemBoxWidgetInterface::Item ItemBoxWidget::item(const QString &cat_id, const QString &item_id) const{
+ItemBoxWidgetInterface::Item ItemBoxWidget::item(const QString &cat_id, const QString &item_id) const
+{
     return m_treeWidget->item(cat_id, item_id);
 }
 
@@ -203,7 +212,8 @@ void ItemBoxWidget::addItem(int cat_idx, const HEHUI::ItemBoxWidgetInterface::It
     m_treeWidget->addItem(cat_idx, itm);
 }
 
-void ItemBoxWidget::addItem(const QString &cat_id, const Item &item){
+void ItemBoxWidget::addItem(const QString &cat_id, const Item &item)
+{
     m_treeWidget->addItem(cat_id, item);
 }
 
@@ -212,15 +222,18 @@ void ItemBoxWidget::removeItem(int cat_idx, int wgt_idx)
     m_treeWidget->removeItem(cat_idx, wgt_idx);
 }
 
-void ItemBoxWidget::removeItem(const QString &cat_id, const QString &item_id){
+void ItemBoxWidget::removeItem(const QString &cat_id, const QString &item_id)
+{
     m_treeWidget->removeItem(cat_id, item_id);
 }
 
-void ItemBoxWidget::moveItem(int old_cat_idx, int new_cat_idx, const QString &item_id){
+void ItemBoxWidget::moveItem(int old_cat_idx, int new_cat_idx, const QString &item_id)
+{
     m_treeWidget->moveItem(old_cat_idx, new_cat_idx, item_id);
 }
 
-void ItemBoxWidget::moveItem(const QString &old_cat_id, const QString &new_cat_id, const QString &item_id){
+void ItemBoxWidget::moveItem(const QString &old_cat_id, const QString &new_cat_id, const QString &item_id)
+{
     m_treeWidget->moveItem(old_cat_id, new_cat_id, item_id);
 }
 
@@ -261,30 +274,32 @@ void ItemBoxWidget::moveItem(const QString &old_cat_id, const QString &new_cat_i
 
 //}
 
-void ItemBoxWidget::dragEnterEvent (QDragEnterEvent * event)
+void ItemBoxWidget::dragEnterEvent (QDragEnterEvent *event)
 {
     // We accept event originating from the widget box also here,
     // because otherwise Windows will not show the DnD pixmap.
     //checkDragEvent(event, true);
 }
 
-void ItemBoxWidget::dragMoveEvent(QDragMoveEvent * event)
+void ItemBoxWidget::dragMoveEvent(QDragMoveEvent *event)
 {
     //checkDragEvent(event, true);
 }
 
-void ItemBoxWidget::dropEvent(QDropEvent * event)
+void ItemBoxWidget::dropEvent(QDropEvent *event)
 {
 
 
 }
 
 
-bool ItemBoxWidget::updateObjectItemName(const QString &cat_id, const QString &item_id, const QString &itemName){
+bool ItemBoxWidget::updateObjectItemName(const QString &cat_id, const QString &item_id, const QString &itemName)
+{
     return m_treeWidget->updateItemName(cat_id, item_id, itemName);
 }
 
-bool ItemBoxWidget::updateObjectItemIcon(const QString &cat_id, const QString &item_id, const QIcon &icon){
+bool ItemBoxWidget::updateObjectItemIcon(const QString &cat_id, const QString &item_id, const QIcon &icon)
+{
     return m_treeWidget->updateItemIcon(cat_id, item_id, icon);
 }
 
@@ -292,26 +307,30 @@ bool ItemBoxWidget::updateObjectItemIcon(const QString &cat_id, const QString &i
 //    return m_treeWidget->updateItemIcon(cat_id, item_id, iconName);
 //}
 
-void ItemBoxWidget::setFilterWidgetVisible(bool visible){
+void ItemBoxWidget::setFilterWidgetVisible(bool visible)
+{
     filterWidget->setVisible(visible);
-    if(visible){
+    if(visible) {
         filterWidget->setFocusToEditor();
-    }else{
+    } else {
         filterWidget->reset();
         filterWidget->clearFocus();
     }
 
 }
 
-void ItemBoxWidget::clearFilterWidget(){
+void ItemBoxWidget::clearFilterWidget()
+{
     filterWidget->reset();
 }
 
-void ItemBoxWidget::expandAllCategories(){
+void ItemBoxWidget::expandAllCategories()
+{
     m_treeWidget->expandAll();
 }
 
-void ItemBoxWidget::collapseAllCategories(){
+void ItemBoxWidget::collapseAllCategories()
+{
     m_treeWidget->collapseAll();
 }
 

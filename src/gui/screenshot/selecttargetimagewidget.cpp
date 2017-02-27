@@ -46,7 +46,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 SelectTargetImageWidget::SelectTargetImageWidget(const QImage &originalImage, const QRect &selectedRect, QWidget *parent, Qt::WindowFlags fl)
@@ -134,16 +135,16 @@ void SelectTargetImageWidget::mouseMoveEvent(QMouseEvent *event)
 
         QPoint newTopLeft = event->globalPos() - dragPosition;
         QPoint newBottomRight = newTopLeft + QPoint(frameGeometry().width(), frameGeometry().height());
-        if(newTopLeft.x() <= 0){
+        if(newTopLeft.x() <= 0) {
             newTopLeft.setX(0);
         }
-        if(newTopLeft.y() <= 0){
+        if(newTopLeft.y() <= 0) {
             newTopLeft.setY(0);
         }
-        if(newBottomRight.x() >= m_originalImage.width()){
+        if(newBottomRight.x() >= m_originalImage.width()) {
             newTopLeft.setX(m_originalImage.width() - frameGeometry().width());
         }
-        if(newBottomRight.y() >= m_originalImage.height()){
+        if(newBottomRight.y() >= m_originalImage.height()) {
             newTopLeft.setY(m_originalImage.height() - frameGeometry().height());
         }
 
@@ -161,25 +162,28 @@ void SelectTargetImageWidget::mouseMoveEvent(QMouseEvent *event)
 
 
 
-void SelectTargetImageWidget::keyReleaseEvent(QKeyEvent *  event){
+void SelectTargetImageWidget::keyReleaseEvent(QKeyEvent   *event)
+{
 
-    if(event->key() == Qt::Key_Escape){
+    if(event->key() == Qt::Key_Escape) {
         close();
         event->accept();
     }
 
-    if(QApplication::keyboardModifiers() == Qt::ControlModifier && event->key() == Qt::Key_S){
+    if(QApplication::keyboardModifiers() == Qt::ControlModifier && event->key() == Qt::Key_S) {
         saveScreenshot();
         event->accept();
     }
 
 }
 
-void SelectTargetImageWidget::mouseReleaseEvent(QMouseEvent *event){
+void SelectTargetImageWidget::mouseReleaseEvent(QMouseEvent *event)
+{
     setCursor(Qt::ArrowCursor);
 }
 
-void SelectTargetImageWidget::mouseDoubleClickEvent(QMouseEvent *event){
+void SelectTargetImageWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setImage(m_resultImage);
 
@@ -250,10 +254,10 @@ void SelectTargetImageWidget::saveScreenshot()
     QString initialPath = QDir::currentPath() + tr("/Screenshot%1.%2").arg(QDateTime::currentDateTime().toString("yyyyMMddhhmmss")).arg(format) ;
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"), initialPath,
-                                                    tr("%1 Files (*.%2);;All Files (*)").arg(format.toUpper()).arg(format));
+                       tr("%1 Files (*.%2);;All Files (*)").arg(format.toUpper()).arg(format));
 
-    if (!fileName.isEmpty()){
-        if(!m_resultImage.save(fileName, format.toLatin1())){
+    if (!fileName.isEmpty()) {
+        if(!m_resultImage.save(fileName, format.toLatin1())) {
             QMessageBox::critical(this, tr("Error"), tr("Can not save image!"));
         }
     }

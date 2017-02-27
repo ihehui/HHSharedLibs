@@ -15,10 +15,11 @@
 #include "HHSharedGUI/hdataprint.h"
 
 
-namespace HEHUI{
+namespace HEHUI
+{
 
 DataOutputDialog::DataOutputDialog(QTableView *tableView, IOType ioType, QWidget *parent)
-    :QDialog(parent), tableView(tableView), ioType(ioType),
+    : QDialog(parent), tableView(tableView), ioType(ioType),
       ui(new Ui::DataOutputDialogUI)
 {
     ui->setupUi(this);
@@ -28,7 +29,8 @@ DataOutputDialog::DataOutputDialog(QTableView *tableView, IOType ioType, QWidget
 }
 
 
-DataOutputDialog::~DataOutputDialog() {
+DataOutputDialog::~DataOutputDialog()
+{
     delete ui;
 }
 
@@ -38,9 +40,10 @@ void DataOutputDialog::languageChange()
 }
 
 
-void DataOutputDialog::initUI(){
+void DataOutputDialog::initUI()
+{
 
-    if(ioType == EXPORT){
+    if(ioType == EXPORT) {
         setWindowTitle(tr("Export"));
 
         //初始化所支持的文件格式列表
@@ -51,7 +54,7 @@ void DataOutputDialog::initUI(){
 
         //填充文件格式ComboBox
         //Setup FileFormates combobox
-        for(int i=0; i<supportedFileFormates.size(); i++){
+        for(int i = 0; i < supportedFileFormates.size(); i++) {
             QPair<QString, FileFormate> pair = supportedFileFormates.at(i);
             ui->formatComboBox->addItem(pair.first, pair.second);
         }
@@ -67,7 +70,7 @@ void DataOutputDialog::initUI(){
 
         //填充文件分隔符ComboBox
         //Setup FileSeparators combobox
-        for(int i=0; i<supportedFileSeparators.size(); i++){
+        for(int i = 0; i < supportedFileSeparators.size(); i++) {
             QPair<QString, FileSeparator> pair = supportedFileSeparators.at(i);
             ui->separatorComboBox->addItem(pair.first, pair.second);
         }
@@ -77,7 +80,7 @@ void DataOutputDialog::initUI(){
 
         ui->printDataSettingsFrame->hide();
 
-    }else if(ioType == PRINT){
+    } else if(ioType == PRINT) {
         setWindowTitle(tr("Print"));
         ui->exportDataSettingsFrame->hide();
         ui->progressBar->hide();
@@ -86,7 +89,8 @@ void DataOutputDialog::initUI(){
 }
 
 
-bool DataOutputDialog::exportResult(const QString &fileName) {
+bool DataOutputDialog::exportResult(const QString &fileName)
+{
     QList <QStringList> dataList;
     QStringList headerDataList;
 
@@ -99,11 +103,11 @@ bool DataOutputDialog::exportResult(const QString &fileName) {
     QAbstractItemModel *model = getTableView()->model();
     int columnCount = model->columnCount();
     int rowCount = model->rowCount();
-    for(int i=0; i<columnCount; i++){
-        headerDataList << model->headerData(i,Qt::Horizontal).toString();
+    for(int i = 0; i < columnCount; i++) {
+        headerDataList << model->headerData(i, Qt::Horizontal).toString();
     }
 
-    if(ui->rowscomboBox->currentIndex() == 0){
+    if(ui->rowscomboBox->currentIndex() == 0) {
         ui->progressBar->show();
         ui->progressBar->setRange(0, rowCount);
 
@@ -111,12 +115,12 @@ bool DataOutputDialog::exportResult(const QString &fileName) {
             QModelIndex index = model->index(i, 0);
             int row = index.row();
             QStringList list;
-            for(int j = 0; j < columnCount; j++){
-                QModelIndex idx =  index.sibling(row,j);
+            for(int j = 0; j < columnCount; j++) {
+                QModelIndex idx =  index.sibling(row, j);
                 list << idx.data().toString();
             }
 
-            dataList<<list;
+            dataList << list;
 
             ui->progressBar->setValue(i);
             qApp->processEvents();
@@ -125,7 +129,7 @@ bool DataOutputDialog::exportResult(const QString &fileName) {
 
 
 
-    }else{
+    } else {
 
         QModelIndexList selectedIndexes = getTableView()->selectionModel()->selectedIndexes();
         int selectedIndexesCount = selectedIndexes.count();
@@ -135,17 +139,17 @@ bool DataOutputDialog::exportResult(const QString &fileName) {
 
         for (int j = 0; j < selectedIndexesCount; ++j) {
             QModelIndex index = selectedIndexes.at(j);
-            if (selectedIndexes.at(j).column() != 0){
+            if (selectedIndexes.at(j).column() != 0) {
                 continue;
             }
             int row = index.row();
             QStringList list;
-            for(int i = 0; i < columnCount; i++){
-                QModelIndex idx =  index.sibling(row,i);
+            for(int i = 0; i < columnCount; i++) {
+                QModelIndex idx =  index.sibling(row, i);
                 list << idx.data().toString();
             }
 
-            dataList<<list;
+            dataList << list;
 
             ui->progressBar->setValue(j);
             qApp->processEvents();
@@ -158,10 +162,10 @@ bool DataOutputDialog::exportResult(const QString &fileName) {
     ui->progressBar->hide();
     QApplication::restoreOverrideCursor();
 
-    if(ioType == PRINT){
+    if(ioType == PRINT) {
         QTemporaryFile tempFile;
-        if(tempFile.open()){
-            if(generateXHTML(&tempFile, headerDataList, dataList)){
+        if(tempFile.open()) {
+            if(generateXHTML(&tempFile, headerDataList, dataList)) {
                 //qDebug()<<"Temporary File Name:"<<tempFile.fileName();
                 DataPrint dataPrint(tempFile.fileName(), true, this);
             }
@@ -179,7 +183,7 @@ bool DataOutputDialog::exportResult(const QString &fileName) {
         return false;
     }
 
-    switch(curFileFormate){
+    switch(curFileFormate) {
     case FILE_FORMATE_TEXT:
         return exportResultAsText(&file, headerDataList, dataList);
         break;
@@ -197,7 +201,8 @@ bool DataOutputDialog::exportResult(const QString &fileName) {
 
 }
 
-bool DataOutputDialog::exportResultAsText(QFile *file, QStringList &headerDataList, QList <QStringList> &dataList){
+bool DataOutputDialog::exportResultAsText(QFile *file, QStringList &headerDataList, QList <QStringList> &dataList)
+{
 
 
     QTextStream out(file);
@@ -208,12 +213,12 @@ bool DataOutputDialog::exportResultAsText(QFile *file, QStringList &headerDataLi
     ui->progressBar->show();
     ui->progressBar->setRange(0, dataList.size());
 
-    out << headerDataList.join(QString("%1").arg(curFileSeparatorString))<<"\n";
+    out << headerDataList.join(QString("%1").arg(curFileSeparatorString)) << "\n";
 
     for (int i = 0; i < dataList.size(); i++) {
         QStringList list = dataList.at(i);
 
-        out << list.join(QString("%1").arg(curFileSeparatorString))<<"\n";
+        out << list.join(QString("%1").arg(curFileSeparatorString)) << "\n";
 
         ui->progressBar->setValue(i);
         qApp->processEvents();
@@ -228,13 +233,15 @@ bool DataOutputDialog::exportResultAsText(QFile *file, QStringList &headerDataLi
 
 }
 
-bool DataOutputDialog::exportResultAsXML(QFile *file, QStringList &headerDataList, QList <QStringList> &dataList){
+bool DataOutputDialog::exportResultAsXML(QFile *file, QStringList &headerDataList, QList <QStringList> &dataList)
+{
 
     return generateXHTML(file, headerDataList, dataList);
 
 }
 
-bool DataOutputDialog::generateXHTML(QFile *file, QStringList &headerDataList, QList <QStringList> &dataList){
+bool DataOutputDialog::generateXHTML(QFile *file, QStringList &headerDataList, QList <QStringList> &dataList)
+{
 
 
     QXmlStreamWriter stream(file);
@@ -279,7 +286,7 @@ bool DataOutputDialog::generateXHTML(QFile *file, QStringList &headerDataList, Q
 
 
     stream.writeStartElement("tr");//Table Header 表头
-    for(int k=0; k<headerDataList.size(); k++){
+    for(int k = 0; k < headerDataList.size(); k++) {
         stream.writeStartElement("td");
         stream.writeCharacters(headerDataList.at(k));
         stream.writeEndElement();//-------td
@@ -287,10 +294,10 @@ bool DataOutputDialog::generateXHTML(QFile *file, QStringList &headerDataList, Q
     }
     stream.writeEndElement();//-------tr Table Header 表头
 
-    for(int i = 0; i< dataList.size(); i++){
+    for(int i = 0; i < dataList.size(); i++) {
         stream.writeStartElement("tr");
         QStringList list = dataList.at(i);
-        for(int j=0; j<list.size(); j++){
+        for(int j = 0; j < list.size(); j++) {
             stream.writeStartElement("td");
             stream.writeCharacters(list.at(j));
             stream.writeEndElement();//-------td
@@ -315,7 +322,8 @@ bool DataOutputDialog::generateXHTML(QFile *file, QStringList &headerDataList, Q
 }
 
 
-bool DataOutputDialog::exportResultAsSQLScript(QFile *file, QStringList &headerDataList, QList <QStringList> &dataList){
+bool DataOutputDialog::exportResultAsSQLScript(QFile *file, QStringList &headerDataList, QList <QStringList> &dataList)
+{
     //TODO:改进
 
     QTextStream out(file);
@@ -326,16 +334,16 @@ bool DataOutputDialog::exportResultAsSQLScript(QFile *file, QStringList &headerD
     ui->progressBar->show();
     ui->progressBar->setRange(0, dataList.size());
 
-    out << "INSERT INTO `data` ("<<headerDataList.join(",")<<") VALUES "<<"\n";
+    out << "INSERT INTO `data` (" << headerDataList.join(",") << ") VALUES " << "\n";
 
     int dataListSize = dataList.size();
     for (int i = 0; i < dataListSize; i++) {
         QStringList list = dataList.at(i);
 
-        if(i < dataListSize-1){
-            out << "(" <<list.join(",")<<"), "<<"\n";
-        }else{
-            out << "(" <<list.join(",")<<"); "<<"\n";
+        if(i < dataListSize - 1) {
+            out << "(" << list.join(",") << "), " << "\n";
+        } else {
+            out << "(" << list.join(",") << "); " << "\n";
         }
 
 
@@ -358,14 +366,15 @@ bool DataOutputDialog::exportResultAsSQLScript(QFile *file, QStringList &headerD
 }
 
 
-bool DataOutputDialog::getFilePath() {
+bool DataOutputDialog::getFilePath()
+{
 
     //QString defaultDataFileSavePath = QApplication::applicationDirPath()+QDir::separator() + "data" + QDateTime::currentDateTime().toString(Qt::ISODate);
 
     //QString fileName = QFileDialog::getSaveFileName(this, tr("Data Save Path:"), dataFileSavePath, tr("Text (*.txt);;CSV (*.csv);;SQL Script (*.sql);;All(*.*)"));
 
     QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("Data File Path:"), "", tr("%1All(*.*)").arg(fileSuffix));
+                       tr("Data File Path:"), "", tr("%1All(*.*)").arg(fileSuffix));
 
     if (!fileName.isEmpty()) {
         ui->filePathComboBox->insertItem(0, fileName);
@@ -381,9 +390,10 @@ bool DataOutputDialog::getFilePath() {
 
 
 
-void DataOutputDialog::on_separatorComboBox_activated(int index) {
+void DataOutputDialog::on_separatorComboBox_activated(int index)
+{
     uint separatorType = ui->separatorComboBox->itemData(index).toUInt();
-    switch(separatorType){
+    switch(separatorType) {
     case FILE_SEPARATOR_VRTICAL:
         curFileSeparatorString = "|";
         break;
@@ -396,16 +406,16 @@ void DataOutputDialog::on_separatorComboBox_activated(int index) {
     case FILE_SEPARATOR_OTHER:
         bool ok;
         QString newSeparator = QInputDialog::getText(this, tr("New Separator"),
-                                                     tr("New Separator:"), QLineEdit::Normal,
-                                                     QDir::home().dirName(), &ok);
+                               tr("New Separator:"), QLineEdit::Normal,
+                               QDir::home().dirName(), &ok);
         if (ok && !newSeparator.isEmpty()) {
-            int separatorIndex =ui->separatorComboBox->findText(newSeparator,
-                                                                Qt::MatchFixedString | Qt::MatchCaseSensitive);
-            if(separatorIndex < 0){
+            int separatorIndex = ui->separatorComboBox->findText(newSeparator,
+                                 Qt::MatchFixedString | Qt::MatchCaseSensitive);
+            if(separatorIndex < 0) {
                 ui->separatorComboBox->insertItem(0, newSeparator, FILE_SEPARATOR_OTHER);
                 ui->separatorComboBox->setCurrentIndex(0);
                 curFileSeparatorString = newSeparator;
-            }else{
+            } else {
                 ui->separatorComboBox->setCurrentIndex(0);
                 curFileSeparatorString = ui->separatorComboBox->itemText(separatorIndex);
             }
@@ -420,11 +430,12 @@ void DataOutputDialog::on_separatorComboBox_activated(int index) {
 
 }
 
-void DataOutputDialog::on_formatComboBox_activated(int index) {
+void DataOutputDialog::on_formatComboBox_activated(int index)
+{
 
     uint formatType = ui->formatComboBox->itemData(index).toUInt();
 
-    switch(formatType){
+    switch(formatType) {
     case FILE_FORMATE_TEXT:
         ui->separatorLabel->setEnabled(true);
         ui->separatorComboBox->setEnabled(true);
@@ -454,18 +465,20 @@ void DataOutputDialog::on_formatComboBox_activated(int index) {
 
 }
 
-void DataOutputDialog::on_browseButton_clicked() {
+void DataOutputDialog::on_browseButton_clicked()
+{
     getFilePath();
 
 }
 
-void DataOutputDialog::on_executeButton_clicked() {
+void DataOutputDialog::on_executeButton_clicked()
+{
     ui->executeButton->setEnabled(false);
 
-    if(ioType == EXPORT){
+    if(ioType == EXPORT) {
 
-        if(ui->filePathComboBox->currentText().isEmpty()){
-            if(!getFilePath()){
+        if(ui->filePathComboBox->currentText().isEmpty()) {
+            if(!getFilePath()) {
                 ui->executeButton->setEnabled(true);
                 return;
             }
@@ -479,8 +492,10 @@ void DataOutputDialog::on_executeButton_clicked() {
                                         | QMessageBox::Cancel, QMessageBox::No);
 
             if (ret == QMessageBox::No) {
-                if(!getFilePath()){return;}
-            }else if(ret == QMessageBox::Cancel){
+                if(!getFilePath()) {
+                    return;
+                }
+            } else if(ret == QMessageBox::Cancel) {
                 ui->executeButton->setEnabled(true);
                 return;
             }
@@ -489,7 +504,7 @@ void DataOutputDialog::on_executeButton_clicked() {
 
     }
 
-    if(exportResult(ui->filePathComboBox->currentText())){
+    if(exportResult(ui->filePathComboBox->currentText())) {
         accept();
     }
 

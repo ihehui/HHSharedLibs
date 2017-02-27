@@ -38,7 +38,7 @@
 
 
 Service::Service(int argc, char **argv, const QString &serviceName, const QString &description)
-    :QtService<QCoreApplication>(argc, argv, serviceName)
+    : QtService<QCoreApplication>(argc, argv, serviceName)
 {
 
     setServiceDescription(description);
@@ -48,8 +48,8 @@ Service::Service(int argc, char **argv, const QString &serviceName, const QStrin
 #if defined(QTSERVICE_DEBUG)
     installMessageLogger();
 #else
-    for(int i = 0; i < argc; i++){
-        if("-log" == QString(argv[i]).toLower()){
+    for(int i = 0; i < argc; i++) {
+        if("-log" == QString(argv[i]).toLower()) {
             installMessageLogger();
         }
     }
@@ -70,40 +70,40 @@ Service::~Service()
 //    //qDebug()<<"----Service::runAs(...)";
 //    //qDebug()<<"User Name Of CurrentThread:"<<getUserNameOfCurrentThread();
 
-    
+
 //    RunAsThread thread;
 //    //thread.run();
 //    QString errorMessage;
 //    bool ret = thread.runAs(&errorMessage, userName, password, exeFilePath, parameters, show, workingDir);
-    
+
 //    logMessage(errorMessage, QtServiceBase::Information);
 //    return ret;
-    
-    
+
+
 //     if(userName.simplified().isEmpty()){
 //         //error = tr("Invalid user name!");
 //         return false;
 //     }
-     
-     
+
+
 
 //     HDESK hdeskCurrent;
 //     HDESK hdesk;
 //     HWINSTA hwinstaCurrent;
 //     HWINSTA hwinsta;
-     
+
 //     hwinstaCurrent = GetProcessWindowStation();
 //     if (hwinstaCurrent == NULL){
 //     //LogEvent(_T("get window station err"));
 //     return FALSE;
 //     }
-     
+
 //     hdeskCurrent = GetThreadDesktop(GetCurrentThreadId());
 //     if (hdeskCurrent == NULL){
 //     //LogEvent(_T("get window desktop err"));
 //     return FALSE;
 //     }
-     
+
 //     //打开winsta0
 //     hwinsta = OpenWindowStationW(L"winsta0", FALSE,
 //     WINSTA_ACCESSCLIPBOARD |
@@ -117,16 +117,16 @@ Service::~Service()
 //     WINSTA_WRITEATTRIBUTES);
 //     if (hwinsta == NULL){
 //     //LogEvent(_T("open window station err"));
-     
+
 //     return FALSE;
 //     }
-     
+
 //     if (!SetProcessWindowStation(hwinsta)){
 //     //LogEvent(_T("Set window station err"));
-     
+
 //     return FALSE;
 //     }
-     
+
 //     //打开desktop
 //     hdesk = OpenDesktopW(L"default", 0, FALSE,
 //     DESKTOP_CREATEMENU |
@@ -140,21 +140,21 @@ Service::~Service()
 //     DESKTOP_WRITEOBJECTS);
 //     if (hdesk == NULL){
 //     //LogEvent(_T("Open desktop err"));
-     
+
 //     return FALSE;
 //     }
-     
+
 //     if(!SetThreadDesktop(hdesk)){
 //         logMessage(QString("SetThreadDesktop Failed! %1").arg(GetLastError()), QtServiceBase::Error);
 //        return false;
 //     }
 //     logMessage("SetThreadDesktop OK!", QtServiceBase::Information);
-     
 
 
-     
-     
-     
+
+
+
+
 
 //     wchar_t name[userName.size()*sizeof(wchar_t)+1];
 //     wcscpy(name, userName.toStdWString().c_str());
@@ -186,14 +186,14 @@ Service::~Service()
 //        ZeroMemory(&si, sizeof(STARTUPINFOW));
 //        si.cb= sizeof(STARTUPINFOW);
 //        si.lpDesktop = NULL;
-//        //si.lpDesktop = L"winsta0\\default";  
-//        //si.lpDesktop = L""; 
+//        //si.lpDesktop = L"winsta0\\default";
+//        //si.lpDesktop = L"";
 //        si.dwFlags = STARTF_USESHOWWINDOW;
 //        if(show){
 //            si.wShowWindow = SW_SHOW;
 //        }else{
 //            si.wShowWindow = SW_HIDE;
-//        }  
+//        }
 
 
 //        bool ok = CreateProcessAsUserW(hToken, exeFilePath.toStdWString().c_str(), cmdLine, NULL, NULL, false, NORMAL_PRIORITY_CLASS, NULL,workingDir.toStdWString().c_str(), &si,&pi);
@@ -210,7 +210,7 @@ Service::~Service()
 
 
 //    return true;
- 
+
 
 
 //}
@@ -220,7 +220,7 @@ Service::~Service()
 
 ////    HDESK               hdesk;
 ////    HWINSTA             hwinsta;
-    
+
 ////    //
 ////    // obtain a handle to the interactive windowstation
 ////    //
@@ -234,7 +234,7 @@ Service::~Service()
 
 ////    //HWINSTA hwinstaold = GetProcessWindowStation();
 ////    hwinstaold = GetProcessWindowStation();
-    
+
 
 ////    //
 ////    // set the windowstation to winsta0 so that you obtain the
@@ -242,7 +242,7 @@ Service::~Service()
 ////    //
 ////    if (!SetProcessWindowStation(hwinsta))
 ////         return RTN_ERROR;
-    
+
 ////    //
 ////    // obtain a handle to the "default" desktop
 ////    //
@@ -255,34 +255,34 @@ Service::~Service()
 ////         );
 ////    if (hdesk == NULL)
 ////         return RTN_ERROR;
-    
+
 ////    if(!SetThreadDesktop(hdesk)){
 ////        return RTN_ERROR;
-    
+
 ////    }
-    
+
 ////    //
 ////    // close the handles to the interactive windowstation and desktop
 ////    //
 ////    CloseWindowStation(hwinsta);
 
 ////    CloseDesktop(hdesk);
-    
+
 //////    SetProcessWindowStation(hwinstaold); //set it back
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 //    WCHAR pvInfo[128] = {0};
 ////    WCHAR tmp[1024] = {0};
-    
+
 ////    if(szName != NULL)
 ////    lstrcpy(pvInfo, szName);
 ////    else
 ////    {
-    
+
 //    HDESK hActiveDesktop;
 //    DWORD dwLen;
 //    hActiveDesktop = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, MAXIMUM_ALLOWED);
@@ -298,7 +298,7 @@ Service::~Service()
 //    }
 //    CloseDesktop(hActiveDesktop);
 //    //打开winsta0
-//    HWINSTA m_hwinsta = OpenWindowStationW(L"winsta0", FALSE,                          
+//    HWINSTA m_hwinsta = OpenWindowStationW(L"winsta0", FALSE,
 //    WINSTA_ACCESSCLIPBOARD   |
 //    WINSTA_ACCESSGLOBALATOMS |
 //    WINSTA_CREATEDESKTOP     |
@@ -311,14 +311,14 @@ Service::~Service()
 //    if (m_hwinsta == NULL){
 //    return 0;
 //    }
-    
+
 //    if (!SetProcessWindowStation(m_hwinsta)){
 //    return 0;
 //    }
-    
+
 //    //打开desktop
-//    //HDESK m_hdesk = OpenDesktop(pvInfo, 0, FALSE,   
-//    HDESK m_hdesk = OpenDesktopW(L"default", 0, FALSE,                        
+//    //HDESK m_hdesk = OpenDesktop(pvInfo, 0, FALSE,
+//    HDESK m_hdesk = OpenDesktopW(L"default", 0, FALSE,
 //    DESKTOP_CREATEMENU |
 //    DESKTOP_CREATEWINDOW |
 //    DESKTOP_ENUMERATE    |
@@ -331,21 +331,21 @@ Service::~Service()
 //    if (m_hdesk == NULL){
 //    return 0;
 //    }
-    
+
 //    SetThreadDesktop(m_hdesk);
 //    return 1;
 //    //}
-    
-    
-    
-    
-    
+
+
+
+
+
 //}
 
 //void Service::resetDesktop(){
 
 //    SetProcessWindowStation(hwinstaold); //set it back
-    
+
 //}
 
 //#endif
@@ -357,7 +357,7 @@ void Service::start()
 {
 #if defined(Q_OS_WIN)
     if ((QSysInfo::WindowsVersion & QSysInfo::WV_NT_based) &&
-        (QSysInfo::WindowsVersion >= QSysInfo::WV_VISTA)) {
+            (QSysInfo::WindowsVersion >= QSysInfo::WV_VISTA)) {
         logMessage( "Service GUI not allowed on Windows Vista. See the documentation for this example for more information.", QtServiceBase::Error );
         return;
     }

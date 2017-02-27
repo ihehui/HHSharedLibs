@@ -1,4 +1,4 @@
-/** 
+/**
  @file  win32.h
  @brief ENet Win32 header
 */
@@ -6,12 +6,12 @@
 #define __ENET_WIN32_H__
 
 #ifdef _MSC_VER
-#ifdef ENET_BUILDING_LIB
-#pragma warning (disable: 4267) // size_t to int conversion
-#pragma warning (disable: 4244) // 64bit to 32bit int
-#pragma warning (disable: 4018) // signed/unsigned mismatch
-#pragma warning (disable: 4146) // unary minus operator applied to unsigned type
-#endif
+    #ifdef ENET_BUILDING_LIB
+        #pragma warning (disable: 4267) // size_t to int conversion
+        #pragma warning (disable: 4244) // 64bit to 32bit int
+        #pragma warning (disable: 4018) // signed/unsigned mismatch
+        #pragma warning (disable: 4146) // unary minus operator applied to unsigned type
+    #endif
 #endif
 
 #include <stdlib.h>
@@ -27,22 +27,21 @@ typedef SOCKET ENetSocket;
 #define ENET_NET_TO_HOST_16(value) (ntohs (value))
 #define ENET_NET_TO_HOST_32(value) (ntohl (value))
 
-typedef struct
-{
+typedef struct {
     size_t dataLength;
-    void * data;
+    void *data;
 } ENetBuffer;
 
 #define ENET_CALLBACK __cdecl
 
 #ifdef ENET_DLL
-#ifdef ENET_BUILDING_LIB
-#define ENET_API __declspec( dllexport )
-#else
-#define ENET_API __declspec( dllimport )
-#endif /* ENET_BUILDING_LIB */
+    #ifdef ENET_BUILDING_LIB
+        #define ENET_API __declspec( dllexport )
+    #else
+        #define ENET_API __declspec( dllimport )
+    #endif /* ENET_BUILDING_LIB */
 #else /* !ENET_DLL */
-#define ENET_API extern
+    #define ENET_API extern
 #endif /* ENET_DLL */
 
 typedef fd_set ENetSocketSet;

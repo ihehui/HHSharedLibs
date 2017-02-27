@@ -42,11 +42,13 @@
 
 
 
-namespace Ui {
+namespace Ui
+{
 class SelectTargetImageWidgetUI;
 }
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class SelectTargetImageWidget : public QWidget

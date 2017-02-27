@@ -58,7 +58,8 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 enum { debugFilter = 0 };
@@ -82,8 +83,9 @@ void IconButton::paintEvent(QPaintEvent *)
     // Note isDown should really use the active state but in most styles
     // this has no proper feedback
     QIcon::Mode state = QIcon::Disabled;
-    if (isEnabled())
+    if (isEnabled()) {
         state = isDown() ? QIcon::Selected : QIcon::Normal;
+    }
     QPixmap iconpixmap = icon().pixmap(QSize(ICONBUTTON_SIZE, ICONBUTTON_SIZE),
                                        state, QIcon::Off);
     QRect pixmapRect = QRect(0, 0, iconpixmap.width(), iconpixmap.height());
@@ -114,26 +116,30 @@ bool HintLineEdit::refuseFocus() const
 
 void HintLineEdit::setRefuseFocus(bool v)
 {
-    if (v == m_refuseFocus)
+    if (v == m_refuseFocus) {
         return;
+    }
     m_refuseFocus = v;
     setFocusPolicy(m_refuseFocus ? Qt::NoFocus : m_defaultFocusPolicy);
 }
 
 void HintLineEdit::mousePressEvent(QMouseEvent *e)
 {
-    if (debugFilter)
+    if (debugFilter) {
         qDebug() << Q_FUNC_INFO;
+    }
     // Explicitly focus on click.
-    if (m_refuseFocus && !hasFocus())
+    if (m_refuseFocus && !hasFocus()) {
         setFocus(Qt::OtherFocusReason);
+    }
     QLineEdit::mousePressEvent(e);
 }
 
 void HintLineEdit::focusInEvent(QFocusEvent *e)
 {
-    if (debugFilter)
+    if (debugFilter) {
         qDebug() << Q_FUNC_INFO;
+    }
     if (m_refuseFocus) {
         // Refuse the focus if the mouse it outside. In addition to the mouse
         // press logic, this prevents a re-focussing which occurs once
@@ -142,8 +148,9 @@ void HintLineEdit::focusInEvent(QFocusEvent *e)
         if (reason == Qt::ActiveWindowFocusReason || reason == Qt::PopupFocusReason) {
             const QPoint mousePos = mapFromGlobal(QCursor::pos());
             const bool refuse = !geometry().contains(mousePos);
-            if (debugFilter)
+            if (debugFilter) {
                 qDebug() << Q_FUNC_INFO << refuse ;
+            }
             if (refuse) {
                 e->ignore();
                 return;
@@ -173,18 +180,20 @@ FilterWidget::FilterWidget(QWidget *parent, LayoutMode lm)  :
 
     // Make room for clear icon
     QMargins margins = m_editor->textMargins();
-    if (layoutDirection() == Qt::LeftToRight)
+    if (layoutDirection() == Qt::LeftToRight) {
         margins.setRight(size.width());
-    else
+    } else {
         margins.setLeft(size.width());
+    }
 
     m_editor->setTextMargins(margins);
 
     QHBoxLayout *l = new QHBoxLayout(this);
     l->setMargin(0);
     l->setSpacing(0);
-    if (lm == LayoutAlignRight)
+    if (lm == LayoutAlignRight) {
         l->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    }
 
     l->addWidget(m_editor);
 
@@ -192,9 +201,9 @@ FilterWidget::FilterWidget(QWidget *parent, LayoutMode lm)  :
     // If these icons are not avaiable we use the freedesktop standard name before
     // falling back to a bundled resource
     QIcon icon = QIcon::fromTheme(layoutDirection() == Qt::LeftToRight ?
-                     QStringLiteral("edit-clear-locationbar-rtl") :
-                     QStringLiteral("edit-clear-locationbar-ltr"),
-                     QIcon::fromTheme(QStringLiteral("edit-clear"), createIconSet(QStringLiteral("cleartext.png"))));
+                                  QStringLiteral("edit-clear-locationbar-rtl") :
+                                  QStringLiteral("edit-clear-locationbar-ltr"),
+                                  QIcon::fromTheme(QStringLiteral("edit-clear"), createIconSet(QStringLiteral("cleartext.png"))));
 
     m_button->setIcon(icon);
     m_button->setToolTip(tr("Clear text"));
@@ -210,15 +219,17 @@ QString FilterWidget::text() const
 
 void FilterWidget::checkButton(const QString &text)
 {
-    if (m_oldText.isEmpty() || text.isEmpty())
+    if (m_oldText.isEmpty() || text.isEmpty()) {
         m_button->animateShow(!m_editor->text().isEmpty());
+    }
     m_oldText = text;
 }
 
 void FilterWidget::reset()
 {
-    if (debugFilter)
+    if (debugFilter) {
         qDebug() << Q_FUNC_INFO;
+    }
 
     if (!m_editor->text().isEmpty()) {
         // Editor has lost focus once this is pressed
@@ -228,7 +239,8 @@ void FilterWidget::reset()
 
 }
 
-void FilterWidget::setFocusToEditor(){
+void FilterWidget::setFocusToEditor()
+{
     m_editor->setFocus();
 }
 

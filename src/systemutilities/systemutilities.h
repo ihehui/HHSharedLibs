@@ -6,7 +6,9 @@
 #include "systemutilitieslib.h"
 
 
-namespace HEHUI {
+
+namespace HEHUI
+{
 
 
 class SYSUTIL_LIB_API SystemUtilities : public QObject
@@ -23,11 +25,13 @@ public:
 
     static QString getHardDriveSerialNumber(unsigned int driveIndex = 0);
 
-    static bool getMemoryStatus(quint64 *totalBytes, int *loadPercentage);
+    static bool getMemoryStatus(quint64 *totalBytes, float *loadPercentage);
     static bool getDiskPartionStatus(const QString &partionRootPath, float *totalBytes, float *freeBytes);
     static QString getDisksInfo();
 
     static QString getOSVersionInfo();
+    static bool getLogonInfoOfCurrentUser(QString *userName, QString *domain = 0, QString *logonServer = 0, unsigned long *apiStatus = 0);
+    static void getAllUsersLoggedOn(QStringList *users, const QString &serverName = "", unsigned long *apiStatus = 0);
 
 
 

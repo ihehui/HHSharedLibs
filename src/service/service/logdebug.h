@@ -9,18 +9,20 @@
 #include <QtCore/QTime>
 #include <QtCore/QMutex>
 #if defined(Q_OS_WIN32)
-#include <qt_windows.h>
+    #include <qt_windows.h>
 #else
-#include <unistd.h>
-#include <stdlib.h>
+    #include <unistd.h>
+    #include <stdlib.h>
 #endif
 
-static QFile* f = 0;
+static QFile *f = 0;
 static qulonglong processId = 0;
 
 static void closeDebugLog()
 {
-    if (!f){return;}
+    if (!f) {
+        return;
+    }
 
     QByteArray s(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
     s += " [";
@@ -36,19 +38,19 @@ static void closeDebugLog()
 
 
 #if QT_VERSION >= 0x050000
-static void logDebug(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+    static void logDebug(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 #else
-static void logDebug(QtMsgType type, const char* msg)
+    static void logDebug(QtMsgType type, const char *msg)
 #endif
 {
     static QMutex mutex;
     QMutexLocker locker(&mutex);
 
-    if(!processId){
+    if(!processId) {
 #if defined(Q_OS_WIN32)
-    processId = GetCurrentProcessId();
+        processId = GetCurrentProcessId();
 #else
-    processId = getpid();
+        processId = getpid();
 #endif
     }
 
@@ -80,7 +82,7 @@ static void logDebug(QtMsgType type, const char* msg)
         s += "CRITICAL: ";
         break;
     case QtFatalMsg:
-        s+= "FATAL: ";
+        s += "FATAL: ";
         break;
     case QtDebugMsg:
         s += "DEBUG: ";
@@ -122,7 +124,8 @@ static void logDebug(QtMsgType type, const char* msg)
 
 
 
-static void installMessageLogger(){
+static void installMessageLogger()
+{
 
 #  if QT_VERSION >= 0x050000
     //reset the message handler
@@ -138,7 +141,8 @@ static void installMessageLogger(){
 
 }
 
-static void uninstallMessageLogger(){
+static void uninstallMessageLogger()
+{
     //reset the message handler
 #  if QT_VERSION >= 0x050000
     qInstallMessageHandler(0);

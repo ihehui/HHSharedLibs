@@ -41,36 +41,21 @@
 
 #include <Windows.h>
 
+#endif
+
 #ifdef __GNUC__
-#define __out
+    #define __out
 #endif
 
 #include "systemutilitieslib.h"
+#include "utilities_def.h"
+
+namespace HEHUI
+{
 
 
-namespace HEHUI {
-
-//class WM_LIB_API ServiceInfo : public QObject{
-//public:
-//    ServiceInfo() : QObject(){
-//        processID = 0;
-//        serviceType = 0x00000020;
-//        startType = 0x00000002;
-//    }
-//    QString serviceName;
-//    QString displayName;
-//    DWORD processID;
-//    QString description;
-//    DWORD startType;
-//    QString account;
-//    QString dependencies;
-//    QString binaryPath;
-//    DWORD serviceType;
-
-
-//} ;
-
-class SYSUTIL_LIB_API WinUtilities {
+class SYSUTIL_LIB_API WinUtilities
+{
 
 public:
     WinUtilities();
@@ -136,7 +121,7 @@ public:
     static void regCloseKey(HKEY hKey);
 
     static bool windowsVersionName(QString *versionName);
-    static bool windowsVersionName(wchar_t* str, int bufferSize);
+    static bool windowsVersionName(wchar_t *str, int bufferSize);
     static bool is64BitApplication();
     static void SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo);
     static bool is64BitOS();
@@ -152,7 +137,7 @@ public:
     static bool deleteLocalUser(LPWSTR userName, DWORD *errorCode = 0);
     static bool updateUserPassword(const QString &userName = "", const QString &password = "", DWORD *errorCode = 0, bool activeIfAccountDisabled = false);
 
-    enum UserAccountState{UAS_Unknown, UAS_Disabled, UAS_Enabled};
+    enum UserAccountState {UAS_Unknown, UAS_Disabled, UAS_Enabled};
     static bool setupUserAccountState(const QString &userName,  bool enableAccount, DWORD *errorCode = 0);
     static UserAccountState getUserAccountState(const QString &userName, DWORD *errorCode = 0);
 
@@ -218,24 +203,25 @@ public:
     static bool createOrModifyUser(QJsonObject *userObject, DWORD *errorCode = 0);
 
 
-    //Service
-    typedef struct SERVICE_INFO{
-        SERVICE_INFO(){
-            processID = 0;
-            serviceType = 0xFFFFFFFF;
-            startType = 0xFFFFFFFF;
-        }
-        QString serviceName;
-        QString displayName;
-        DWORD processID;
-        QString description;
-        DWORD startType;
-        QString account;
-        QString dependencies;
-        QString binaryPath;
-        DWORD serviceType;
+//    //Service
+//    typedef struct SERVICE_INFO {
+//        SERVICE_INFO()
+//        {
+//            processID = 0;
+//            serviceType = 0xFFFFFFFF;
+//            startType = 0xFFFFFFFF;
+//        }
+//        QString serviceName;
+//        QString displayName;
+//        DWORD processID;
+//        QString description;
+//        DWORD startType;
+//        QString account;
+//        QString dependencies;
+//        QString binaryPath;
+//        DWORD serviceType;
 
-    } ServiceInfo;
+//    } ServiceInfo;
     static bool serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode = 0, DWORD dwDesiredAccess = SC_MANAGER_ALL_ACCESS);
     static bool serviceOpenService(const QString &serviceName, SC_HANDLE *schSCManager, SC_HANDLE *schService, DWORD *errorCode = 0, DWORD dwDesiredAccess = SERVICE_ALL_ACCESS);
     static bool serviceQueryInfo(const QString &serviceName, ServiceInfo *serviceInfo,  DWORD *errorCode = 0);
@@ -274,7 +260,7 @@ public:
 
     //GDI+
     //Get image format Clsid
-    static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid);
+    static int GetEncoderClsid(const WCHAR *format, CLSID *pClsid);
     static QByteArray ConvertHBITMAPToJpeg(HBITMAP hbitmap);
     //static QPixmap WinHBITMAPToPixmap(HBITMAP bitmap, bool noAlpha = true);
     //HBITMAP PixmapToWinHBITMAP(const QImage &image, bool noAlpha = true);

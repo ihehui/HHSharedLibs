@@ -41,13 +41,14 @@
 
 
 #if defined(IMAGEVIEWER_LIBRARY_EXPORT)
-#  define IMAGEVIEWER_LIB_API Q_DECL_EXPORT
+    #define IMAGEVIEWER_LIB_API Q_DECL_EXPORT
 #else
-#  define IMAGEVIEWER_LIB_API Q_DECL_IMPORT
+    #define IMAGEVIEWER_LIB_API Q_DECL_IMPORT
 #endif
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class ImageViewerControler;
@@ -62,8 +63,8 @@ public:
     ImageViewer(QWidget *parent = 0, Qt::WindowFlags fl = Qt::FramelessWindowHint);
     ~ImageViewer();
 
-    RenderWidget * renderWidget();
-    QScrollArea * scrollArea();
+    RenderWidget *renderWidget();
+    QScrollArea *scrollArea();
     ImageViewerControler *imageControler();
 
     static void processBrightnessAndContrast(QImage &image, int brightness, int contrast);

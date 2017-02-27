@@ -37,11 +37,12 @@
 
 #include <QtCore/QtGlobal>
 
- #if defined(SYSUTIL_LIBRARY_EXPORT)
- #  define SYSUTIL_LIB_API Q_DECL_EXPORT
- #else
- #  define SYSUTIL_LIB_API Q_DECL_IMPORT
- #endif
+#if defined(SYSUTIL_LIBRARY_EXPORT)
+    #define SYSUTIL_LIB_API Q_DECL_EXPORT
+#else
+    #define SYSUTIL_LIB_API Q_DECL_IMPORT
+#endif
+
 
 
 #endif //systemutilitieslib.h

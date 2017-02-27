@@ -34,38 +34,46 @@
 #include "error.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
-Error::Error(unsigned int errorCode, const QString &errorString){
+Error::Error(unsigned int errorCode, const QString &errorString)
+{
     this->m_errorCode = errorCode;
     this->m_errorString = errorString;
 
 }
 
-Error::Error(const Error &error){
+Error::Error(const Error &error)
+{
     *this = error;
 
 }
 
-Error & Error::operator = (const Error &error){
+Error &Error::operator = (const Error &error)
+{
     this->m_errorCode = error.code();
     this->m_errorString = error.errorString();
     return *this;
 }
 
-unsigned int Error::code() const{
+unsigned int Error::code() const
+{
     return this->m_errorCode;
 }
 
-void Error::setErrorCode(unsigned int errorCode){
+void Error::setErrorCode(unsigned int errorCode)
+{
     this->m_errorCode = errorCode;
 }
 
-QString Error::errorString() const{
+QString Error::errorString() const
+{
     return this->m_errorString;
 }
 
-void Error::setErrorString(const QString errorString){
+void Error::setErrorString(const QString errorString)
+{
     this->m_errorString = errorString;
 }
 

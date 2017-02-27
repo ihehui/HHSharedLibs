@@ -42,14 +42,15 @@
 
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 class  GUI_LIB_API SettingsBase : public SettingsCore
 {
     Q_OBJECT
 public:
-    SettingsBase( const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject* parent= 0 );
+    SettingsBase( const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject *parent = 0 );
     ~SettingsBase();
 
 
@@ -62,8 +63,8 @@ public:
     void setHideOnClose(bool hideOnClose);
     bool getHideOnClose();
 
-    virtual void restoreState( QMainWindow* mw);
-    virtual void saveState( QMainWindow* mw);
+    virtual void restoreState( QMainWindow *mw);
+    virtual void saveState( QMainWindow *mw);
 
     void setRestoreWindowStateOnStartup(bool restore);
     bool getRestoreWindowStateOnStartup();

@@ -32,11 +32,12 @@
 #include "corepluginbase.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 CorePluginBase::CorePluginBase(QObject *parent)
-    :QObject(parent)
+    : QObject(parent)
 {
 
 }

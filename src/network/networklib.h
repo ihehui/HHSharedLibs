@@ -34,11 +34,11 @@
 
 #include <QtCore/QtGlobal>
 
- #if defined(NETWORK_LIBRARY_EXPORT)
- #  define NETWORK_LIB_API Q_DECL_EXPORT
- #else
- #  define NETWORK_LIB_API Q_DECL_IMPORT
- #endif
+#if defined(NETWORK_LIBRARY_EXPORT)
+    #define NETWORK_LIB_API Q_DECL_EXPORT
+#else
+    #define NETWORK_LIB_API Q_DECL_IMPORT
+#endif
 
 
 /*

@@ -66,13 +66,13 @@ contains(HHSharedLibs, HHSharedENET){
 #    DEPENDPATH += src/enet
 }
 
-win32{
+#win32{
     contains(HHSharedLibs, HHSharedSysUtilities){
         include(src/systemutilities/systemutilities_lib.pri)
 #        INCLUDEPATH += src/windowsmanagement
 #        DEPENDPATH += src/windowsmanagement
     }
-}
+#}
 
 #INCLUDEPATH += $${HHSHAREDLIBS_ROOT_PATH}/include
 

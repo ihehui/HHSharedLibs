@@ -37,7 +37,8 @@
 #include "htmlhighlighter_p.h"
 
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 HtmlHighlighter::HtmlHighlighter(QTextEdit *textEdit)
     : QSyntaxHighlighter(textEdit->document())
@@ -106,12 +107,14 @@ void HtmlHighlighter::highlightBlock(const QString &text)
                         state = InTag;
                         start = pos;
                         while (pos < len && text.at(pos) != space
-                               && text.at(pos) != endTag
-                               && text.at(pos) != tab
-                               && text.mid(pos, 2) != endElement)
+                                && text.at(pos) != endTag
+                                && text.at(pos) != tab
+                                && text.mid(pos, 2) != endElement) {
                             ++pos;
-                        if (text.mid(pos, 2) == endElement)
+                        }
+                        if (text.mid(pos, 2) == endElement) {
                             ++pos;
+                        }
                         setFormat(start, pos - start,
                                   m_formats[Tag]);
                         break;
@@ -165,9 +168,10 @@ void HtmlHighlighter::highlightBlock(const QString &text)
                         // we must be dealing with an attribute.
                         ++pos;
                         while (pos < len && text.at(pos) != space
-                               && text.at(pos) != tab
-                               && text.at(pos) != equals)
+                                && text.at(pos) != tab
+                                && text.at(pos) != equals) {
                             ++pos;
+                        }
                         setFormat(start, pos - start, m_formats[Attribute]);
                         start = pos;
                     }

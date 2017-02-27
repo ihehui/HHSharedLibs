@@ -29,7 +29,8 @@
 
 #include "rudppacket.h"
 
-namespace HEHUI {
+namespace HEHUI
+{
 
 
 
@@ -61,12 +62,12 @@ RUDPPacket::RUDPPacket(QObject *parent, quint8 packetType, quint16 packetSerialN
 {
 
     //Q_ASSERT_X(parent, "RUDPPacket::RUDPPacket(...)", "Invalid parent object!");
-    
+
     this->packetType = packetType;
     this->m_packetSerialNumber = packetSerialNumber;
     this->packetData = QByteArray();
     this->packetData.resize(0);
-    
+
     this->remainingRetransmissionTimes = retransmissionTimes;
 
     this->lastTransmissionTime = QDateTime();
@@ -75,11 +76,13 @@ RUDPPacket::RUDPPacket(QObject *parent, quint8 packetType, quint16 packetSerialN
 }
 
 
-RUDPPacket::RUDPPacket(const RUDPPacket &packet){
+RUDPPacket::RUDPPacket(const RUDPPacket &packet)
+{
     *this = packet;
 }
 
-RUDPPacket & RUDPPacket::operator = (const RUDPPacket &packet){
+RUDPPacket &RUDPPacket::operator = (const RUDPPacket &packet)
+{
 
     this->packetType = packet.getPacketType();
     this->m_packetSerialNumber = packet.getPacketSerialNumber();
@@ -90,25 +93,28 @@ RUDPPacket & RUDPPacket::operator = (const RUDPPacket &packet){
     return *this;
 }
 
-RUDPPacket::~RUDPPacket() {
+RUDPPacket::~RUDPPacket()
+{
 
 
-    
+
 }
 
-void RUDPPacket::resetPacket(){
+void RUDPPacket::resetPacket()
+{
     this->packetType = RUDP::UnKnownPacket;
     this->m_packetSerialNumber = 0;
     this->packetData.clear();
     this->packetData.resize(0);
-    
+
     this->remainingRetransmissionTimes = -1;
     this->lastTransmissionTime = QDateTime();
 
 
 }
 
-bool RUDPPacket::isNull(){
+bool RUDPPacket::isNull()
+{
     return ( RUDP::UnKnownPacket == packetType);
 }
 
@@ -119,48 +125,58 @@ bool RUDPPacket::isNull(){
 //}
 
 
-quint8 RUDPPacket::getPacketType() const {
+quint8 RUDPPacket::getPacketType() const
+{
     return packetType;
 }
 
-void RUDPPacket::setPacketType(quint8 packetType) {
+void RUDPPacket::setPacketType(quint8 packetType)
+{
     this->packetType = packetType;
 }
 
 
 
-quint16 RUDPPacket::getPacketSerialNumber() const {
+quint16 RUDPPacket::getPacketSerialNumber() const
+{
     return m_packetSerialNumber;
 }
 
-void RUDPPacket::setPacketSerialNumber(quint16 packetSerialNumber) {
+void RUDPPacket::setPacketSerialNumber(quint16 packetSerialNumber)
+{
     this->m_packetSerialNumber = packetSerialNumber;
 }
 
-QByteArray RUDPPacket::getPacketData() const {
+QByteArray RUDPPacket::getPacketData() const
+{
     return packetData;
 }
 
-void RUDPPacket::setPacketData(const QByteArray &data) {
+void RUDPPacket::setPacketData(const QByteArray &data)
+{
     this->packetData = data;
 }
 
-int RUDPPacket::getRemainingRetransmissionTimes() const{
+int RUDPPacket::getRemainingRetransmissionTimes() const
+{
     //    QMutexLocker locker(&mutex);
     return this->remainingRetransmissionTimes;
 }
 
-void RUDPPacket::setRemainingRetransmissionTimes(int remainingRetransmissionTimes) {
+void RUDPPacket::setRemainingRetransmissionTimes(int remainingRetransmissionTimes)
+{
     //    QMutexLocker locker(&mutex);
     this->remainingRetransmissionTimes = remainingRetransmissionTimes;
 }
 
-QDateTime RUDPPacket::getLastTransmissionTime() const {
+QDateTime RUDPPacket::getLastTransmissionTime() const
+{
     //    QMutexLocker locker(&mutex);
     return this->lastTransmissionTime;
 }
 
-void RUDPPacket::setLastTransmissionTime(const QDateTime &time) {
+void RUDPPacket::setLastTransmissionTime(const QDateTime &time)
+{
     //    QMutexLocker locker(&mutex);
     this->lastTransmissionTime = time;
 
@@ -176,11 +192,13 @@ void RUDPPacket::setLastTransmissionTime(const QDateTime &time) {
 
 //}
 
-int RUDPPacket::packetDataSize(){
+int RUDPPacket::packetDataSize()
+{
     return this->packetData.size();
 }
 
-quint16 RUDPPacket::createSerialNumber() {
+quint16 RUDPPacket::createSerialNumber()
+{
 
     if ((++m_packetSerialNumber) == quint16(RUDP_MAX_PACKET_SN)) {
         m_packetSerialNumber = 0;
