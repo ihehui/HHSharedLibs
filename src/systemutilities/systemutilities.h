@@ -30,7 +30,7 @@ public:
     static QString getDisksInfo();
 
     static QString getOSVersionInfo();
-    static bool getLogonInfoOfCurrentUser(QString *userName, QString *domain = 0, QString *logonServer = 0, unsigned long *apiStatus = 0);
+    static bool getLogonInfoOfCurrentUser(QString *userName, QString *domain = 0, QString *logonServer = 0, QString *errorMessage = 0);
     static void getAllUsersLoggedOn(QStringList *users, const QString &serverName = "", unsigned long *apiStatus = 0);
 
 

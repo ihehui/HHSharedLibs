@@ -310,11 +310,16 @@ QString SystemUtilities::getOSVersionInfo()
     return osInfo;
 }
 
-bool SystemUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer, unsigned long *apiStatus)
+bool SystemUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer, QString *errorMessage)
 {
 
 #ifdef Q_OS_WIN
-    return WinUtilities::getLogonInfoOfCurrentUser(userName, domain, logonServer, apiStatus);
+    unsigned long apiStatus = 0;
+    bool ok = WinUtilities::getLogonInfoOfCurrentUser(userName, domain, logonServer, apiStatus);
+    if( (!ok) && errorMessage){
+        *errorMessage = WinUtilities::WinSysErrorMsg(status);
+    }
+    return ok;
 #else
 
     QProcess process;
@@ -322,9 +327,15 @@ bool SystemUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *doma
 
     process.start(cmdString);
     if(!process.waitForFinished()) {
+        if(errorMessage){
+            *errorMessage = process.errorString();
+        }
         return false;
     }
     if(!process.waitForReadyRead()) {
+        if(errorMessage){
+            *errorMessage = process.errorString();
+        }
         return false;
     }
 

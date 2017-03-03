@@ -15,7 +15,9 @@ HEADERS += $$PWD/logdebug.h \
     $$PWD/user.h \
     $$PWD/error.h \
     $$PWD/core_lib.h \
-    $$PWD/jobmonitor.h
+    $$PWD/jobmonitor.h \
+    $$PWD/logger/messagelogger.h \
+    $$PWD/logger/messageloggerbase.h
 FORMS += 
 SOURCES += $$PWD/cryptography/tea/teacrypt.cpp \
     $$PWD/cryptography/cryptography.cpp \
@@ -28,7 +30,9 @@ SOURCES += $$PWD/cryptography/tea/teacrypt.cpp \
     $$PWD/singleton.cpp \
     $$PWD/user.cpp \
     $$PWD/error.cpp \
-    $$PWD/jobmonitor.cpp
+    $$PWD/jobmonitor.cpp \
+    $$PWD/logger/messagelogger.cpp \
+    $$PWD/logger/messageloggerbase.cpp
 RESOURCES += 
 win32:LIBS += -Lresources/lib \
     -lwsock32 \
