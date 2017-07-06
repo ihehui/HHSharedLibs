@@ -4,6 +4,55 @@
 #include <QFileInfo>
 
 
+///////////////////////////////////////////////////////////////////////////////
+#if defined(Q_OS_LINUX)
+#include <unistd.h>
+#include <stdlib.h>
+#include <QProcess>
+
+void afterCrashDump(int signalNO, const QStringList &dump)
+{
+    MessageLogger::instance()->stopLogger();
+
+    QString title = QObject::tr("Exception");
+    QString text = QObject::tr("An unhandled exception has occurred, the application has been terminated!\nSignal:%1").arg(signalNO);
+    QString detail = dump.join("\n");
+
+    bool isKDE = qgetenv("XDG_CURRENT_DESKTOP").toLower() == "kde";
+    QString process;
+    QStringList args;
+    if(isKDE){
+        process = "kdialog";
+        args<< "--detailederror" << text << detail << "--title" << title;
+    }else{
+        process = "zenity";
+        args << "--error" << "--text=" + text + "\n\n" + detail;
+    }
+    QProcess::startDetached(process,  args);
+
+    exit(signalNO);
+    return;
+
+//    QMessageBox msgBox;
+//    msgBox.setWindowTitle(QObject::tr("Exception"));
+//    msgBox.setText("The application has been terminated! An unhandled exception has occurred!");
+//    msgBox.setInformativeText(QString("SIGNAL:%1").arg(signalNO));
+//    msgBox.setDetailedText(dump);
+//    msgBox.setIcon(QMessageBox::Critical);
+//    msgBox.exec();
+//    exit(signalNO);
+}
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
 MessageLogger* MessageLogger::m_instance = 0;
 
 MessageLogger* MessageLogger::instance()

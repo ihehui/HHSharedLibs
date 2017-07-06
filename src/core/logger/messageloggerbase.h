@@ -42,18 +42,26 @@
 #include <QFile>
 #include <QStringList>
 
-#define NO_DEBUG_OUTPUT
 
 
+//////////////////////////////////////////////////////////////////////////
+#if defined(Q_OS_LINUX)
+void cleanup_ptr();
+
+typedef void (*Callback_AfterGdbDump)(int signalNO, const QStringList &dump);
+void enableCrashHandler(Callback_AfterGdbDump handler);
+#endif
+//////////////////////////////////////////////////////////////////////////
 
 
 enum MsgType {
     MSG_WARNING = 0x01, //1
     MSG_CRITICAL = 0x02, //2
     MSG_FATAL = 0x04, //4
-    MSG_IMPORTANT = MSG_WARNING | MSG_CRITICAL | MSG_FATAL, //7
-    MSG_INFO = 0x08, //8
-    MSG_DEBUG = 0x10, //16
+    MSG_CRASH = 0x08, //8
+    MSG_IMPORTANT = MSG_WARNING | MSG_CRITICAL | MSG_FATAL | MSG_CRASH, //15
+    MSG_INFO = 0x10, //16
+    MSG_DEBUG = 0x20, //32
 
     MSG_ANY = 0xFF //255
 };
@@ -290,6 +298,8 @@ void qt_QMetaEnum_flagDebugOperator(LogMessage &debug, size_t sizeofT, Int value
 #define LOGCRITICAL LogCritical()
 #define LogFatal() LogMessage(__FILE__, Q_FUNC_INFO, __LINE__, MSG_FATAL)
 #define LOGFATAL LogFatal()
+#define LOGCRASH LogMessage("", "", 0, MSG_CRASH)
+
 
 #define LogQtDebugMessage(file, function, line, msgType) LogMessage(file, function, line, msgType)
 #define LogQtInfoMessage(file, function, line, msgType) LogMessage(file, function, line, msgType)

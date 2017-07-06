@@ -4,8 +4,7 @@
      Update:2017.2.10
 
                             ------------- Usage: -------------
-//////////////////////////////////// INIT ////////////////////////////////////
-    //MessageLogger::instance()->start();
+//////////////////////////////////// INIT ////////////////////////////////////  
     MessageLogger::instance()->setOutputTargets(MessageLoggerBase::TARGET_FILE | MessageLoggerBase::TARGET_DATABASE | MessageLoggerBase::TARGET_CONSOLE);
     MessageLogger::instance()->setOutputTypes(MSG_ANY, MSG_IMPORTANT, MSG_ANY);
     MessageLogger::instance()->setLogQtMessagesEnabled(true);
@@ -54,6 +53,15 @@
     MessageLogger::instance()->close();
 //////////////////////////////////////////////////////////////////////////////
 
+
+
+/////////////////////////////// Crash Handler ///////////////////////////////
+     //Add the following lines to main() function:
+      #if defined(Q_OS_LINUX)
+        enableCrashHandler(afterCrashDump);
+      #endif
+//////////////////////////////////////////////////////////////////////////////
+
 ***************************************************************** */
 
 
@@ -65,6 +73,13 @@
 #include <QSqlDatabase>
 
 #include "database/databaseutility.h"
+
+
+///////////////////////////////////////////////////////////////////////////////
+#if defined(Q_OS_LINUX)
+void afterCrashDump(int signalNO, const QStringList &dump);
+#endif
+///////////////////////////////////////////////////////////////////////////////
 
 
 struct DBConfigStruct{
@@ -102,7 +117,7 @@ struct DBConfigStruct{
 
 class MessageLogger : public MessageLoggerBase
 {
-
+    Q_OBJECT
 public:
     static MessageLogger *instance();
     static void close();
