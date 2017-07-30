@@ -13,6 +13,7 @@
     #define ENET_LIB_API Q_DECL_IMPORT
 #endif
 
+typedef unsigned int SOCKETID;
 
 namespace HEHUI
 {
@@ -36,8 +37,8 @@ public:
     QString errorString() const;
 
 signals:
-    void connected(quint32 peerID, const QString &address, quint16 port);
-    void disconnected(quint32 peerID, const QString &address = "", quint16 port = 0);
+    void connected(SOCKETID peerID, const QString &address, quint16 port);
+    void disconnected(SOCKETID peerID, const QString &address = "", quint16 port = 0);
 
 public slots:
     //Start the server to listen,  implement the virtual function startWaitingForIO()
@@ -71,7 +72,7 @@ protected:
 
 
 private slots:
-    virtual void processReceivedData(quint32 peerID, QByteArray data) = 0;
+    virtual void processReceivedData(SOCKETID peerID, QByteArray data) = 0;
 
 
 private:

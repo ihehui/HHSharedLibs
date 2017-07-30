@@ -121,6 +121,7 @@ private:
 class NETWORK_LIB_API Packet : public PacketBase
 {
 public:
+    Packet();
     Packet(quint8 packetType);
     Packet(const PacketBase &base);
     Packet &operator = (const PacketBase &base);

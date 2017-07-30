@@ -344,6 +344,12 @@ void PacketBase::setPacketBody(const QByteArray &data)
 
 //////////////////////////////////////////////////////////////////////////////////////
 
+Packet::Packet()
+    : PacketBase()
+{
+
+}
+
 Packet::Packet(quint8 packetType)
     : PacketBase(packetType)
 {

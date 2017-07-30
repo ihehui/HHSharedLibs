@@ -1248,9 +1248,7 @@ quint16 UDTProtocolBase::getUDTListeningPort(){
 }
 
 QString UDTProtocolBase::getLastErrorMessage() const{
-
     return m_errorMessage;
-
 }
 
 

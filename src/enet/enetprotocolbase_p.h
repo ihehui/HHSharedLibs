@@ -9,6 +9,7 @@
 
 #include "enet/include/enet/enet.h"
 
+typedef unsigned int SOCKETID;
 
 namespace HEHUI
 {
@@ -33,9 +34,9 @@ public:
     QString errorString() const;
 
 signals:
-    void connected(quint32 peerID, const QString &address, quint16 port);
-    void disconnected(quint32 peerID, const QString &address, quint16 port);
-    void dataReceived(quint32 peerID, QByteArray data);
+    void connected(SOCKETID peerID, const QString &address, quint16 port);
+    void disconnected(SOCKETID peerID, const QString &address, quint16 port);
+    void dataReceived(SOCKETID peerID, QByteArray data);
 
 public slots:
     //Start the server to listen,  implement the virtual function startWaitingForIO()

@@ -611,9 +611,9 @@ ENETProtocolBase::ENETProtocolBase(QObject *parent) :
 
     m_basePrivate = new ENETProtocolBasePrivate(this);
 
-    connect(m_basePrivate, SIGNAL(connected(quint32, QString, quint16)), this, SIGNAL(connected(quint32, QString, quint16)));
-    connect(m_basePrivate, SIGNAL(disconnected(quint32, QString, quint16)), this, SIGNAL(disconnected(quint32, QString, quint16)));
-    connect(m_basePrivate, SIGNAL(dataReceived(quint32, QByteArray)), this, SLOT(processReceivedData(quint32, QByteArray)));
+    connect(m_basePrivate, SIGNAL(connected(SOCKETID, QString, quint16)), this, SIGNAL(connected(SOCKETID, QString, quint16)));
+    connect(m_basePrivate, SIGNAL(disconnected(SOCKETID, QString, quint16)), this, SIGNAL(disconnected(SOCKETID, QString, quint16)));
+    connect(m_basePrivate, SIGNAL(dataReceived(SOCKETID, QByteArray)), this, SLOT(processReceivedData(SOCKETID, QByteArray)));
 
 
     if(enet_initialize()) {
