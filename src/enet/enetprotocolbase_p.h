@@ -6,6 +6,8 @@
 #include <QObject>
 #include <QHostAddress>
 #include <QMutex>
+#include <QThread>
+
 
 #include "enet/include/enet/enet.h"
 
@@ -14,14 +16,14 @@ typedef unsigned int SOCKETID;
 namespace HEHUI
 {
 
-class ENETProtocolBasePrivate;
+class ENETProtocolBase;
 
-class ENETProtocolBasePrivate : public QObject
+class ENETProtocolBasePrivate : public QThread
 {
     Q_OBJECT
 public:
     explicit ENETProtocolBasePrivate(QObject *parent = 0);
-    ~ENETProtocolBasePrivate();
+    virtual ~ENETProtocolBasePrivate();
 
     bool isListening() const;
     bool getPeerAddressInfo(quint32 peerID, QString *address, quint16 *port);
@@ -32,6 +34,17 @@ public:
     void *getPeerPrivateData(quint32 peerID);
 
     QString errorString() const;
+
+    struct OutgoingPacket{
+        OutgoingPacket(ENetPeer *peer, ENetPacket *packet, quint8 channel = 0){
+            this->peer = peer;
+            this->packet = packet;
+            this->channel = channel;
+        }
+        ENetPeer *peer;
+        quint8 channel;
+        ENetPacket *packet;
+    };
 
 signals:
     void connected(SOCKETID peerID, const QString &address, quint16 port);
@@ -52,8 +65,9 @@ public slots:
     bool connectToHost(const QHostAddress &address, quint16 port, quint32 *peerID, unsigned int msecTimeout = 5000, quint32 channels = 0);
 
     //Send data
-    bool sendData(ENetPeer *peer, const QByteArray *byteArray, bool reliable = true, quint8 channel = 0);
-    bool sendData(quint32 peerID, const QByteArray *byteArray, bool reliable = true, quint8 channel = 0);
+    bool sendData(ENetPeer *peer, const QByteArray *byteArray, bool reliable = true, quint8 channel = 0, bool queued = true);
+    bool sendData(quint32 peerID, const QByteArray *byteArray, bool reliable = true, quint8 channel = 0, bool queued = true);
+    bool sendPacket(OutgoingPacket *packet);
 
     //enet_host_flush
     void flush();
@@ -71,6 +85,7 @@ public slots:
 protected:
     bool listen(ENetAddress *localListeningAddress = 0, unsigned int maximumNumberOfPeers = ENET_PROTOCOL_MAXIMUM_PEER_ID);
 
+    void run();
 
 private slots:
 
@@ -107,6 +122,9 @@ private:
     QHash<quint32 /*Peer ID*/, ENetPeer *> peersHash;
 
     QString m_errorString;
+
+
+    QList<OutgoingPacket> m_outgoingPacketList;
 
 
 };

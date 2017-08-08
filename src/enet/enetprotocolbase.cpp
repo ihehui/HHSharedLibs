@@ -22,7 +22,7 @@ namespace HEHUI
 
 //////////////////////////////////////////////////////////////////////////////////////
 ENETProtocolBasePrivate::ENETProtocolBasePrivate(QObject *parent) :
-    QObject(parent)
+    QThread(parent)
 {
 
     m_listening = false;
@@ -222,12 +222,17 @@ void ENETProtocolBasePrivate::close()
 
 void ENETProtocolBasePrivate::startWaitingForIOInAnotherThread(unsigned int msecWaitForIOTimeout)
 {
-    QThreadPool *pool = QThreadPool::globalInstance();
-    int maxThreadCount = pool->maxThreadCount();
-    if(pool->activeThreadCount() == pool->maxThreadCount()) {
-        pool->setMaxThreadCount(++maxThreadCount);
-    }
-    QtConcurrent::run(this, &ENETProtocolBasePrivate::waitForIO, msecWaitForIOTimeout);
+//    QThreadPool *pool = QThreadPool::globalInstance();
+//    int maxThreadCount = pool->maxThreadCount();
+//    if(pool->activeThreadCount() == pool->maxThreadCount()) {
+//        pool->setMaxThreadCount(++maxThreadCount);
+//    }
+//    QtConcurrent::run(this, &ENETProtocolBasePrivate::waitForIO, msecWaitForIOTimeout);
+
+
+    m_msecWaitForIOTimeout = msecWaitForIOTimeout;
+    start();
+
 }
 
 
@@ -273,15 +278,29 @@ void ENETProtocolBasePrivate::startWaitingForIOInAnotherThread(unsigned int msec
 
 void ENETProtocolBasePrivate::waitForIO(int msecTimeout)
 {
-    qDebug() << "--ENETProtocolBasePrivate::waitForIO(...) " << "currentThreadId:" << QThread::currentThreadId();
+    //qDebug() << "--ENETProtocolBasePrivate::waitForIO(...) " << "currentThreadId:" << QThread::currentThreadId();
 
     m_msecWaitForIOTimeout = msecTimeout;
 
     m_threadCount++;
 
+    QList<OutgoingPacket> outgoingPacketList;
+
     ENetEvent event;
     while(m_listening) {
-        int eventsCount = enet_host_service(localServer, &event, msecTimeout);
+
+        {
+            QMutexLocker locker(&mutex);
+            outgoingPacketList = m_outgoingPacketList;
+            m_outgoingPacketList.clear();
+        }
+        while (!outgoingPacketList.isEmpty()) {
+            OutgoingPacket op = outgoingPacketList.takeFirst();
+            sendPacket(&op);
+        }
+
+
+        int eventsCount = enet_host_service(localServer, &event, m_msecWaitForIOTimeout);
         if(eventsCount < 0 ) {
             qDebug() << "ERROR! enet_host_service failed!";
             continue;
@@ -343,6 +362,16 @@ void ENETProtocolBasePrivate::waitForIO(int msecTimeout)
             break;
         }
 
+    }
+
+    {
+        QMutexLocker locker(&mutex);
+        outgoingPacketList = m_outgoingPacketList;
+        m_outgoingPacketList.clear();
+    }
+    while (!outgoingPacketList.isEmpty()) {
+        OutgoingPacket op = outgoingPacketList.takeFirst();
+        sendPacket(&op);
     }
 
     m_threadCount--;
@@ -412,12 +441,20 @@ bool ENETProtocolBasePrivate::connectToHost(const QHostAddress &address, quint16
 
 }
 
-bool ENETProtocolBasePrivate::sendData(ENetPeer *peer, const QByteArray *byteArray, bool reliable, quint8 channel)
+bool ENETProtocolBasePrivate::sendData(ENetPeer *peer, const QByteArray *byteArray, bool reliable, quint8 channel, bool queued)
 {
 
     m_errorString = "";
 
     ENetPacket *packet = enet_packet_create(byteArray->constData(), byteArray->size(), (reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT) );
+
+    if(queued){
+        OutgoingPacket p(peer, packet, channel);
+        QMutexLocker locker(&mutex);
+        m_outgoingPacketList.append(p);
+        return true;
+    }
+
     int result = enet_peer_send(peer, channel, packet);
     if(result < 0) {
         m_errorString = "enet_peer_send(...) failed.";
@@ -432,7 +469,7 @@ bool ENETProtocolBasePrivate::sendData(ENetPeer *peer, const QByteArray *byteArr
     return true;
 }
 
-bool ENETProtocolBasePrivate::sendData(quint32 peerID, const QByteArray *byteArray, bool reliable, quint8 channel)
+bool ENETProtocolBasePrivate::sendData(quint32 peerID, const QByteArray *byteArray, bool reliable, quint8 channel, bool queued)
 {
     m_errorString = "";
 
@@ -443,7 +480,29 @@ bool ENETProtocolBasePrivate::sendData(quint32 peerID, const QByteArray *byteArr
         return false;
     }
 
-    return sendData(peer, byteArray, reliable, channel);
+    return sendData(peer, byteArray, reliable, channel, queued);
+}
+
+bool ENETProtocolBasePrivate::sendPacket(OutgoingPacket *packet)
+{
+    Q_ASSERT(packet);
+    Q_ASSERT(packet->peer);
+    Q_ASSERT(packet->packet);
+
+    if(!packet){return false;}
+
+    int result = enet_peer_send(packet->peer, packet->channel, packet->packet);
+    if(result < 0) {
+        m_errorString = "enet_peer_send(...) failed.";
+        qDebug() << "ERROR! Failed to send data!";
+        enet_packet_destroy(packet->packet);
+        return false;
+    }
+
+    enet_host_flush (localServer);
+    //    enet_host_service(localServer, 0, 1);
+
+    return true;
 }
 
 void ENETProtocolBasePrivate::flush()
@@ -577,6 +636,11 @@ bool ENETProtocolBasePrivate::listen(ENetAddress *localListeningAddress, unsigne
     return m_listening;
 }
 
+void ENETProtocolBasePrivate::run()
+{
+    waitForIO(1);
+}
+
 
 inline void ENETProtocolBasePrivate::msleep(int msec)
 {
@@ -708,10 +772,10 @@ void ENETProtocolBase::disconnectLater(quint32 peerID)
     m_basePrivate->disconnectLater(peerID);
 }
 
-void ENETProtocolBase::waitForIO(int msecTimeout)
-{
-    m_basePrivate->waitForIO(msecTimeout);
-}
+//void ENETProtocolBase::waitForIO(int msecTimeout)
+//{
+//    m_basePrivate->start();
+//}
 
 
 

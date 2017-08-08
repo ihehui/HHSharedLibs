@@ -42,7 +42,7 @@ Service::Service(int argc, char **argv, const QString &serviceName, const QStrin
 {
 
     setServiceDescription(description);
-    setServiceFlags(QtServiceBase::CanBeSuspended);
+    setServiceFlags(QtServiceBase::Default);
 
 
 #if defined(QTSERVICE_DEBUG)

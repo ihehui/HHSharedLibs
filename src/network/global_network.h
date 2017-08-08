@@ -100,7 +100,13 @@ enum TransmissionProtocol {TP_UNKNOWN = 0, TP_TCP, TP_UDP, TP_ENET, TP_UDT, TP_R
 
 enum UDPTransmissionMode {UDP_TM_MULTICAST = 1, UDP_TM_BROADCAST = 2, UDP_TM_DIRECT = 3};
 
-enum PacketType {UnKnownPacket = 0, /*HeartbeatPacket = 1, ConfirmationOfReceiptPacket = 2,*/ TextPacket = 3, BinPacket = 4, UserDefinedPacket = 5};
+enum PacketType {
+    UnKnownPacket = 0,
+    /*HeartbeatPacket = 1, ConfirmationOfReceiptPacket = 2,*/
+    TextPacket = 3,
+    BinPacket = 4,
+    UserDefinedPacket = 5,
+};
 
 
 

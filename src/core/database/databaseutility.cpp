@@ -81,7 +81,7 @@ QSqlError DatabaseUtility::openDatabase(const QString &connectionNameString, con
                                         const QString &databaseName, HEHUI::DatabaseType databaseType)
 {
 
-    qDebug() << "--DatabaseUtility::openDatabase(...)";
+    //qDebug() << "--DatabaseUtility::openDatabase(...)";
 
     Q_ASSERT_X(!driver.isEmpty(), "DatabaseUtility::openDatabase(...)", "'driver' is empty!");
     Q_ASSERT_X(!databaseName.isEmpty(), "DatabaseUtility::openDatabase(...)", "'databaseName' is empty!");
@@ -184,7 +184,7 @@ QSqlError DatabaseUtility::openRemoteDatabase(const QString &connectionName, con
         //qCritical()<< QString("XX An error occurred when opening the database: %1").arg(error.text());
     }
 
-    qDebug() << QString("~~ Database connection %1 is %2").arg(connectionName).arg(db.isValid() ? "Valid" : "Invalid");
+    qDebug() << QString("Database connection %1 is %2").arg(connectionName).arg(db.isValid() ? "Valid" : "Invalid");
 
     return error;
 

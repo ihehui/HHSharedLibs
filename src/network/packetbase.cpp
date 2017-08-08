@@ -30,6 +30,9 @@
 
 #include "packetbase.h"
 
+#include <QUuid>
+
+
 //#include "packetstreamoperator.h"
 
 namespace HEHUI
@@ -70,7 +73,7 @@ QDataStream &operator>>(QDataStream &in, HEHUI::PacketBase &packet)
 //quint16 Packet::PacketSerialNumber = 0;
 
 
-QString PacketBase::m_localID = "";
+QString PacketBase::m_localID = QUuid::createUuid().toString();
 
 PacketBase::PacketBase()
 {
@@ -80,6 +83,7 @@ PacketBase::PacketBase()
     //	packetTail.resize(0);
 
     this->m_packetType = HEHUI::UnKnownPacket;
+    this->m_packetSubType = HEHUI::UserDefinedPacket;
     this->m_packetBody = QByteArray();
     this->m_packetBody.resize(0);
 
@@ -89,12 +93,14 @@ PacketBase::PacketBase()
     this->m_socketID = 0;
     this->m_peerID = "";
 
+
 }
 
-PacketBase::PacketBase(quint8 packetType)
+PacketBase::PacketBase(quint8 packetType, quint8 packetSubType)
 {
 
     this->m_packetType = packetType;
+    this->m_packetSubType = packetSubType;
     this->m_packetBody = QByteArray();
     this->m_packetBody.resize(0);
 
@@ -115,14 +121,14 @@ PacketBase::PacketBase(const PacketBase &packet)
 PacketBase &PacketBase::operator = (const PacketBase &packet)
 {
 
-    this->m_packetType = packet.getPacketType();
-    this->m_packetBody = packet.getPacketBody();
-    this->peerHostAddress = packet.getPeerHostAddress();
-    this->peerHostPort = packet.getPeerHostPort();
+    this->m_packetType = packet.m_packetType;
+    this->m_packetSubType = packet.m_packetSubType;
+    this->m_packetBody = packet.m_packetBody;
+    this->peerHostAddress = packet.peerHostAddress;
+    this->peerHostPort = packet.peerHostPort;
 
-    this->m_socketID = packet.getSocketID();
-    this->m_peerID = packet.getPeerID();
-
+    this->m_socketID = packet.m_socketID;
+    this->m_peerID = packet.m_peerID;
 
     return *this;
 }
@@ -137,11 +143,11 @@ void PacketBase::registerMetaTypeStreamOperators()
 
     //注册自定义类型，必须重载“<<”和“>>”, 见"packetstreamoperator.h"
 
-    int type = QMetaType::type("HEHUI::Packet");
+    int type = QMetaType::type("HEHUI::PacketBase");
     if(!type) {
-        qRegisterMetaTypeStreamOperators<HEHUI::PacketBase>("HEHUI::Packet");
+        qRegisterMetaTypeStreamOperators<HEHUI::PacketBase>("HEHUI::PacketBase");
     } else if(!QMetaType::isRegistered(type)) {
-        qRegisterMetaTypeStreamOperators<HEHUI::PacketBase>("HEHUI::Packet");
+        qRegisterMetaTypeStreamOperators<HEHUI::PacketBase>("HEHUI::PacketBase");
     }
 
 }
@@ -149,6 +155,8 @@ void PacketBase::registerMetaTypeStreamOperators()
 void PacketBase::resetPacket()
 {
     this->m_packetType = UnKnownPacket;
+    this->m_packetSubType = HEHUI::UserDefinedPacket;
+
     //this->m_packetSerialNumber = 0;
     this->m_packetBody.clear();
     this->m_packetBody.resize(0);
@@ -165,17 +173,17 @@ bool PacketBase::isValid()
     return (UnKnownPacket != m_packetType) && (!m_packetBody.isEmpty());
 }
 
-//QByteArray PacketBase::toByteArray() const{
+QByteArray PacketBase::toByteArray() const{
 
-//    if(m_packetBody.isEmpty()){return QByteArray();}
+    if(m_packetBody.isEmpty()){return QByteArray();}
 
-//    QByteArray ba;
-//    QDataStream out(&ba, QIODevice::WriteOnly);
-//    out.setVersion(QDataStream::Qt_4_8);
-//    out << m_packetType << m_peerID << m_packetBody;
+    QByteArray ba;
+    QDataStream out(&ba, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_4_8);
+    out << m_packetType << m_packetSubType << m_localID << m_packetBody;
 
-//    return ba;
-//}
+    return ba;
+}
 
 bool PacketBase::fromByteArray(QByteArray *data)
 {
@@ -190,7 +198,7 @@ bool PacketBase::fromByteArray(QByteArray *data)
 
     QDataStream in(data, QIODevice::ReadOnly);
     in.setVersion(QDataStream::Qt_4_8);
-    in >> m_packetType >> m_peerID >> m_packetBody;
+    in >> m_packetType >> m_packetSubType >> m_peerID >> m_packetBody;
 
     return (UnKnownPacket != m_packetType) && (!m_packetBody.isEmpty());
 }
@@ -201,9 +209,19 @@ quint8 PacketBase::getPacketType() const
     return m_packetType;
 }
 
-void PacketBase::setPacketType(quint8 packetType)
+void PacketBase::setPacketType(quint8 type)
 {
-    this->m_packetType = packetType;
+    this->m_packetType = type;
+}
+
+quint8 PacketBase::getPacketSubType() const
+{
+    return m_packetSubType;
+}
+
+void PacketBase::setPacketSubType(quint8 type)
+{
+    m_packetSubType = type;
 }
 
 //quint16 Packet::createSerialNumber() {
@@ -347,13 +365,11 @@ void PacketBase::setPacketBody(const QByteArray &data)
 Packet::Packet()
     : PacketBase()
 {
-
 }
 
-Packet::Packet(quint8 packetType)
-    : PacketBase(packetType)
+Packet::Packet(quint8 packetType, quint8 packetSubType)
+    : PacketBase(packetType, packetSubType)
 {
-
 }
 
 Packet::Packet(const PacketBase &base)
@@ -364,9 +380,7 @@ Packet::Packet(const PacketBase &base)
 
 Packet &Packet::operator = (const PacketBase &base)
 {
-
     convert(base);
-
     return *this;
 }
 
@@ -387,16 +401,15 @@ QByteArray Packet::toByteArray()
     QDataStream out(&ba, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_4_8);
 
-    out << getPacketType() << getLocalID() << body;
+    out << getPacketType() << getPacketSubType() << getLocalID() << body;
 
     return ba;
 }
 
-
-void Packet::convert(const PacketBase &base)
+void Packet::fromPacket(const PacketBase &base)
 {
-
     setPacketType(base.getPacketType());
+    setPacketSubType(base.getPacketSubType());
     setPeerHostAddress(base.getPeerHostAddress());
     setPeerHostPort(base.getPeerHostPort());
 
@@ -404,7 +417,23 @@ void Packet::convert(const PacketBase &base)
     setPeerID(base.getPeerID());
 
     QByteArray packetBody = decrypt(base.getPacketBody());
+    //setPacketBody(packetBody);
     parsePacketBody(packetBody);
+}
+
+void Packet::convert(const PacketBase &base)
+{
+
+    setPacketType(base.getPacketType());
+    setPacketSubType(base.getPacketSubType());
+    setPeerHostAddress(base.getPeerHostAddress());
+    setPeerHostPort(base.getPeerHostPort());
+
+    setSocketID(base.getSocketID());
+    setPeerID(base.getPeerID());
+
+    setPacketBody(base.getPacketBody());
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////

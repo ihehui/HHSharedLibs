@@ -68,7 +68,7 @@ public slots:
 
 
 protected:
-    void waitForIO(int msecTimeout = 20);
+//    void waitForIO(int msecTimeout = 20);
 
 
 private slots:

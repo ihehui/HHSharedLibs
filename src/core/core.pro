@@ -5,7 +5,7 @@ isEmpty(LIB_NAME):LIB_NAME = HHSharedCore
 TEMPLATE = lib
 
 # CONFIG += static
-CONFIG += shared
+CONFIG += shared c++11
 TARGET = $${LIB_NAME}
 
 # VERSION = 2009.09.08.1055

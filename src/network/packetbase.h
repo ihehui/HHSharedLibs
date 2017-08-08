@@ -61,7 +61,7 @@ class NETWORK_LIB_API PacketBase
 
 public:
     PacketBase();
-    PacketBase(quint8 m_packetType);
+    PacketBase(quint8 packetType, quint8 packetSubType = UserDefinedPacket);
 
     PacketBase(const PacketBase &packet);
     PacketBase &operator = (const PacketBase &packet);
@@ -73,12 +73,14 @@ public:
     void resetPacket();
     virtual bool isValid();
 
-    //virtual QByteArray toByteArray() const;
+    virtual QByteArray toByteArray() const;
     bool fromByteArray(QByteArray *data);
 
 
     quint8 getPacketType() const;
-    void setPacketType(quint8 m_packetType);
+    void setPacketType(quint8 type);
+    quint8 getPacketSubType() const;
+    void setPacketSubType(quint8 type);
 
 
     QHostAddress getPeerHostAddress() const;
@@ -106,6 +108,7 @@ private:
     static QString m_localID;
 
     quint8 m_packetType;
+    quint8 m_packetSubType;
 
     QByteArray m_packetBody;
 
@@ -122,12 +125,13 @@ class NETWORK_LIB_API Packet : public PacketBase
 {
 public:
     Packet();
-    Packet(quint8 packetType);
+    Packet(quint8 packetType, quint8 packetSubType = UnKnownPacket);
     Packet(const PacketBase &base);
     Packet &operator = (const PacketBase &base);
     ~Packet();
 
     virtual QByteArray toByteArray();
+    void fromPacket(const PacketBase &base);
 
 private:
     //virtual void init() = 0;
