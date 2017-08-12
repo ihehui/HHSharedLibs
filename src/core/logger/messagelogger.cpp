@@ -68,11 +68,10 @@ MessageLogger* MessageLogger::instance()
 void MessageLogger::close()
 {
     if(m_instance){
+        LogMessage::setMessageLoggerBase(0);
         m_instance->stopLogger();
-        m_instance->quit();
-        delete m_instance;
+        m_instance->deleteLater();
         m_instance = 0;
-        LogMessage::setMessageLoggerBase(m_instance);
     }
 }
 
@@ -84,7 +83,9 @@ MessageLogger::MessageLogger(QObject *parent)
 
 MessageLogger::~MessageLogger()
 {
-
+    if(m_instance){
+        close();
+    }
 }
 
 void MessageLogger::setDBConfig(DBConfigStruct dbConfig)

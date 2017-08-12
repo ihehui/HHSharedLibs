@@ -610,11 +610,16 @@ void MessageLoggerBase::stopLogger()
         uninstallQtMessageLogger();
     }
 
-    m_quit = true;
+    {
+        QMutexLocker locker(&mutex);
+        m_quit = true;
+    }
     cond.wakeOne();
-    wait();
 
-    quit();
+    while (!isThreadFinished()) {
+        //fprintf(stderr, "Waiting...\n");
+    }
+
 }
 
 //The targets is a OR'ed combination of OutputTarget
@@ -680,6 +685,9 @@ void MessageLoggerBase::setAppVersion(const QString &appVersion)
 
 void MessageLoggerBase::run()
 {
+    //fprintf(stderr, "Message Logger Thread Started");
+
+    setThreadFinished(false);
 
     do {
 
@@ -731,6 +739,11 @@ void MessageLoggerBase::run()
     if(m_outputTarget & TARGET_DATABASE){
         closeDatabase();
     }
+
+    setThreadFinished(true);
+
+    //fprintf(stderr, "Message Logger Thread Finished");
+
 
 }
 
@@ -903,6 +916,18 @@ bool MessageLoggerBase::saveToDatabase(MessageStruct *messageStruct)
 void MessageLoggerBase::closeDatabase()
 {
 
+}
+
+void MessageLoggerBase::setThreadFinished(bool finished)
+{
+    QMutexLocker locker(&mutex);
+    m_threadFinished = finished;
+}
+
+bool MessageLoggerBase::isThreadFinished()
+{
+    QMutexLocker locker(&mutex);
+    return m_threadFinished;
 }
 
 //////////////////////////////////////////////////////////////////////////

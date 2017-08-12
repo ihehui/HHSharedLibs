@@ -76,9 +76,9 @@ QString UserBase::getUserName() const
 void UserBase::setPassword(const QString &pwd, bool hashThePassword)
 {
     if(hashThePassword) {
-        QByteArray pswd = QCryptographicHash::hash(pwd.toLatin1(), QCryptographicHash::Md5).toHex();
-        pswd = QCryptographicHash::hash(pswd, QCryptographicHash::Md5).toHex();
-        this->password = QString(pswd);
+//        QByteArray pswd = QCryptographicHash::hash(pwd.toLatin1(), QCryptographicHash::Md5).toHex();
+//        pswd = QCryptographicHash::hash(pswd, QCryptographicHash::Md5).toHex();
+        this->password = hashHexString(pwd);
     } else {
         this->password = pwd;
     }
@@ -87,6 +87,14 @@ void UserBase::setPassword(const QString &pwd, bool hashThePassword)
 QString UserBase::getPassword() const
 {
     return this->password;
+}
+
+QString UserBase::hashHexString(const QString &str)
+{
+    QByteArray ba = QCryptographicHash::hash(str.toLatin1(), QCryptographicHash::Md5).toHex();
+    ba = QCryptographicHash::hash(ba, QCryptographicHash::Md5).toHex();
+
+    return QString(ba);
 }
 
 QString UserBase::getAuthenticode() const

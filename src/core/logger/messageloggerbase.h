@@ -380,6 +380,9 @@ private:
 
     QString messageTypeToString();
 
+    void setThreadFinished(bool finished);
+    bool isThreadFinished();
+
 private:
     quint8 m_outputTarget;
     quint8 m_logTypesForFile;
@@ -391,6 +394,7 @@ private:
     bool m_quit;
     bool m_wokeUp;
     bool m_logQtMessages;
+    bool m_threadFinished;
 
     QHash<MsgType, QString> m_messageTypeToString;
 

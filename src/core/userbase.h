@@ -59,6 +59,8 @@ public:
     void setPassword(const QString &pwd, bool hashThePassword = false);
     QString getPassword() const;
 
+    static QString hashHexString(const QString &str);
+
     QString getAuthenticode() const;
     void setAuthenticode(const QString &authenticode);
 
