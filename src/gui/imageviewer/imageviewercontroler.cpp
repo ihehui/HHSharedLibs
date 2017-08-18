@@ -36,15 +36,15 @@ namespace HEHUI
 {
 
 
-
-ImageViewerControler::ImageViewerControler(QWidget *parent, Qt::WindowFlags fl)
-    : QWidget(parent, fl),
-      ui(new Ui::ImageViewerControlerUI)
+ImageViewerControler::ImageViewerControler(QWidget *parent, Qt::WindowFlags fl) :
+    QWidget(parent, fl),
+    ui(new Ui::ImageViewerControlerUI)
 {
     ui->setupUi(this);
-
     setAttribute(Qt::WA_TranslucentBackground, true);
+
     setMouseTracking(true);
+
 }
 
 ImageViewerControler::~ImageViewerControler()
@@ -55,6 +55,9 @@ ImageViewerControler::~ImageViewerControler()
 void ImageViewerControler::reset()
 {
     ui->dial->setValue(180);
+//    setScaleButtonsVisible(true);
+//    setRotateButtonsVisible(true);
+//    setFlipButtonsVisible(true);
 }
 
 void ImageViewerControler::setScaleButtonsVisible(bool visible)
@@ -78,9 +81,32 @@ void ImageViewerControler::setFlipButtonsVisible(bool visible)
     ui->toolButtonFlipHorizontal->setVisible(visible);
 }
 
+void ImageViewerControler::setSaveImageButtonsVisible(bool visible)
+{
+    ui->toolButtonSave->setVisible(visible);
+    ui->toolButtonSaveAs->setVisible(visible);
+}
+
+void ImageViewerControler::addToolButton(QToolButton *button)
+{
+    if(!button) {
+        return;
+    }
+    button->setIconSize(QSize(32, 32));
+    button->setAutoRaise(true);
+    button->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    ui->horizontalLayout->addWidget(button);
+}
+
+void ImageViewerControler::insertWidget(int index, QWidget *widget, int stretch, Qt::Alignment alignment)
+{
+    ui->horizontalLayout->insertWidget(index, widget, stretch, alignment);
+}
+
 void ImageViewerControler::on_toolButtonRotateLeft_clicked()
 {
     int value = ui->dial->value();
+
     int a = value / 90 - 1;
     if(a <= 0) {
         a = 4;
@@ -99,18 +125,16 @@ void ImageViewerControler::on_dial_valueChanged(int value)
 
 void ImageViewerControler::on_toolButtonRotateRight_clicked()
 {
+
     int value = ui->dial->value();
+
     int a = value / 90 + 1;
     if(a >= 4) {
         a = 0;
     }
     ui->dial->setValue(a * 90);
+
 }
-
-
-
-
-
 
 
 } //namespace HEHUI

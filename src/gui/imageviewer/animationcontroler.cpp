@@ -26,15 +26,12 @@
  * Last Modified by: 贺辉
  ***************************************************************************
  */
-
-
 #include "animationcontroler.h"
 #include "ui_animationcontroler.h"
 
 
 namespace HEHUI
 {
-
 
 AnimationControler::AnimationControler(QWidget *parent, Qt::WindowFlags fl) :
     QWidget(parent, fl),
@@ -109,7 +106,7 @@ void AnimationControler::updateFrame()
     }
     ui->horizontalSliderCurrentFrame->setEnabled(hasFrames);
 
-    emit signalFrameChanged(movie->currentPixmap());
+    emit signalFrameChanged(movie->currentImage());
 
 }
 
@@ -130,8 +127,6 @@ void AnimationControler::goToFrame(int frame)
 {
     movie->jumpToFrame(frame);
 }
-
-
 
 
 } //namespace HEHUI

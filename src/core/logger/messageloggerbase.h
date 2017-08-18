@@ -54,6 +54,8 @@ void enableCrashHandler(Callback_AfterGdbDump handler);
 //////////////////////////////////////////////////////////////////////////
 
 
+
+
 enum MsgType {
     MSG_WARNING = 0x01, //1
     MSG_CRITICAL = 0x02, //2
@@ -271,22 +273,22 @@ inline LogMessage operator<<(LogMessage debug, const QSharedPointer<T> &ptr)
 }
 
 
-template <typename Int>
-void qt_QMetaEnum_flagDebugOperator(LogMessage &debug, size_t sizeofT, Int value)
-{
-    debug << "QFlags(" << hex << showbase;
-    bool needSeparator = false;
-    for (uint i = 0; i < sizeofT * 8; ++i) {
-        if (value & (Int(1) << i)) {
-            if (needSeparator)
-                debug << '|';
-            else
-                needSeparator = true;
-            debug << (Int(1) << i);
-        }
-    }
-    debug << ')';
-}
+//template <typename Int>
+//void qt_QMetaEnum_flagDebugOperator(LogMessage &debug, size_t sizeofT, Int value)
+//{
+//    debug << "QFlags(" << hex << showbase;
+//    bool needSeparator = false;
+//    for (uint i = 0; i < sizeofT * 8; ++i) {
+//        if (value & (Int(1) << i)) {
+//            if (needSeparator)
+//                debug << '|';
+//            else
+//                needSeparator = true;
+//            debug << (Int(1) << i);
+//        }
+//    }
+//    debug << ')';
+//}
 
 #define LogDebug() LogMessage(__FILE__, Q_FUNC_INFO, __LINE__, MSG_DEBUG)
 #define LOGDEBUG LogDebug()

@@ -302,7 +302,7 @@ QToolButton:pressed {
    <item>
     <widget class="QToolButton" name="toolButtonSave">
      <property name="toolTip">
-      <string>Save</string>
+      <string>Save Image</string>
      </property>
      <property name="text">
       <string>Save</string>
@@ -325,7 +325,7 @@ QToolButton:pressed {
    <item>
     <widget class="QToolButton" name="toolButtonSaveAs">
      <property name="toolTip">
-      <string>Save As</string>
+      <string>Save Image As</string>
      </property>
      <property name="text">
       <string>Save As</string>

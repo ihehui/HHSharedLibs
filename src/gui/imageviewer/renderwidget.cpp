@@ -28,7 +28,6 @@
  */
 
 
-
 #include "renderwidget.h"
 
 #include <QPainter>
@@ -39,14 +38,13 @@
 
 namespace HEHUI
 {
-
-
 RenderWidget::RenderWidget(QWidget *parent, Qt::WindowFlags flags)
     : QWidget(parent, flags)
 {
 
-    m_image = QPixmap();
-    m_preWidgetSize = size();
+    m_image = QImage();
+    m_text = "";
+    m_preWidgetSize = QSize(0, 0);
     m_preImageSize = QSize(0, 0);
     m_scaleFactor = 1.0;
     m_center = QPoint(0, 0);
@@ -57,7 +55,7 @@ RenderWidget::RenderWidget(QWidget *parent, Qt::WindowFlags flags)
 
 }
 
-const QPixmap *RenderWidget::pixmap() const
+const QImage *RenderWidget::image() const
 {
     return &m_image;
 }
@@ -74,34 +72,43 @@ bool RenderWidget::scaledContents() const
 
 void RenderWidget::paintEvent(QPaintEvent *event)
 {
-
-    if(m_image.isNull()) {
-        return;
-    }
-    if(m_image.size() != m_preImageSize || size() != m_preWidgetSize) {
-        QSize newImageSize = m_image.size();
-        if(m_scaledContents) {
-            newImageSize = m_image.size().scaled(size(), m_aspectRatioMode);
-        }
-        m_scaleFactor = (double)newImageSize.width() / m_image.width();
-        m_center = QPoint(width() / 2, height() / 2) - QPoint(newImageSize.width() / 2, newImageSize.height() / 2);
-        m_preImageSize = m_image.size();
-        m_preWidgetSize = size();
-    }
+    Q_UNUSED(event);
 
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    if(m_alignmentCenter) {
-        painter.translate(m_center);
+    if(!m_image.isNull()) {
+        painter.save();
+
+        if(m_image.size() != m_preImageSize || size() != m_preWidgetSize) {
+            QSize newImageSize = m_image.size();
+            if(m_scaledContents) {
+                newImageSize.scale(size(), m_aspectRatioMode);
+            }
+            m_scaleFactor = (double)newImageSize.width() / m_image.width();
+            m_center = QPoint(width() / 2, height() / 2) - QPoint(newImageSize.width() / 2, newImageSize.height() / 2);
+            m_preImageSize = m_image.size();
+            m_preWidgetSize = size();
+        }
+
+        if(m_alignmentCenter) {
+            painter.translate(m_center);
+        }
+
+        if(m_scaleFactor != 1.0) {
+            painter.scale(m_scaleFactor, m_scaleFactor);
+        }
+
+        painter.drawImage(0, 0, m_image);
+
+        painter.restore();
     }
 
-    if(m_scaleFactor != 1.0) {
-        painter.scale(m_scaleFactor, m_scaleFactor);
+    if(!m_text.trimmed().isEmpty()){
+        painter.drawText(this->rect(), Qt::AlignCenter, m_text);
     }
 
-    painter.drawPixmap(0, 0, m_image);
     painter.end();
 
     if(!styleSheet().trimmed().isEmpty()) {
@@ -117,12 +124,13 @@ void RenderWidget::paintEvent(QPaintEvent *event)
 
 void RenderWidget::setText(const QString &text)
 {
-
+    m_text = text;
+    update();
 }
 
-void RenderWidget::setPixmap(const QPixmap &pixmap)
+void RenderWidget::setPixmap(const QImage &image)
 {
-    m_image = pixmap;
+    m_image = image;
     update();
 }
 
@@ -146,12 +154,11 @@ void RenderWidget::adjustSize()
 {
     if(!m_image.isNull()) {
         resize(m_image.size());
-        update();
+        //repaint();
     }
+
+    update();
 }
-
-
-
 
 
 

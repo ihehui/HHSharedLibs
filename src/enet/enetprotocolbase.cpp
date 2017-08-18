@@ -196,7 +196,7 @@ void ENETProtocolBasePrivate::close()
     m_listening = false;
     while (m_threadCount) {
         //wait for other threads!
-        QCoreApplication::processEvents();
+        qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
         qDebug() << "Waiting for ENET threads to quit ...";
         msleep(10);
     }
@@ -410,9 +410,16 @@ bool ENETProtocolBasePrivate::connectToHost(const QHostAddress &address, quint16
     unsigned int timeBase = enet_time_get ();
     msleep(m_msecWaitForIOTimeout + 1);
 
-    while (peer->state != ENET_PEER_STATE_CONNECTED) {
+    while (peer && (peer->state != ENET_PEER_STATE_CONNECTED)) {
+        qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+        if(!localServer) {
+            m_errorString = tr("ENET Server is not running.");
+            qDebug() << "ERROR! ENET Server is not running!";
+            return false;
+        }
+
         //msleep(m_msecWaitForIOTimeout);
-        qApp->processEvents();
+
         if(enet_time_get() - timeBase > msecTimeout) {
             m_errorString = tr("Connection to peer '%1' timed out.").arg(address.toString());
             qDebug() << "ERROR! Connection to peer timed out!";

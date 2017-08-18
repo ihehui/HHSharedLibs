@@ -72,14 +72,20 @@
 #include "messageloggerbase.h"
 #include <QSqlDatabase>
 
-#include "database/databaseutility.h"
+#include "../database/databaseutility.h"
 
+
+#include "../core_lib.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(Q_OS_LINUX)
 void afterCrashDump(int signalNO, const QStringList &dump);
 #endif
 ///////////////////////////////////////////////////////////////////////////////
+
+
+namespace HEHUI {
+
 
 
 struct DBConfigStruct{
@@ -115,7 +121,7 @@ struct DBConfigStruct{
 };
 
 
-class MessageLogger : public MessageLoggerBase
+class CORE_LIB_API MessageLogger : public MessageLoggerBase
 {
     Q_OBJECT
 public:
@@ -156,5 +162,7 @@ private:
 
 
 };
+
+} //namespace HEHUI
 
 #endif // MESSAGELOGGER_H

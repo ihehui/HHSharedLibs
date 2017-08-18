@@ -35,15 +35,13 @@
 
 namespace HEHUI
 {
-
-
 class RenderWidget : public QWidget
 {
     Q_OBJECT
 public:
     explicit RenderWidget(QWidget *parent = 0, Qt::WindowFlags flags = Qt::WindowFlags());
 
-    const QPixmap *pixmap() const;
+    const QImage *image() const;
     Qt::AspectRatioMode aspectRatioMode() const;
     bool scaledContents() const;
 
@@ -55,14 +53,15 @@ signals:
 
 public slots:
     void setText(const QString &text);
-    void setPixmap(const QPixmap &pixmap);
+    void setPixmap(const QImage &image);
     void setAspectRatioMode(Qt::AspectRatioMode mode);
     void setScaledContents(bool scale);
     void setAlignmentCenter(bool alignmentCenter);
     void adjustSize();
 
 private:
-    QPixmap m_image;
+    QImage m_image;
+    QString m_text;
     QSize m_preWidgetSize;
     QSize m_preImageSize;
     float m_scaleFactor;
@@ -74,5 +73,4 @@ private:
 };
 
 } //namespace HEHUI
-
 #endif // RENDERWIDGET_H

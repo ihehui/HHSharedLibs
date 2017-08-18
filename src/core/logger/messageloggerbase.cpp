@@ -360,6 +360,8 @@ void enableCrashHandler(Callback_AfterGdbDump handler)
 
 
 
+
+
 //////////////////////////////////////////////////////////////////////////
 #if QT_VERSION >= 0x050000
 void logQtDebug(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -931,4 +933,9 @@ bool MessageLoggerBase::isThreadFinished()
 }
 
 //////////////////////////////////////////////////////////////////////////
+
+
+
+
+
 

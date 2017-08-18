@@ -58,13 +58,20 @@ public:
     void setValueWithEncryption(const QString &key, const QVariant &value, const QByteArray &encryptionKey);
     QVariant getValueWithDecryption(const QString &key, const QByteArray &encryptionKey, const QVariant &defaultValue = QVariant(), bool *ok = 0) const;
 
+    void enableLog(bool enable, const QString &logFileBaaseName = "log", bool logToConsole = false);
+    void initLogger(quint8 targets, const QString &logFileBaaseName = "log");
+    void closeLogger();
+    bool isLogEnabled();
+
 
 private:
     QString mProgramName;
     QString mProgramVersion;
 
+    bool m_enableLog;
 
 };
+
 
 } //namespace HEHUI
 

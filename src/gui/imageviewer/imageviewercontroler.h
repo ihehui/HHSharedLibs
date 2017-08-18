@@ -32,17 +32,15 @@
 #define IMAGEVIEWERCONTROLER_H
 
 #include <QWidget>
+#include <QToolButton>
 
 namespace Ui
 {
 class ImageViewerControlerUI;
 }
 
-
 namespace HEHUI
 {
-
-
 class ImageViewerControler : public QWidget
 {
     Q_OBJECT
@@ -50,6 +48,7 @@ class ImageViewerControler : public QWidget
 public:
     explicit ImageViewerControler(QWidget *parent = 0, Qt::WindowFlags fl = Qt::Popup | Qt::FramelessWindowHint);
     ~ImageViewerControler();
+
 
 
 signals:
@@ -72,6 +71,11 @@ public slots:
     void setScaleButtonsVisible(bool visible = true);
     void setRotateButtonsVisible(bool visible = true);
     void setFlipButtonsVisible(bool visible = true);
+    void setSaveImageButtonsVisible(bool visible = true);
+
+    void addToolButton(QToolButton *button);
+
+    void insertWidget(int index, QWidget *widget, int stretch = 0, Qt::Alignment alignment = Qt::Alignment());
 
 
 private slots:

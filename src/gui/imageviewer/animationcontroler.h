@@ -43,7 +43,6 @@ class AnimationControler;
 namespace HEHUI
 {
 
-
 class AnimationControler : public QWidget
 {
     Q_OBJECT
@@ -57,7 +56,7 @@ public:
     bool isValidMovie();
 
 signals:
-    void signalFrameChanged(const QPixmap &pixmap);
+    void signalFrameChanged(const QImage &pixmap);
 
 public slots:
     bool setFileName(const QString &fileName);

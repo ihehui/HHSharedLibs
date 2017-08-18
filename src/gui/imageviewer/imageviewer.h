@@ -8,10 +8,23 @@
  *    Comment:
  *
  *
- *    =============================  Usage  =============================
- *|
- *|
- *    ===================================================================
+ *=============================  Usage  =============================
+ *   setScaleButtonsVisible(false);
+ *   setRotateButtonsVisible(false);
+ *   setFlipButtonsVisible(false);
+ *   setSaveImageButtonsVisible(false);
+ *   setCloseButtonVisible(false);
+ *   setContextMenuPolicy(Qt::CustomContextMenu);
+ *   setDragable(false);
+ *   setTipScaleFactor(false);
+ *   imageControler()->updateGeometry();
+ *
+ *   QImage image(size(), QImage::Format_RGB32);
+ *   image.fill(Qt::gray);
+ *   setImage(image, false, true);
+ *   setText("Test");
+ *
+ *===================================================================
  *
  *
  * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
@@ -22,7 +35,7 @@
 
 /*
  ***************************************************************************
- * Last Modified on: 2012-8-21
+ * Last Modified on: 2017-2-27
  * Last Modified by: 贺辉
  ***************************************************************************
  */
@@ -33,9 +46,12 @@
 
 #include <QWidget>
 #include <QScrollArea>
+#include <QScrollBar>
+#include <QLabel>
 #include <QToolButton>
 #include <QVBoxLayout>
-#include <QLabel>
+#include <QTimer>
+#include <QMutex>
 
 #include "renderwidget.h"
 
@@ -49,8 +65,6 @@
 
 namespace HEHUI
 {
-
-
 class ImageViewerControler;
 class AnimationControler;
 
@@ -61,20 +75,23 @@ class IMAGEVIEWER_LIB_API ImageViewer : public QWidget
 
 public:
     ImageViewer(QWidget *parent = 0, Qt::WindowFlags fl = Qt::FramelessWindowHint);
-    ~ImageViewer();
+    virtual ~ImageViewer();
+
+    QSize sizeHint() const;
 
     RenderWidget *renderWidget();
     QScrollArea *scrollArea();
     ImageViewerControler *imageControler();
 
+    enum ScaleMode{
+        Scale_Auto, //Scale the image only if it's size is larger than the view.
+        Scale_FitBestInView, //The image will be fitted to fill the view keeping aspect ratio.
+        Scale_Original //Display the Original image, no scale.
+    };
+    void setScaleMode(ScaleMode mode);
+
+
     static void processBrightnessAndContrast(QImage &image, int brightness, int contrast);
-
-
-public slots:
-    void setImage(const QImage &image, bool moveViewerToCenter = true, bool adjustViewerSize = true);
-    void setImage(const QPixmap &pixmap, bool moveViewerToCenter = true, bool adjustViewerSize = true);
-    void setImages(const QStringList &m_images, unsigned int initIndex = 0);
-
 
 protected:
     //#ifndef QT_NO_WHEELEVENT
@@ -90,9 +107,19 @@ protected:
 
 
 public slots:
+    void setImage(const QPixmap &pixmap, bool moveViewerToCenter = true, bool adjustViewerSize = true, bool fitToWindow = true);
+    void setImage(const QImage &image, bool moveViewerToCenter = true, bool adjustViewerSize = true, bool fitToWindow = true);
+    void replaceImage(const QImage &image);
+    void replaceImage(const QPixmap &pixmap);
+
+    void setImages(const QStringList &m_images, unsigned int initIndex = 0);
+
+    void moveToCenter(bool adjustViewerSize = true);
+
     void setScaleButtonsVisible(bool visible = true);
     void setRotateButtonsVisible(bool visible = true);
     void setFlipButtonsVisible(bool visible = true);
+    void setSaveImageButtonsVisible(bool visible = true);
     void setCloseButtonVisible(bool visible = true);
     void setDragable(bool dragable);
 
@@ -104,15 +131,14 @@ public slots:
     bool setDefaultSavePath(const QString &path);
     QString defaultSavePath();
 
-    void moveToCenter(bool adjustViewerSize = true);
+    void setTipScaleFactor(bool showTip = true);
+
+    void setRenderWidgetAspectRatioMode(Qt::AspectRatioMode mode);
 
 
-private slots:
+protected slots:
     void open();
 
-    void updatePixmap(const QPixmap &pixmap);
-
-    void updateAnimationFrame(const QPixmap &pixmap);
 
     virtual void save();
     void saveAs();
@@ -125,10 +151,12 @@ private slots:
     void zoomOut();
     void zoomFitBest();
     void zoomOrignal();
+    void zoomByExpanding();
+    void updateRenderSize();
 
     void reset();
 
-    virtual void showContextMenu(const QPoint &pos);
+    virtual void showContextMenu(const QPoint &globalPos);
 
     void showScaleFactor();
     void showImageInfo();
@@ -138,6 +166,9 @@ private:
     void createActions();
     void updateActions();
 
+    void updateImage(const QImage &image);
+
+
     void scaleImage(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
@@ -145,13 +176,13 @@ private:
 
 
 private:
-    QString currentImageDirectory;
+    QString m_currentImageDirectory;
     QStringList m_images;
     int m_curImageIndex;
 
-    RenderWidget *m_imageLabel;
-    QPixmap m_curPixmap;
-    QPixmap m_orignalPixmap;
+    RenderWidget *m_imageRender;
+    QImage m_curPixmap;
+    QImage m_orignalPixmap;
 
     QScrollArea *m_scrollArea;
     double m_scaleFactor;
@@ -162,12 +193,9 @@ private:
     QAction *m_zoomOutAct;
     QAction *m_normalSizeAct;
     QAction *m_fitToWindowAct;
-
     QAction *m_resetAct;
-
     QAction *m_saveAsAct;
     QAction *m_printAct;
-
     QAction *m_openAct;
     QAction *m_exitAct;
 
@@ -187,14 +215,15 @@ private:
     bool  m_flipHorizontally;
     bool m_flipVertically;
 
-
     QPoint m_dragPosition;
     bool m_dragable;
 
     QString m_defaultSavePath;
 
+    Qt::AspectRatioMode m_renderWidgetAspectRatioMode;
+    ScaleMode m_scaleMode;
 
-
+    QMutex m_mutex;
 
 };
 

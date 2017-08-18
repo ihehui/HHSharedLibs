@@ -12,7 +12,7 @@
 
 void afterCrashDump(int signalNO, const QStringList &dump)
 {
-    MessageLogger::instance()->stopLogger();
+    HEHUI::MessageLogger::instance()->stopLogger();
 
     QString title = QObject::tr("Exception");
     QString text = QObject::tr("An unhandled exception has occurred, the application has been terminated!\nSignal:%1").arg(signalNO);
@@ -50,7 +50,7 @@ void afterCrashDump(int signalNO, const QStringList &dump)
 
 
 
-
+namespace HEHUI{
 
 
 MessageLogger* MessageLogger::m_instance = 0;
@@ -395,3 +395,10 @@ QSqlQuery MessageLogger::queryDatabase(const QString & queryString, const QStrin
 
 
 
+
+
+
+
+
+
+} //namespace HEHUI
