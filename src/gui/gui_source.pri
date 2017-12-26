@@ -1,4 +1,9 @@
 
+
+include (./imageviewer/imageviewer.pri)
+include (./widgetbase/itembox/itembox.pri)
+
+
 INCLUDEPATH += $$PWD
 
 HEADERS += screenshot/screenshot.h \
@@ -58,8 +63,6 @@ FORMS += screenshot/screenshot.ui \
 RESOURCES += gui.qrc \
     richtexteditor/richtexteditor.qrc
 
-include (./widgetbase/itembox/itembox.pri)
-include (./imageviewer/imageviewer.pri)
 
 
 #DEFINES += GUI_LIBRARY_EXPORT

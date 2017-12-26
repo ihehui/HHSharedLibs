@@ -11,12 +11,17 @@ HEADERS     = \
     $$PWD/imageviewercontroler.h \
     $$PWD/animationcontroler.h \
     $$PWD/imageviewer.h \
-    $$PWD/renderwidget.h
+    $$PWD/renderwidget.h \
+    $$PWD/rawimagereader.h
+
+    
 SOURCES     =  \
     $$PWD/imageviewercontroler.cpp \
     $$PWD/animationcontroler.cpp \
     $$PWD/imageviewer.cpp \
-    $$PWD/renderwidget.cpp
+    $$PWD/renderwidget.cpp \
+    $$PWD/rawimagereader.cpp
+
 
 FORMS += \
     $$PWD/imageviewercontroler.ui \
