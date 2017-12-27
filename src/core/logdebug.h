@@ -19,11 +19,16 @@
 #endif
 
 
-#if defined(Q_OS_WIN32)
-static QString logFileName = "c:/macs_debuglog.txt";
-#else
-static QString logFileName = "/tmp/macs_debuglog.txt";
-#endif
+//#if defined(Q_OS_WIN32)
+//static QString logFileName = "c:/macs_debuglog.txt";
+//#else
+//static QString logFileName = "/tmp/macs_debuglog.txt";
+//#endif
+
+static QString m_baseDir = QCoreApplication::applicationDirPath();
+static QString m_fileBaseName = QCoreApplication::applicationName();
+
+
 static QFile* file = 0;
 static qulonglong processId = 0;
 static bool printTostderr = false;
@@ -32,11 +37,13 @@ static void closeDebugLog()
 {
     if (!file){return;}
 
-    QByteArray s(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
+    QDateTime curTime = QDateTime::currentDateTime();
+
+    QByteArray s(curTime.toString("HH:mm:ss.zzz").toLatin1());
     s += " [";
     s += QByteArray::number(processId);
     s += "] ";
-    QByteArray ps(s + "------ DEBUG LOG CLOSED ------\n");
+    QByteArray ps(s + "------ DEBUG LOG CLOSED " + curTime.toString("yyyy.MM.dd").toLatin1() + " ------\n");
     file->write(ps);
     file->flush();
     file->close();
@@ -62,23 +69,30 @@ static void logDebug(QtMsgType type, const char* msg)
 #endif
     }
 
-    QByteArray ba(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
+    QDateTime curTime = QDateTime::currentDateTime();
+
+    QByteArray ba(curTime.toString("HH:mm:ss.zzz").toLatin1());
     ba += " [";
     ba += QByteArray::number(processId);
     ba += "] ";
 
+
+    QString logFileName = m_baseDir + "/" + curTime.toString("yyyy") + "/" + m_fileBaseName + curTime.toString("yyyyMMdd") + ".log";
+    if(file && file->fileName() != logFileName){
+        closeDebugLog();
+    }
+
     if (!file) {
-#if defined(Q_OS_WIN32)
+        QFileInfo info(logFileName);
+        QDir dir;
+        dir.mkpath(info.path());
         file = new QFile(logFileName);
-#else
-        file = new QFile(logFileName);
-#endif
         if (!file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
             delete file;
             file = 0;
             return;
         }
-        QByteArray ps('\n' + ba + "------ DEBUG LOG OPENED ------\n");
+        QByteArray ps('\n' + ba + "------ DEBUG LOG OPENED " + curTime.toString("yyyy.MM.dd").toLatin1() + " ------\n");
         file->write(ps);
     }
 
@@ -140,12 +154,12 @@ static void logDebug(QtMsgType type, const char* msg)
 
 
 
-static void installMessageLogger(const QString &fileName, bool printMsgTostderr = false){
-    if(!fileName.isEmpty()){
-        logFileName = fileName;
-            QFileInfo info(logFileName);
-            QDir dir;
-            dir.mkpath(info.path());
+static void installMessageLogger(const QString &baseDir, const QString &fileBaseName, bool printMsgTostderr = false){
+    if(!baseDir.trimmed().isEmpty()){
+        m_baseDir = baseDir;
+    }
+    if(!fileBaseName.trimmed().isEmpty()){
+        m_fileBaseName = fileBaseName;
     }
 
 #  if QT_VERSION >= 0x050000

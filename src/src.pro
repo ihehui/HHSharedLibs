@@ -6,7 +6,7 @@ CONFIG += ordered \
 
 SUBDIRS += core \
            network \
-           udt \
+           #udt \
             enet \
            gui \
            service \

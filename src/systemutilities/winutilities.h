@@ -41,7 +41,6 @@
 
 #include <Windows.h>
 
-#endif
 
 #ifdef __GNUC__
     #define __out
