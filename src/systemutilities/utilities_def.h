@@ -5,11 +5,15 @@
 
 namespace HEHUI {
 
+#ifndef Q_OS_WIN32
+
 enum StartType{
     SERVICE_AUTO_START,
     SERVICE_DEMAND_START,
     SERVICE_DISABLED
 };
+
+#endif
 
 //Service
 typedef struct SERVICE_INFO {

@@ -310,57 +310,66 @@ void ENETProtocolBasePrivate::waitForIO(int msecTimeout)
             continue;
         }
 
-        switch(event.type) {
-        case ENET_EVENT_TYPE_CONNECT: {
-            ENetPeer *peer = event.peer;
-            qDebug() << "-----ENET_EVENT_TYPE_CONNECT-----Peer:" << peer << "  connectID:" << peer->connectID << "  Time:" << enet_time_get();
+        while (eventsCount > 0) {
+            // process event
+            eventsCount = enet_host_check_events(localServer, &event);
 
-            quint32 peerID = peer->connectID;
-            addPeer(peerID, peer);
+            switch(event.type) {
+            case ENET_EVENT_TYPE_CONNECT: {
+                ENetPeer *peer = event.peer;
+                qDebug() << "-----ENET_EVENT_TYPE_CONNECT-----Peer:" << peer << "  connectID:" << peer->connectID << "  Time:" << enet_time_get();
 
-            ENetAddress remote = peer->address;
-            char ip[256];
-            enet_address_get_host_ip(&remote, ip, 256);
+                quint32 peerID = peer->connectID;
+                addPeer(peerID, peer);
 
-            emit connected(peerID, QString(ip), remote.port);
-            break;
-        }
-        case ENET_EVENT_TYPE_RECEIVE: {
-            //qDebug()<<"-----ENET_EVENT_TYPE_RECEIVE-----"<<"  Time:"<<enet_time_get();
+                ENetAddress remote = peer->address;
+                char ip[256];
+                enet_address_get_host_ip(&remote, ip, 256);
 
-            QByteArray byteArray(reinterpret_cast<const char *>(event.packet->data), event.packet->dataLength);
-            emit dataReceived(event.peer->connectID, byteArray);
-
-            enet_packet_destroy(event.packet);
-            break;
-        }
-        case  ENET_EVENT_TYPE_DISCONNECT: {
-            ENetPeer *peer = event.peer;
-            qDebug() << "-----ENET_EVENT_TYPE_DISCONNECT-----Peer:" << peer << " connectID:" << peer->connectID << "  Time:" << enet_time_get();;
-
-            quint32 peerID = getPeerID(event.peer);
-            Q_ASSERT(peerID);
-            qDebug() << "-----ENET_EVENT_TYPE_DISCONNECT-----Peer:" << peer << " peerID:" << peerID;
-
-            if(!peerID) {
+                emit connected(peerID, QString(ip), remote.port);
                 break;
             }
-            removePeer(peerID);
+            case ENET_EVENT_TYPE_RECEIVE: {
+                //qDebug()<<"-----ENET_EVENT_TYPE_RECEIVE-----"<<"  Time:"<<enet_time_get();
 
-            ENetAddress remote = peer->address;
-            char ip[256];
-            enet_address_get_host_ip(&remote, ip, 256);
+                QByteArray byteArray(reinterpret_cast<const char *>(event.packet->data), event.packet->dataLength);
+                emit dataReceived(event.peer->connectID, byteArray);
 
-            emit disconnected(peerID, QString(ip), remote.port);
+                enet_packet_destroy(event.packet);
+                break;
+            }
+            case  ENET_EVENT_TYPE_DISCONNECT: {
+                ENetPeer *peer = event.peer;
+                qDebug() << "-----ENET_EVENT_TYPE_DISCONNECT-----Peer:" << peer << " connectID:" << peer->connectID << "  Time:" << enet_time_get();;
 
-            //qDebug() <<"NO. " <<peer->data <<"Peer closed!" ;
-            break;
+                quint32 peerID = getPeerID(event.peer);
+                Q_ASSERT(peerID);
+                qDebug() << "-----ENET_EVENT_TYPE_DISCONNECT-----Peer:" << peer << " peerID:" << peerID;
+
+                if(!peerID) {
+                    break;
+                }
+                removePeer(peerID);
+
+                ENetAddress remote = peer->address;
+                char ip[256];
+                enet_address_get_host_ip(&remote, ip, 256);
+
+                emit disconnected(peerID, QString(ip), remote.port);
+
+                //qDebug() <<"NO. " <<peer->data <<"Peer closed!" ;
+                break;
+
+            }
+            default:
+                qWarning("Unknown ENET event type received.");
+                break;
+            }
+
 
         }
-        default:
-            qWarning("Unknown ENET event type received.");
-            break;
-        }
+
+
 
     }
 
