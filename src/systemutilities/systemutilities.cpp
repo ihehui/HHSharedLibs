@@ -134,7 +134,7 @@ QString SystemUtilities::getHardDriveSerialNumber(unsigned int driveIndex)
 }
 
 
-bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, float *loadPercentage)
+bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage)
 {
 
 #ifdef Q_OS_WIN32
@@ -176,7 +176,7 @@ bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, float *loadPercentage
     }
 
     if(loadPercentage) {
-        *loadPercentage = (float)usedMem / (*totalBytes);
+        *loadPercentage = (int)(((float)usedMem / (*totalBytes)) * 100);
     }
 
 
@@ -315,9 +315,9 @@ bool SystemUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *doma
 
 #ifdef Q_OS_WIN
     unsigned long apiStatus = 0;
-    bool ok = WinUtilities::getLogonInfoOfCurrentUser(userName, domain, logonServer, apiStatus);
+    bool ok = WinUtilities::getLogonInfoOfCurrentUser(userName, domain, logonServer, &apiStatus);
     if( (!ok) && errorMessage){
-        *errorMessage = WinUtilities::WinSysErrorMsg(status);
+        *errorMessage = WinUtilities::WinSysErrorMsg(apiStatus);
     }
     return ok;
 #else

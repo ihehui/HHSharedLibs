@@ -4186,7 +4186,7 @@ BOOL WinUtilities::Shutdown(const QString &machineName, const QString &message, 
     return fResult;
 }
 
-//Logoff数
+//Logoff
 BOOL WinUtilities::Logoff(BOOL bForce)
 {
     if(bForce) {
@@ -4236,10 +4236,10 @@ bool WinUtilities::runAs(const QString &userName, const QString &domainName, con
     //    wcscpy(pwd, password.toStdWString().c_str());
 
 
-    //服务程序以"SYSTEM"身份运行，无法调用CreateProcessWithLogonW，必须用LogonUser和CreateProcessAsUser
-    //You cannot call CreateProcessWithLogonW from a process that is running under the LocalSystem account,
-    //  because the function uses the logon SID in the caller token, and the token for the LocalSystem account does not contain this SID.
-    //  As an alternative, use the CreateProcessAsUser and LogonUser functions.
+    ////  服务程序以"SYSTEM"身份运行，无法调用CreateProcessWithLogonW，必须用LogonUser和CreateProcessAsUser  ////
+    ////  You cannot call CreateProcessWithLogonW from a process that is running under the LocalSystem account,
+    ////  because the function uses the logon SID in the caller token, and the token for the LocalSystem account does not contain this SID.
+    ////  As an alternative, use the CreateProcessAsUser and LogonUser functions.
     if(getUserNameOfCurrentThread().toUpper() == "SYSTEM") {
         return runAsForInteractiveService(userName, domainName, password, exeFilePath, parameters, show, workingDir);
     } else {

@@ -25,7 +25,7 @@ public:
 
     static QString getHardDriveSerialNumber(unsigned int driveIndex = 0);
 
-    static bool getMemoryStatus(quint64 *totalBytes, float *loadPercentage);
+    static bool getMemoryStatus(quint64 *totalBytes, int *loadPercentage);
     static bool getDiskPartionStatus(const QString &partionRootPath, float *totalBytes, float *freeBytes);
     static QString getDisksInfo();
 

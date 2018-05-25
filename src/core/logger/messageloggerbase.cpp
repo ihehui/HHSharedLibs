@@ -841,12 +841,19 @@ bool MessageLoggerBase::saveToFile(MessageStruct *messageStruct)
     if(m_fileConfigStruct.truncateFile){
         if(file->size() > m_fileConfigStruct.maxFileSize){
             file->seek(0);
-            qint64 sizeRead = 0;
             const qint64 bufSize = (qint64)(file->size() - m_fileConfigStruct.maxFileSize * 0.95);
-            char buf[bufSize];
-            while (sizeRead < bufSize) {
-                sizeRead += file->readLine(buf, sizeof(buf));
-            }
+
+//            qint64 sizeRead = 0;
+//            char buf[1024];
+//            qint64 lineLength = 0;
+//            while (sizeRead < bufSize) {
+//                lineLength = file->readLine(buf, sizeof(buf));
+//                if(lineLength < 0){break;}
+//                sizeRead += lineLength;
+//            }
+
+            file->seek(bufSize);
+            file->readLine(1024);
 
             QByteArray oldData = file->readAll();
             file->resize(0);

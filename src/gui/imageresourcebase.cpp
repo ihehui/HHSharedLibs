@@ -34,6 +34,7 @@
 #include <QFile>
 #include <QPixmap>
 #include <cmath>
+#include <QDebug>
 
 #include "imageresourcebase.h"
 
@@ -41,8 +42,13 @@
     #include <Windows.h>
 #endif
 
+#ifndef MAX_IMAGE_SIZE
+#define MAX_IMAGE_SIZE 10240*1024
+#endif
 
-
+#ifndef MAX_KERNEL_SIZE
+#define MAX_KERNEL_SIZE 256
+#endif
 
 namespace HEHUI
 {
@@ -118,17 +124,90 @@ void ImageResourceBase::setBrightnessAndContrast(QImage &image, int brightness, 
 
 }
 
-void ImageResourceBase::averageBlur(QImage &origin, QImage *dstImage, int kernelWidth, int kernelHeight)
+bool ImageResourceBase::averageBlurForGrayscale(const QImage &origin, QImage *dstImage, int kernelWidth, int kernelHeight)
+{
+    if(origin.isNull() || (!origin.isGrayscale()) || (!dstImage)) {
+        return false;
+    }
+
+    if(origin.width() * origin.height() > MAX_IMAGE_SIZE){
+        qCritical()<<QString("Image size must not exceed %1 Bytes! ").arg(MAX_IMAGE_SIZE);
+        return false;
+    }
+
+    if(dstImage->isNull()){
+        *dstImage = QImage(origin);
+    }else if(dstImage->size() != origin.size()){
+        return false;
+    }
+
+    int krlWidth = kernelWidth;
+    int krlHeight = kernelHeight;
+    if(krlWidth < 3) {
+        krlWidth = 3;
+    }
+    if(!(krlWidth % 2)) {
+        krlWidth += 1;
+    }
+
+    if(krlHeight < 3) {
+        krlHeight = 3;
+    }
+    if(!(krlHeight % 2)) {
+        krlHeight += 1;
+    }
+
+    int kernelSize = krlWidth * krlHeight;
+    if(kernelSize >= origin.width() * origin.height()) {
+        qCritical()<<QString("Kernel size must not exceed image size! ");
+        return false;
+    }
+    if(kernelSize > MAX_KERNEL_SIZE) {
+        qCritical()<<QString("Kernel size must not exceed %1! ").arg(MAX_KERNEL_SIZE);
+        return false;
+    }
+
+
+    int kernelWidthMedian = krlWidth / 2;
+    int kernelHeightMedian = krlHeight / 2;
+    int sum = 0;
+    for(int y = kernelHeightMedian; y < origin.height() - kernelHeightMedian; y++) {
+        sum = 0;
+        uchar *destLine = dstImage->scanLine(y);
+
+        for(int x = kernelWidthMedian; x < origin.width() - kernelWidthMedian; x++) {
+            for(int j = -kernelHeightMedian; j <= kernelHeightMedian; j++) {
+                const uchar *line = origin.scanLine(y + j);
+                for(int i = -kernelWidthMedian; i <= kernelWidthMedian; i++) {
+                    sum += line[x + i];
+                }
+            }
+
+            destLine[x] =  qBound(0, sum / kernelSize, 255);
+            sum = 0;
+        }
+
+    }
+
+    return true;
+}
+
+bool ImageResourceBase::averageBlur(const QImage &origin, QImage *dstImage, int kernelWidth, int kernelHeight)
 {
     if(origin.isNull()) {
-        return;
+        return false;
+    }
+
+    if(origin.width() * origin.height() > MAX_IMAGE_SIZE){
+        qCritical()<<QString("Image size must not exceed %1 Bytes! ").arg(MAX_IMAGE_SIZE);
+        return false;
     }
 
     if(!(kernelWidth % 2) || kernelWidth < 3) {
-        return;
+        return false;
     }
     if(!(kernelHeight % 2) || kernelHeight < 3) {
-        return;
+        return false;
     }
 
     if(!dstImage) {
@@ -137,7 +216,12 @@ void ImageResourceBase::averageBlur(QImage &origin, QImage *dstImage, int kernel
 
     int kernelSize = kernelWidth * kernelHeight;
     if(kernelSize >= origin.width() * origin.height()) {
-        return;
+        qCritical()<<QString("Kernel size must not exceed image size! ");
+        return false;
+    }
+    if(kernelSize > MAX_KERNEL_SIZE) {
+        qCritical()<<QString("Kernel size must not exceed %1! ").arg(MAX_KERNEL_SIZE);
+        return false;
     }
 
     int kernelWidthMedian = kernelWidth / 2;
@@ -175,6 +259,7 @@ void ImageResourceBase::averageBlur(QImage &origin, QImage *dstImage, int kernel
         }
     }
 
+    return true;
 }
 
 int ImageResourceBase::median(int array[], int arraySize)
@@ -199,28 +284,40 @@ int ImageResourceBase::median(int array[], int arraySize)
     return temp;
 }
 
-void ImageResourceBase::medianBlur(QImage &origin, QImage *newImage, int kernelWidth, int kernelHeight)
+bool ImageResourceBase::medianBlur(const QImage &origin, QImage *newImage, int kernelWidth, int kernelHeight)
 {
     if(origin.isNull()) {
-        return;
+        return false;
+    }
+
+    if(origin.width() * origin.height() > MAX_IMAGE_SIZE){
+        qCritical()<<QString("Image size must not exceed %1 Bytes! ").arg(MAX_IMAGE_SIZE);
+        return false;
     }
 
     if(!(kernelWidth % 2) || kernelWidth < 3) {
-        return;
+        return false;
     }
     if(!(kernelHeight % 2) || kernelHeight < 3) {
-        return;
+        return false;
     }
 
     if(!newImage) {
         newImage = new QImage(origin);
     }
 
+
     int kernelSize = kernelWidth * kernelHeight;
     if(kernelSize >= origin.width() * origin.height()) {
-        return;
+        qCritical()<<QString("Kernel size must not exceed image size! ");
+        return false;
     }
-    int pointsMedian = kernelSize / 2 + 1;
+    if(kernelSize > MAX_KERNEL_SIZE) {
+        qCritical()<<QString("Kernel size must not exceed %1! ").arg(MAX_KERNEL_SIZE);
+        return false;
+    }
+
+    //int pointsMedian = kernelSize / 2 + 1;
 
     int kernelWidthMedian = kernelWidth / 2;
     int kernelHeightMedian = kernelHeight / 2;
@@ -239,7 +336,7 @@ void ImageResourceBase::medianBlur(QImage &origin, QImage *newImage, int kernelW
             g = 0;
             b = 0;
 
-            int arrayRed[kernelSize], arrayGreen[kernelSize], arrayBlue[kernelSize];
+            int arrayRed[MAX_KERNEL_SIZE], arrayGreen[MAX_KERNEL_SIZE], arrayBlue[MAX_KERNEL_SIZE];
             int index = 0;
             for(int i = -kernelWidthMedian; i <= kernelWidthMedian; i++) {
                 for(int j = -kernelHeightMedian; j <= kernelHeightMedian; j++) {
@@ -260,9 +357,10 @@ void ImageResourceBase::medianBlur(QImage &origin, QImage *newImage, int kernelW
         }
     }
 
+    return true;
 }
 
-void ImageResourceBase::guassianBlur(QImage &origin, QImage *newImage, float sigma)
+bool ImageResourceBase::guassianBlur(const QImage &origin, QImage *newImage, float sigma)
 {
     ////////
     //// g(x,y) = ( 1 / (2*pi*σ^2) ) * exp( -(x^2+y^2)/(2*σ^2) )
@@ -274,12 +372,12 @@ void ImageResourceBase::guassianBlur(QImage &origin, QImage *newImage, float sig
     ////////
 
     if(origin.isNull()) {
-        return;
+        return false;
     }
 
     int diamet = (int)(6 * sigma + 1);
     if(!(diamet % 2) || diamet < 3) {
-        return;
+        return false;
     }
 
 
@@ -289,7 +387,16 @@ void ImageResourceBase::guassianBlur(QImage &origin, QImage *newImage, float sig
     float sum = 0.0;
 
     int kernelSize = diamet * diamet;
-    float kernel[kernelSize];
+    if(kernelSize >= origin.width() * origin.height()) {
+        qCritical()<<QString("Kernel size must not exceed image size! ");
+        return false;
+    }
+    if(kernelSize > MAX_KERNEL_SIZE) {
+        qCritical()<<QString("Kernel size must not exceed %1! ").arg(MAX_KERNEL_SIZE);
+        return false;
+    }
+
+    float kernel[MAX_KERNEL_SIZE];
 
     for(int i = 0; i < diamet; i++) {
         for(int j = 0; j < diamet; j++) {
@@ -341,6 +448,7 @@ void ImageResourceBase::guassianBlur(QImage &origin, QImage *newImage, float sig
         }
     }
 
+    return true;
 }
 
 void ImageResourceBase::weightedFilter(const QImage &origin, QImage *newImage, const int kernel[], int kernelWidth, int divisor)
