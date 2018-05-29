@@ -312,8 +312,6 @@ void ENETProtocolBasePrivate::waitForIO(int msecTimeout)
 
         while (eventsCount > 0) {
             // process event
-            eventsCount = enet_host_check_events(localServer, &event);
-
             switch(event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
                 ENetPeer *peer = event.peer;
@@ -361,12 +359,14 @@ void ENETProtocolBasePrivate::waitForIO(int msecTimeout)
                 break;
 
             }
+
             default:
-                qWarning("Unknown ENET event type received.");
+                qWarning()<<QString("Unknown ENET event type '%1' received.").arg(event.type);
                 break;
             }
 
 
+            eventsCount = enet_host_check_events(localServer, &event);
         }
 
 
@@ -399,8 +399,14 @@ bool ENETProtocolBasePrivate::connectToHost(const QHostAddress &address, quint16
         return false;
     }
 
+    QString ipv4Address = address.toString();
+    if(QAbstractSocket::IPv6Protocol == address.protocol()){
+        ipv4Address = QHostAddress(address.toIPv4Address()).toString();
+        qWarning()<<"ENET supports IPV4 only for now!";
+    }
+
     ENetAddress peerAddress;
-    if(enet_address_set_host(&peerAddress, qPrintable(address.toString()))) {
+    if(enet_address_set_host(&peerAddress, qPrintable(ipv4Address))) {
         m_errorString = "enet_address_set_host(...) failed.";
         qDebug() << "ERROR! enet_address_set_host(...) failed.";
         return false;

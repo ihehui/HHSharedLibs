@@ -365,11 +365,13 @@ void PacketBase::setPacketBody(const QByteArray &data)
 Packet::Packet()
     : PacketBase()
 {
+    m_encrypted = false;
 }
 
 Packet::Packet(quint8 packetType, quint8 packetSubType)
     : PacketBase(packetType, packetSubType)
 {
+    m_encrypted = false;
 }
 
 Packet::Packet(const PacketBase &base)
@@ -389,10 +391,25 @@ Packet::~Packet()
 
 }
 
+bool Packet::isEncrypted() const
+{
+    return m_encrypted;
+}
+
+void Packet::setEncrypted(bool encrypted)
+{
+    m_encrypted = encrypted;
+}
+
 QByteArray Packet::toByteArray()
 {
+    QByteArray body;
+    if(m_encrypted){
+        body = encrypt(packBodyData());
+    }else{
+        body = packBodyData();
+    }
 
-    QByteArray body = encrypt(packBodyData());
     if(body.isEmpty()) {
         return QByteArray();
     }
@@ -406,6 +423,18 @@ QByteArray Packet::toByteArray()
     return ba;
 }
 
+//void Packet::parsePacketBody()
+//{
+//    QByteArray packetBody;
+//    if(m_encrypted){
+//        packetBody = decrypt(getPacketBody());
+//    }else{
+//        packetBody = getPacketBody();
+//    }
+
+//    parsePacketBody(packetBody);
+//}
+
 void Packet::fromPacket(const PacketBase &base)
 {
     setPacketType(base.getPacketType());
@@ -416,7 +445,13 @@ void Packet::fromPacket(const PacketBase &base)
     setSocketID(base.getSocketID());
     setPeerID(base.getPeerID());
 
-    QByteArray packetBody = decrypt(base.getPacketBody());
+    QByteArray packetBody;
+    if(m_encrypted){
+        packetBody = decrypt(base.getPacketBody());
+    }else{
+        packetBody = base.getPacketBody();
+    }
+
     //setPacketBody(packetBody);
     parsePacketBody(packetBody);
 }
