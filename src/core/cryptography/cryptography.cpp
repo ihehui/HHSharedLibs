@@ -216,29 +216,30 @@ int Cryptography::teaCrypto(QByteArray *destination, const QByteArray &source, c
 //        }
 
     //char *tempDestCharArray = new char[destLength];
-    char *tempDestCharArray = (char *)destUCharArray;
-
-    byteToChar(tempDestCharArray, destUCharArray, destLength);
-
 
     destination->clear();
-    destination->resize(0);
-    //destination->append(tempDestCharArray, destLength);
+    destination->resize(destLength);
+    destination->fill(0);
+    byteToChar(destination->data(), destUCharArray, destLength);
 
 
-    {
+//    //char *tempDestCharArray = (char *)destUCharArray;
+//    //byteToChar(tempDestCharArray, destUCharArray, destLength);
 
-        for (int i = 0; i < destLength; i++) {
-            if (destUCharArray[i] > 127) {
-                destination->append(destUCharArray[i]  - 256);
-            } else {
-                destination->append(destUCharArray[i]);
-            }
-        }
+//    destination->clear();
+//    destination->resize(0);
+//    //destination->append(tempDestCharArray, destLength);
 
+//    {
+//        for (int i = 0; i < destLength; i++) {
+//            if (destUCharArray[i] > 127) {
+//                destination->append(destUCharArray[i]  - 256);
+//            } else {
+//                destination->append(destUCharArray[i]);
+//            }
+//        }
 
-
-    }
+//    }
 
 
 

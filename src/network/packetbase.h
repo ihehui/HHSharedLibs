@@ -102,6 +102,7 @@ public:
 
     QByteArray getPacketBody() const ;
     void setPacketBody(const QByteArray &data);
+    void clearPacketBody();
 
 
 private:

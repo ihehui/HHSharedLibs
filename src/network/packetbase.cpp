@@ -353,6 +353,11 @@ void PacketBase::setPacketBody(const QByteArray &data)
     this->m_packetBody = data;
 }
 
+void PacketBase::clearPacketBody()
+{
+    m_packetBody.clear();
+    m_packetBody.resize(0);
+}
 
 
 
@@ -452,7 +457,6 @@ void Packet::fromPacket(const PacketBase &base)
         packetBody = base.getPacketBody();
     }
 
-    //setPacketBody(packetBody);
     parsePacketBody(packetBody);
 }
 
