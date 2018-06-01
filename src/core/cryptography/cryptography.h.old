@@ -40,14 +40,8 @@
 
 #include <QByteArray>
 #include <QCryptographicHash>
-#include <QMutex>
-
 
 #include "../core_lib.h"
-
-
-
-#define CRYPTO_KEY_SIZE 16
 
 
 using namespace std;
@@ -61,7 +55,6 @@ class CORE_LIB_API Cryptography
 public:
 
     Cryptography();
-    ~Cryptography();
 
     static QByteArray MD5(const QByteArray &data);
     static QByteArray SHA1(const QByteArray &data);
@@ -75,15 +68,10 @@ public:
     int teaCrypto(QByteArray *destination, const QByteArray &source, const QByteArray &key, bool encrypt);
 
     void setMaxBufferSize(int size);
-    int getMaxBufferSize();
+    int getMaxBufferSize() const;
 
 private:
     int maxBufferSize;
-
-    unsigned char keyUCharArray[CRYPTO_KEY_SIZE];
-    unsigned char *destUCharArray;
-
-    QMutex m_mutex;
 
 };
 

@@ -35,7 +35,6 @@
 #include "tea/teacrypt.h"
 
 #include <QFile>
-#include <QDebug>
 
 
 namespace HEHUI
@@ -43,19 +42,9 @@ namespace HEHUI
 
 Cryptography::Cryptography()
 {
+
     maxBufferSize = 1024000; //1 MB;
 
-    memset(keyUCharArray, 0, sizeof(keyUCharArray));
-
-    destUCharArray = new unsigned char[maxBufferSize];
-    memset(destUCharArray, 0, sizeof(unsigned char)*maxBufferSize);
-
-
-}
-
-Cryptography::~Cryptography()
-{
-    delete [] destUCharArray;
 }
 
 QByteArray Cryptography::MD5(const QByteArray &data)
@@ -152,10 +141,8 @@ void  Cryptography::byteToChar(char *destination, const unsigned char *source, i
 int Cryptography::teaCrypto(QByteArray *destination, const QByteArray &source, const QByteArray &key, bool encrypt)
 {
 
-    QMutexLocker locker(&m_mutex);
-
-    if(source.size() >= (maxBufferSize - 16)) {
-        qCritical("Critical Error! Source data too long! Source data size:%d Bytes! Accepted size:%d Bytes!", source.size(), (maxBufferSize - 16));
+    if(source.size() >= maxBufferSize) {
+        qCritical("Critical Error! Source data too long! Source data size:%d Bytes! Accepted size:%d Bytes!", source.size(), maxBufferSize);
         return 0;
     }
 
@@ -167,14 +154,13 @@ int Cryptography::teaCrypto(QByteArray *destination, const QByteArray &source, c
 
     //Key for TEA is 16 Bytes
     QByteArray tempKeyArray = key;
-    if(key.size() < CRYPTO_KEY_SIZE) {
+    if(key.size() < 16) {
         tempKeyArray.append("0123456789ABCDEF");
     }
-    tempKeyArray.resize(CRYPTO_KEY_SIZE);
+    tempKeyArray.resize(16);
 
-    memset(keyUCharArray, 0, sizeof(keyUCharArray));
-//    unsigned char *keyUCharArray = new unsigned char[16];
-    charToByte(keyUCharArray, tempKeyArray.data(), CRYPTO_KEY_SIZE);
+    unsigned char *keyUCharArray = new unsigned char[16];
+    charToByte(keyUCharArray, tempKeyArray.data(), 16);
 
 //        qDebug(" ");
 //        for(int i = 0; i<16; i++){
@@ -191,20 +177,16 @@ int Cryptography::teaCrypto(QByteArray *destination, const QByteArray &source, c
 //        }
 
     int destLength = maxBufferSize;
-//    unsigned char *destUCharArray = new unsigned char[maxBufferSize];
-
-    memset(destUCharArray, 0, sizeof(unsigned char)*maxBufferSize);
-
-
+    unsigned char *destUCharArray = new unsigned char[maxBufferSize];
     if(encrypt) {
         TEACrypt::encrypt(sourceUCharArray, sourceLength, keyUCharArray, destUCharArray, &destLength);
     } else {
         bool ok = TEACrypt::decrypt(sourceUCharArray, sourceLength, keyUCharArray, destUCharArray, &destLength);
         if(!ok) {
             qCritical("Critical Error! Data Decryption Failed!");
-            //delete [] destUCharArray;
+            delete [] destUCharArray;
             delete [] sourceUCharArray;
-            //delete [] keyUCharArray;
+            delete [] keyUCharArray;
             return 0;
         }
     }
@@ -215,45 +197,23 @@ int Cryptography::teaCrypto(QByteArray *destination, const QByteArray &source, c
 //            qDebug("destChar[%d]:%d", i, destUCharArray[i]);
 //        }
 
-    //char *tempDestCharArray = new char[destLength];
-    char *tempDestCharArray = (char *)destUCharArray;
-
+    char *tempDestCharArray = new char[destLength];
     byteToChar(tempDestCharArray, destUCharArray, destLength);
 
 
     destination->clear();
     destination->resize(0);
-    //destination->append(tempDestCharArray, destLength);
-
-
-    {
-
-        for (int i = 0; i < destLength; i++) {
-            if (destUCharArray[i] > 127) {
-                destination->append(destUCharArray[i]  - 256);
-            } else {
-                destination->append(destUCharArray[i]);
-            }
-        }
-
-
-
-    }
-
-
-
+    destination->append(tempDestCharArray, destLength);
 
 //        for(int i = 0; i<destLength; i++){
 //            qDebug("temp[%d]:%d", i, tempDestCharArray[i]);
 //        }
 //        qDebug("destination->size():%d", destination->size());
 
-    //delete [] destUCharArray;
+    delete [] destUCharArray;
     delete [] sourceUCharArray;
-    //delete [] keyUCharArray;
-    //delete [] tempDestCharArray;
-
-    //qDebug()<<" src:"<<source.size()<<"   dst:"<<destLength;
+    delete [] keyUCharArray;
+    delete [] tempDestCharArray;
 
     return destLength;
 
@@ -262,21 +222,11 @@ int Cryptography::teaCrypto(QByteArray *destination, const QByteArray &source, c
 
 void Cryptography::setMaxBufferSize(int size)
 {
-    QMutexLocker locker(&m_mutex);
-
     this->maxBufferSize = size;
-
-    delete [] destUCharArray;
-
-    destUCharArray = new unsigned char[maxBufferSize];
-    memset(destUCharArray, 0, sizeof(unsigned char)*maxBufferSize);
-
 }
 
-int Cryptography::getMaxBufferSize()
+int Cryptography::getMaxBufferSize() const
 {
-    QMutexLocker locker(&m_mutex);
-
     return this->maxBufferSize;
 
 }
