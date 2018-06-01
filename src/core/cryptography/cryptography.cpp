@@ -43,7 +43,7 @@ namespace HEHUI
 Cryptography::Cryptography()
 {
 
-    maxBufferSize = 65535;
+    maxBufferSize = 1024000; //1 MB;
 
 }
 
