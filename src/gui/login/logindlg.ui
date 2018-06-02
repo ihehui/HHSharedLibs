@@ -173,7 +173,7 @@
                <string notr="true"/>
               </property>
               <property name="echoMode">
-               <enum>QLineEdit::NoEcho</enum>
+               <enum>QLineEdit::Password</enum>
               </property>
              </widget>
             </item>

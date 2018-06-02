@@ -228,7 +228,7 @@ public:
     static bool serviceChangeStartType(const QString &serviceName, DWORD startType = SERVICE_DEMAND_START, DWORD *errorCode = 0);
     static bool serviceChangeDescription(const QString &serviceName, const QString &description, DWORD *errorCode = 0);
     static bool serviceDelete(const QString &serviceName, DWORD *errorCode = 0);
-    static bool serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD serviceType = SERVICE_WIN32, DWORD *errorCode = 0);
+    static bool serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD *errorCode = 0, DWORD serviceType = SERVICE_WIN32);
     static bool serviceStart(const QString &serviceName, DWORD *errorCode = 0);
     static bool serviceStop(const QString &serviceName, DWORD *errorCode = 0);
     static bool serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HANDLE *schService);

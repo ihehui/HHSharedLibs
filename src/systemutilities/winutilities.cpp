@@ -3566,7 +3566,7 @@ bool WinUtilities::serviceDelete(const QString &serviceName, DWORD *errorCode)
     return ok;
 }
 
-bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD serviceType, DWORD *errorCode)
+bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD *errorCode, DWORD serviceType)
 {
 
     if(!jsonArray) {
