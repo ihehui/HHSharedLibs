@@ -191,6 +191,9 @@ QImage RawImageReader::loadRawGrayscaleImage(unsigned short *data, unsigned int 
 
     if(!data){return QImage();}
 
+    m_pixelMinValue = 65535;
+    m_pixelMaxValue = 0;
+
     m_imageWidth = imageWidth;
     m_imageHeight = imageHeight;
     unsigned int dimension = imageWidth * imageHeight;

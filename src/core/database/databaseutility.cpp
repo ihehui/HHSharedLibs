@@ -247,6 +247,7 @@ QSqlError DatabaseUtility::openLocalFileDatabase(const QString &connectionName, 
     err = db.lastError();
 
     if (!db.open()) {
+        err = db.lastError();
         db = QSqlDatabase();
         QSqlDatabase::removeDatabase(connectionName);
 
@@ -272,15 +273,6 @@ QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database,
         return error;
     }
 
-    QFile file(scriptFileName);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QString msg = file.errorString();
-        error.setType(QSqlError::StatementError);
-        error.setDatabaseText(msg);
-        qCritical() << msg;
-        return error;
-    }
-
     if(!database.isValid()) {
         error.setType(QSqlError::ConnectionError);
         error.setDatabaseText(tr("Invalid Database!"));
@@ -292,6 +284,14 @@ QSqlError DatabaseUtility::excuteSQLScriptFromFile(const QSqlDatabase &database,
         return error;
     }
 
+    QFile file(scriptFileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QString msg = file.errorString();
+        error.setType(QSqlError::StatementError);
+        error.setDatabaseText(msg);
+        qCritical() << msg;
+        return error;
+    }
 
     QSqlQuery query(database);
     QString statement = "";

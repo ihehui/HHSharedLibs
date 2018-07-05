@@ -578,6 +578,8 @@ MessageLoggerBase::MessageLoggerBase(QObject *parent)
     m_quit = false;
     m_wokeUp = false;
     m_logQtMessages = false;
+    m_threadFinished = true;
+
 
     m_messageTypeToString.insert(MSG_WARNING, " WARNING");
     m_messageTypeToString.insert(MSG_CRITICAL, "CRITICAL");
