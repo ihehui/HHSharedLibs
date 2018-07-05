@@ -2282,7 +2282,7 @@ QStringList WinUtilities::getMembersOfLocalGroup(const QString &groupName, const
                                           dwPrefMaxLen,
                                           &dwEntriesRead,
                                           &dwTotalEntries,
-                                          &dwResumeHandle);
+                                          (PDWORD_PTR)&dwResumeHandle);
 
         if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)) {
             if ((pTmpBuf = pBuf) != NULL) {

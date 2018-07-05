@@ -37,9 +37,15 @@ SOURCES += windowsmanagement.cpp \
                    $$PWD/resources/lib/WindowsAPI \
                    $$PWD/resources/lib/WinRing0
 
-    LIBS += -L$$PWD/resources/lib/WindowsAPI \
-            -lWindowsAPI \
+    LIBS += -L$$PWD/resources/lib/WindowsAPI \ #-lWindowsAPI \
             -L$$PWD/resources/lib/WinRing0
+
+    equals(QT_ARCH, "x86_64"){
+        LIBS += -lWindowsAPI64
+    }else{
+        LIBS += -lWindowsAPI
+    }
+
 
     LIBS += -luser32 \
         -lNetAPI32 \
@@ -59,5 +65,8 @@ SOURCES += windowsmanagement.cpp \
     #    INCLUDEPATH += resources/lib/WinAPI_GCC
     #    LIBS += -Lresources/lib/WinAPI_GCC
     #}
+
+    win32-msvc:QMAKE_CFLAGS -= -Zc:strictStrings
+    win32-msvc:QMAKE_CXXFLAGS -= -Zc:strictStrings
 
 }
