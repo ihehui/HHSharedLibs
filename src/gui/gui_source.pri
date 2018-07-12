@@ -2,7 +2,7 @@
 
 include (./imageviewer/imageviewer.pri)
 include (./widgetbase/itembox/itembox.pri)
-
+include(screencapture/screencapture.pri)
 
 INCLUDEPATH += $$PWD
 
