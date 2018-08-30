@@ -33,6 +33,7 @@
 
 #include <QWidget>
 #include <QToolButton>
+#include <QMouseEvent>
 
 namespace Ui
 {
@@ -46,8 +47,12 @@ class ImageViewerControler : public QWidget
     Q_OBJECT
 
 public:
-    explicit ImageViewerControler(QWidget *parent = 0, Qt::WindowFlags fl = Qt::Popup | Qt::FramelessWindowHint);
+    explicit ImageViewerControler(QWidget *parent = 0, Qt::WindowFlags fl = /*Qt::Popup |*/ Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
     ~ImageViewerControler();
+
+protected:
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
 
 
 
@@ -66,6 +71,10 @@ signals:
     void signalSave();
     void signalSaveAs();
 
+    void signalDragged(const QPoint &globalPoint);
+
+    void signalPin(bool pin);
+
 public slots:
     void reset();
     void setScaleButtonsVisible(bool visible = true);
@@ -76,6 +85,12 @@ public slots:
     void addToolButton(QToolButton *button);
 
     void insertWidget(int index, QWidget *widget, int stretch = 0, Qt::Alignment alignment = Qt::Alignment());
+
+    void setIconSize(int width, int height);
+    void setIconSize(const QSize &size);
+    QSize iconSize() const;
+
+    void pinControler(bool pin);
 
 
 private slots:
@@ -119,8 +134,16 @@ private slots:
     }
 
 
+
+    void on_toolButtonPin_clicked(bool checked);
+
+
 private:
     Ui::ImageViewerControlerUI *ui;
+
+    QSize m_iconSize;
+
+    QPoint m_dragPoint;
 
 
 

@@ -46,11 +46,12 @@ Service::Service(int argc, char **argv, const QString &serviceName, const QStrin
 
 
 #if defined(QTSERVICE_DEBUG)
-    installMessageLogger();
+    enableLog(true, serviceName);
 #else
-    for(int i = 0; i < argc; i++) {
-        if("-log" == QString(argv[i]).toLower()) {
-            installMessageLogger();
+    for(int i = 0; i < argc; i++){
+        if("-log" == QString(argv[i]).toLower()){
+            enableLog(true, serviceName);
+            break;
         }
     }
 #endif
@@ -61,6 +62,23 @@ Service::Service(int argc, char **argv, const QString &serviceName, const QStrin
 Service::~Service()
 {
 
+
+}
+
+void Service::enableLog(bool enable, const QString &fileBaseName, const QString &baseDir)
+{
+
+    if(enable){
+        bool printTostderr = false;
+#ifdef DEBUG
+        printTostderr = true;
+#endif
+
+        installMessageLogger(baseDir, fileBaseName, printTostderr);
+
+    }else{
+        uninstallMessageLogger();
+    }
 
 }
 

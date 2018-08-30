@@ -8,7 +8,8 @@
 #ifdef Q_OS_WIN
     #include <Windows.h>
 #else
-
+    #include <QScreen>
+    #include <QPixmap>
 #endif
 
 
@@ -22,15 +23,22 @@ public:
 
     void getScreenRectInfo(int *pixelSize, int *width, int *height);
 
+    const uchar *dataArray() const;
+
 signals:
 
 public slots:
     bool init();
+    void deInitilize();
+    bool capture();
     void capture(QByteArray *dataArray);
 
 
 
 private:
+
+    uchar *m_dataArray;
+    quint32 m_imageBytes;
 
     int m_nWidth;
     int m_nHeight;
@@ -47,7 +55,6 @@ private:
     HBITMAP m_hOldBitmap;
     BITMAPINFOHEADER m_bi;
     BITMAPFILEHEADER m_bf;
-    DWORD m_dwSize;
     HANDLE m_hDib;
 
 

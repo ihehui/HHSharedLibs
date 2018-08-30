@@ -6,9 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>477</width>
-    <height>41</height>
+    <width>533</width>
+    <height>50</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>22</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>256</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Controler</string>
@@ -30,325 +42,388 @@ QToolButton:pressed {
     padding-top: 5px;
 }</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
-   <property name="spacing">
-    <number>3</number>
-   </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
    <property name="sizeConstraint">
     <enum>QLayout::SetFixedSize</enum>
    </property>
    <property name="leftMargin">
-    <number>3</number>
+    <number>0</number>
    </property>
    <property name="topMargin">
-    <number>3</number>
+    <number>0</number>
    </property>
    <property name="rightMargin">
-    <number>3</number>
+    <number>0</number>
    </property>
    <property name="bottomMargin">
-    <number>3</number>
+    <number>0</number>
    </property>
    <item>
-    <widget class="QToolButton" name="toolButtonRotateLeft">
-     <property name="toolTip">
-      <string>Rotate Left</string>
-     </property>
-     <property name="text">
-      <string>Rotate Left</string>
-     </property>
-     <property name="icon">
-      <iconset resource="resource.qrc">
-       <normaloff>:/resources/images/rotate_left.png</normaloff>:/resources/images/rotate_left.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QDial" name="dial">
+    <widget class="QFrame" name="frame">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="maximumSize">
-      <size>
-       <width>35</width>
-       <height>35</height>
-      </size>
+     <property name="frameShape">
+      <enum>QFrame::Panel</enum>
      </property>
-     <property name="toolTip">
-      <string>Rotate</string>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
      </property>
-     <property name="maximum">
-      <number>360</number>
-     </property>
-     <property name="singleStep">
-      <number>30</number>
-     </property>
-     <property name="pageStep">
-      <number>30</number>
-     </property>
-     <property name="value">
-      <number>180</number>
-     </property>
-     <property name="wrapping">
-      <bool>true</bool>
-     </property>
-     <property name="notchesVisible">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QToolButton" name="toolButtonRotateRight">
-     <property name="toolTip">
-      <string>Rotate Right</string>
-     </property>
-     <property name="statusTip">
-      <string>Rotate Right</string>
-     </property>
-     <property name="text">
-      <string>Rotate Right</string>
-     </property>
-     <property name="icon">
-      <iconset resource="resource.qrc">
-       <normaloff>:/resources/images/rotate_right.png</normaloff>:/resources/images/rotate_right.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QToolButton" name="toolButtonFlipVertical">
-     <property name="toolTip">
-      <string>Flip Vertical</string>
-     </property>
-     <property name="text">
-      <string>Flip Vertical</string>
-     </property>
-     <property name="icon">
-      <iconset resource="resource.qrc">
-       <normaloff>:/resources/images/flip_vertical.png</normaloff>:/resources/images/flip_vertical.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QToolButton" name="toolButtonFlipHorizontal">
-     <property name="toolTip">
-      <string>Flip Horizontal</string>
-     </property>
-     <property name="text">
-      <string>Flip Horizontal</string>
-     </property>
-     <property name="icon">
-      <iconset resource="resource.qrc">
-       <normaloff>:/resources/images/flip_horizontal.png</normaloff>:/resources/images/flip_horizontal.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>1</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <widget class="QToolButton" name="toolButtonZoomIn">
-     <property name="toolTip">
-      <string>Zoom In</string>
-     </property>
-     <property name="text">
-      <string>Zoom In</string>
-     </property>
-     <property name="icon">
-      <iconset resource="resource.qrc">
-       <normaloff>:/resources/images/zoom_in.png</normaloff>:/resources/images/zoom_in.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QToolButton" name="toolButtonZoomOut">
-     <property name="toolTip">
-      <string>Zoom Out</string>
-     </property>
-     <property name="text">
-      <string>Zoom Out</string>
-     </property>
-     <property name="icon">
-      <iconset resource="resource.qrc">
-       <normaloff>:/resources/images/zoom_out.png</normaloff>:/resources/images/zoom_out.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QToolButton" name="toolButtonZoomFitBest">
-     <property name="toolTip">
-      <string>Zoom Fit Best</string>
-     </property>
-     <property name="text">
-      <string>Zoom Fit Best</string>
-     </property>
-     <property name="icon">
-      <iconset resource="resource.qrc">
-       <normaloff>:/resources/images/zoom_fit_best.png</normaloff>:/resources/images/zoom_fit_best.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QToolButton" name="toolButtonZoomOriginal">
-     <property name="toolTip">
-      <string>Original Size</string>
-     </property>
-     <property name="text">
-      <string>Original Size</string>
-     </property>
-     <property name="icon">
-      <iconset resource="resource.qrc">
-       <normaloff>:/resources/images/zoom_original.png</normaloff>:/resources/images/zoom_original.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <spacer name="horizontalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <widget class="QToolButton" name="toolButtonSave">
-     <property name="toolTip">
-      <string>Save Image</string>
-     </property>
-     <property name="text">
-      <string>Save</string>
-     </property>
-     <property name="icon">
-      <iconset resource="resource.qrc">
-       <normaloff>:/resources/images/save.png</normaloff>:/resources/images/save.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QToolButton" name="toolButtonSaveAs">
-     <property name="toolTip">
-      <string>Save Image As</string>
-     </property>
-     <property name="text">
-      <string>Save As</string>
-     </property>
-     <property name="icon">
-      <iconset resource="resource.qrc">
-       <normaloff>:/resources/images/filesaveas.png</normaloff>:/resources/images/filesaveas.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
-     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetFixedSize</enum>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QToolButton" name="toolButtonPin">
+        <property name="toolTip">
+         <string>Rotate Left</string>
+        </property>
+        <property name="text">
+         <string>Rotate Left</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/pin2.png</normaloff>:/resources/images/pin2.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonRotateLeft">
+        <property name="toolTip">
+         <string>Rotate Left</string>
+        </property>
+        <property name="text">
+         <string>Rotate Left</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/rotate_left.png</normaloff>:/resources/images/rotate_left.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDial" name="dial">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>35</width>
+          <height>35</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Rotate</string>
+        </property>
+        <property name="maximum">
+         <number>360</number>
+        </property>
+        <property name="singleStep">
+         <number>30</number>
+        </property>
+        <property name="pageStep">
+         <number>30</number>
+        </property>
+        <property name="value">
+         <number>180</number>
+        </property>
+        <property name="wrapping">
+         <bool>true</bool>
+        </property>
+        <property name="notchesVisible">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonRotateRight">
+        <property name="toolTip">
+         <string>Rotate Right</string>
+        </property>
+        <property name="statusTip">
+         <string>Rotate Right</string>
+        </property>
+        <property name="text">
+         <string>Rotate Right</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/rotate_right.png</normaloff>:/resources/images/rotate_right.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonFlipVertical">
+        <property name="toolTip">
+         <string>Flip Vertical</string>
+        </property>
+        <property name="text">
+         <string>Flip Vertical</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/flip_vertical.png</normaloff>:/resources/images/flip_vertical.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonFlipHorizontal">
+        <property name="toolTip">
+         <string>Flip Horizontal</string>
+        </property>
+        <property name="text">
+         <string>Flip Horizontal</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/flip_horizontal.png</normaloff>:/resources/images/flip_horizontal.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>1</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonZoomIn">
+        <property name="toolTip">
+         <string>Zoom In</string>
+        </property>
+        <property name="text">
+         <string>Zoom In</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/zoom_in.png</normaloff>:/resources/images/zoom_in.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonZoomOut">
+        <property name="toolTip">
+         <string>Zoom Out</string>
+        </property>
+        <property name="text">
+         <string>Zoom Out</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/zoom_out.png</normaloff>:/resources/images/zoom_out.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonZoomFitBest">
+        <property name="toolTip">
+         <string>Zoom Fit Best</string>
+        </property>
+        <property name="text">
+         <string>Zoom Fit Best</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/zoom_fit_best.png</normaloff>:/resources/images/zoom_fit_best.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonZoomOriginal">
+        <property name="toolTip">
+         <string>Original Size</string>
+        </property>
+        <property name="text">
+         <string>Original Size</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/zoom_original.png</normaloff>:/resources/images/zoom_original.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonSave">
+        <property name="toolTip">
+         <string>Save Image</string>
+        </property>
+        <property name="text">
+         <string>Save</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/save.png</normaloff>:/resources/images/save.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonSaveAs">
+        <property name="toolTip">
+         <string>Save Image As</string>
+        </property>
+        <property name="text">
+         <string>Save As</string>
+        </property>
+        <property name="icon">
+         <iconset resource="imageviewer.qrc">
+          <normaloff>:/resources/images/filesaveas.png</normaloff>:/resources/images/filesaveas.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
  </widget>
  <resources>
-  <include location="resource.qrc"/>
+  <include location="imageviewer.qrc"/>
  </resources>
  <connections/>
 </ui>

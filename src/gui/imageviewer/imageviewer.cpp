@@ -54,8 +54,8 @@
 
 namespace HEHUI
 {
-ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
-    : QWidget(parent, fl)
+ImageViewer::ImageViewer(ControlMode mode, QWidget *parent, Qt::WindowFlags fl)
+    : QWidget(parent, fl), m_controlMode(mode)
 {
     //setWindowOpacity(0.85);
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -64,7 +64,6 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
     m_currentImageDirectory = QDir::homePath();
     m_curImageIndex = 0;
 
-    resize(sizeHint());
 
     m_imageRender = new RenderWidget(this);
     m_imageRender->setAlignmentCenter(true);
@@ -113,6 +112,9 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
     connect(m_imageControler, SIGNAL(signalSave()), this, SLOT(save()));
     connect(m_imageControler, SIGNAL(signalSaveAs()), this, SLOT(saveAs()));
 
+    connect(m_imageControler, SIGNAL(signalDragged(QPoint)), this, SLOT(controlerDragged(QPoint)));
+    connect(m_imageControler, SIGNAL(signalPin(bool)), this, SLOT(pinControler(bool)));
+
 
     m_animationControler = new AnimationControler(this);
     connect(m_animationControler, SIGNAL(signalFrameChanged(const QImage &)), this, SLOT(updateAnimationFrame(const QImage &)));
@@ -159,6 +161,7 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
     m_renderWidgetAspectRatioMode = Qt::KeepAspectRatio;
     m_scaleMode = Scale_Auto;
 
+
     m_imageRender->setMouseTracking(true);
     m_scrollArea->setMouseTracking(true);
     //setMouseTracking(true);
@@ -169,6 +172,23 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
     m_animationControler->installEventFilter(this);
     m_mainLayout->installEventFilter(this);
     installEventFilter(this);
+
+    if(CONTROL_IMAGEVIEW != m_controlMode){
+        m_toolButtonClose->setEnabled(false);
+        m_toolButtonClose->hide();
+
+        m_animationControler->setEnabled(false);
+        m_animationControler->hide();
+
+        m_imageControler->setIconSize(22, 22);
+        m_imageControler->setRotateButtonsVisible(false);
+        m_imageControler->setFlipButtonsVisible(false);
+
+    }
+
+    m_imageControler->pinControler(CONTROL_IMAGEVIEW != m_controlMode);
+
+
 
 
     setWindowTitle(tr("Image Viewer"));
@@ -182,6 +202,14 @@ ImageViewer::ImageViewer(QWidget *parent, Qt::WindowFlags fl)
 //    int windowHeight = frameGeometry().height();
 //    move((desktopWidth - windowWidth) / 2, (desktopHeight - windowHeight) / 2);
 //    raise();
+
+    m_imageControler->hide();
+
+    QSize minSize = m_imageControler->size() + QSize(50, 250);
+    setMinimumSize(minSize);
+    resize(minSize);
+
+//    QTimer::singleShot(1000, this, SLOT(showControler()));
 
 
 }
@@ -209,6 +237,11 @@ QScrollArea *ImageViewer::scrollArea()
 ImageViewerControler *ImageViewer::imageControler()
 {
     return m_imageControler;
+}
+
+QPoint ImageViewer::mapToRenderWidget(const QPoint &point)
+{
+    return m_imageRender->mapFromParent(m_scrollArea->mapFromParent(point)) / m_scaleFactor;
 }
 
 void ImageViewer::setScaleMode(ScaleMode mode)
@@ -409,35 +442,72 @@ void ImageViewer::processBrightnessAndContrast(QImage &image, int brightness, in
 
 //}
 
-//void MoviePlayer::mouseMoveEvent(QMouseEvent * event){
+//void ImageViewer::mouseMoveEvent(QMouseEvent * mouseEvent){
 
-//    QPoint globalPos = event->globalPos();
-//    QPoint pos = scrollArea->mapFromGlobal(globalPos);
+//    QPoint globalPos = mouseEvent->globalPos();
+//    QPoint pos = m_scrollArea->mapFromGlobal(globalPos);
 
-//    if(pos.y() <= controler->height()){
-//        QPoint tl = scrollArea->mapToGlobal(QPoint( (scrollArea->viewport()->width() - controler->width())/2, 1) );
-//        controler->move(tl);
-//        controler->show();
+//    int scrollAreaWidth = m_scrollArea->viewport()->width();
+//    int scrollAreaHeight = m_scrollArea->viewport()->height();
+
+
+//    if(CONTROL_IMAGEVIEW == m_controlMode){
+
+//        if(m_curPixmap.isNull()) {
+//            mouseEvent->ignore();;
+//            return;
+//        }
+
+//        if(m_runningValidMovie) {
+//            int animationControlerHeight = m_animationControler->height();
+//            if(pos.y() <= scrollAreaHeight && pos.y() > (scrollAreaHeight - animationControlerHeight) ) {
+//                QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_animationControler->width()) / 2, (scrollAreaHeight - animationControlerHeight) ) );
+//                m_animationControler->move(tl);
+//                m_animationControler->show();
+//            } else {
+//                m_animationControler->hide();
+//                raise();
+//                setFocus();
+//            }
+//        }
+
 //    }else{
-//        controler->hide();
+//        if(m_pinControler){return;}
+
+//        if(pos.x() < (scrollAreaWidth - m_toolButtonClose->width() * 2) && pos.y() <= m_imageControler->height() / 2 && pos.y() > 0) {
+//            showControler();
+//        } else {
+//            m_imageControler->hide();
+//            raise();
+//            setFocus();
+//        }
 //    }
 
-//    event->accept();
+//    QWidget::mouseMoveEvent(mouseEvent);
+//}
 
-//    qDebug()<<"--------------pos:"<<pos;
-
-
+//void ImageViewer::resizeEvent(QResizeEvent *event)
+//{
+//    moveControler();
+//    updateRenderSize();
 //}
 
 bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
 {
 
     switch (event->type()) {
-    case QEvent::KeyRelease: {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent *> (event);
-        return processKeyEvent(obj, keyEvent);
+    case QEvent::Resize: {
+        //qDebug()<<"----QEvent::Resize"<<" obj:"<<obj;
+
+        moveControler();
+
+        if(obj == this) {
+            updateRenderSize();
+            return true;
+        }
+
     }
-    break;
+        break;
 
     //    case QEvent::Enter:
     //    {
@@ -449,7 +519,7 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
     case QEvent::Leave: {
         //qDebug()<<"----QEvent::Leave"<<" "<<this;
 
-        if(obj == m_imageControler) {
+        if(obj == m_imageControler && (!m_pinControler)) {
             m_imageControler->hide();
             raise();
             setFocus();
@@ -458,7 +528,17 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
     }
     break;
 
+    case QEvent::KeyRelease: {
+        if(CONTROL_IMAGEVIEW != m_controlMode){return false;}
+
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *> (event);
+        return processKeyEvent(obj, keyEvent);
+    }
+    break;
+
     case QEvent::MouseButtonPress: {
+        if(CONTROL_IMAGEVIEW != m_controlMode){return false;}
+
         if(!m_dragable) {
             return QObject::eventFilter(obj, event);
         }
@@ -475,59 +555,72 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
     break;
 
     case QEvent::MouseMove: {
-
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *> (event);
         if(!mouseEvent) {
             return false;
         }
 
-        if (mouseEvent->buttons() & Qt::LeftButton) {
-            if(!m_dragable) {
-                return QObject::eventFilter(obj, event);
-            }
-            move(mouseEvent->globalPos() - m_dragPosition);
-            //return true;
-        }
-
-
-        if(m_curPixmap.isNull()) {
-            return false;
-        }
-
-        QPoint globalPos = mouseEvent->globalPos();
-        QPoint pos = m_scrollArea->mapFromGlobal(globalPos);
-
-        int scrollAreaWidth = m_scrollArea->viewport()->width();
-        int scrollAreaHeight = m_scrollArea->viewport()->height();
-
-        if(pos.x() < (scrollAreaWidth - m_toolButtonClose->width() * 2) && pos.y() <= m_imageControler->height() && pos.y() > 0) {
-            QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_imageControler->width()) / 2, 1) );
-            m_imageControler->move(tl);
-            m_imageControler->show();
-        } else {
-            m_imageControler->hide();
-            raise();
-            setFocus();
-        }
-
-        if(m_runningValidMovie) {
-            int animationControlerHeight = m_animationControler->height();
-            if(pos.y() <= scrollAreaHeight && pos.y() > (scrollAreaHeight - animationControlerHeight) ) {
-                QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_animationControler->width()) / 2, (scrollAreaHeight - animationControlerHeight) ) );
-                m_animationControler->move(tl);
-                m_animationControler->show();
-            } else {
-                m_animationControler->hide();
-                raise();
-                setFocus();
-            }
-        }
-
-        return true;
+        return processMouseMoveEvent(mouseEvent);
     }
-    break;
+        break;
+
+
+//    case QEvent::MouseMove: {
+
+//        QMouseEvent *mouseEvent = static_cast<QMouseEvent *> (event);
+//        if(!mouseEvent) {
+//            return false;
+//        }
+
+//        if (mouseEvent->buttons() & Qt::LeftButton) {
+//            if(!m_dragable) {
+//                return QObject::eventFilter(obj, event);
+//            }
+//            move(mouseEvent->globalPos() - m_dragPosition);
+//            //return true;
+//        }
+
+
+//        if(m_curPixmap.isNull()) {
+//            return false;
+//        }
+
+//        QPoint globalPos = mouseEvent->globalPos();
+//        QPoint pos = m_scrollArea->mapFromGlobal(globalPos);
+
+//        int scrollAreaWidth = m_scrollArea->viewport()->width();
+//        int scrollAreaHeight = m_scrollArea->viewport()->height();
+
+//        if(pos.x() < (scrollAreaWidth - m_toolButtonClose->width() * 2) && pos.y() <= m_imageControler->height() && pos.y() > 0) {
+//            QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_imageControler->width()) / 2, 1) );
+//            m_imageControler->move(tl);
+//            m_imageControler->show();
+//        } else {
+//            m_imageControler->hide();
+//            raise();
+//            setFocus();
+//        }
+
+//        if(m_runningValidMovie) {
+//            int animationControlerHeight = m_animationControler->height();
+//            if(pos.y() <= scrollAreaHeight && pos.y() > (scrollAreaHeight - animationControlerHeight) ) {
+//                QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_animationControler->width()) / 2, (scrollAreaHeight - animationControlerHeight) ) );
+//                m_animationControler->move(tl);
+//                m_animationControler->show();
+//            } else {
+//                m_animationControler->hide();
+//                raise();
+//                setFocus();
+//            }
+//        }
+
+//        return true;
+//    }
+//    break;
 
     case QEvent::MouseButtonDblClick: {
+        if(CONTROL_IMAGEVIEW != m_controlMode){return false;}
+
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *> (event);
         if(!mouseEvent) {
             return false;
@@ -537,6 +630,8 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
     break;
 
     case QEvent::Wheel: {
+        if(CONTROL_IMAGEVIEW != m_controlMode){return false;}
+
         //qDebug()<<"----QEvent::Wheel"<<" "<<this;
 
         QWheelEvent *e = static_cast<QWheelEvent *> (event);
@@ -556,26 +651,11 @@ bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
     }
     break;
 
-    case QEvent::Resize: {
-        //qDebug()<<"----QEvent::Resize"<<" obj:"<<obj;
 
-        moveControler();
-
-        if(obj == this) {
-            updateRenderSize();
-            return true;
-        }
-
-
-//        if(obj == this && m_fitToWindow && m_imageRender->pixmap()) {
-//            zoomFitBest();
-//            return true;
-//        }
-
-    }
-    break;
 
     case QEvent::ContextMenu: {
+        if(CONTROL_IMAGEVIEW != m_controlMode){return false;}
+
         //qDebug() << "----QEvent::ContextMenu" << " obj:" << obj;
         QContextMenuEvent *contextMenuEvent = static_cast<QContextMenuEvent *> (event);
         if(!contextMenuEvent) {
@@ -639,6 +719,49 @@ bool ImageViewer::processMouseButtonDblClick(QObject *obj, QMouseEvent *event)
         //reset();
         return true;
     }
+    return false;
+}
+
+bool ImageViewer::processMouseMoveEvent(QMouseEvent * mouseEvent)
+{
+    QPoint globalPos = mouseEvent->globalPos();
+    QPoint pos = m_scrollArea->mapFromGlobal(globalPos);
+
+    int scrollAreaWidth = m_scrollArea->viewport()->width();
+    int scrollAreaHeight = m_scrollArea->viewport()->height();
+
+
+    if(CONTROL_IMAGEVIEW == m_controlMode){
+
+        if(m_curPixmap.isNull()) {
+            return false;
+        }
+
+        if(m_runningValidMovie) {
+            int animationControlerHeight = m_animationControler->height();
+            if(pos.y() <= scrollAreaHeight && pos.y() > (scrollAreaHeight - animationControlerHeight) ) {
+                QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_animationControler->width()) / 2, (scrollAreaHeight - animationControlerHeight) ) );
+                m_animationControler->move(tl);
+                m_animationControler->show();
+            } else {
+                m_animationControler->hide();
+                raise();
+                setFocus();
+            }
+        }
+
+    }else{
+        if(m_pinControler){return false;}
+
+        if(pos.x() < (scrollAreaWidth - m_toolButtonClose->width() * 2) && pos.y() <= m_imageControler->height() / 2 && pos.y() > 0) {
+            showControler();
+        } else {
+            m_imageControler->hide();
+            raise();
+            setFocus();
+        }
+    }
+
     return false;
 }
 
@@ -869,7 +992,7 @@ void ImageViewer::zoomFitBest()
     //qDebug()<<"----zoomFitBest";
     const QImage *pixmap = m_imageRender->image();
     Q_ASSERT(pixmap);
-    if(!pixmap) {
+    if(!pixmap || pixmap->isNull()) {
         return;
     }
 
@@ -1118,16 +1241,38 @@ void ImageViewer::showImageInfo()
 
 void ImageViewer::moveControler()
 {
-    int scrollAreaWidth = m_scrollArea->viewport()->width();
-    //int scrollAreaHeight = m_scrollArea->viewport()->height();
+    //m_imageControler->hide();
 
-    QPoint tr = m_scrollArea->mapTo(this, QPoint( (scrollAreaWidth - m_toolButtonClose->width() ), 1 ));
+    int maxWidth = qMax(width(), m_imageControler->width());
+    QPoint tr = QPoint( (maxWidth - m_toolButtonClose->width() ), 1 );
     m_toolButtonClose->move(tr);
 
-    QPoint tl = m_scrollArea->mapToGlobal(QPoint( (scrollAreaWidth - m_imageControler->width()) / 2, 1) );
+//    QPoint tl = QPoint( (maxWidth - m_imageControler->width()) / 2, 1);
+//    m_imageControler->move(tl);
+    //m_imageControler->show();
+
+    showControler();
+}
+
+void ImageViewer::controlerDragged(const QPoint &globalPoint)
+{
+    int x = qBound(0, m_scrollArea->mapFromGlobal(globalPoint).x(), m_scrollArea->viewport()->width() - m_imageControler->width());
+    QPoint tl = QPoint(x, 1);
     m_imageControler->move(tl);
 }
 
+void ImageViewer::showControler()
+{
+    int maxWidth = qMax(width(), m_imageControler->width());
+    QPoint tl = QPoint( (maxWidth - m_imageControler->width()) / 2, 1);
+    m_imageControler->move(tl);
+    m_imageControler->show();
+}
+
+void ImageViewer::pinControler(bool pin)
+{
+    m_pinControler = pin;
+}
 
 void ImageViewer::createActions()
 {

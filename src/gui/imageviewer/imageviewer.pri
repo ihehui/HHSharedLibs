@@ -7,7 +7,7 @@ QT += core widgets printsupport
 INCLUDEPATH += $$PWD
 
 
-HEADERS     = \
+HEADERS     += \
     $$PWD/imageviewercontroler.h \
     $$PWD/animationcontroler.h \
     $$PWD/imageviewer.h \

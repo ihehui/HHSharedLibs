@@ -12,6 +12,8 @@
 
 ScreenCapture::ScreenCapture(QObject *parent) : QObject(parent)
 {
+    m_dataArray = 0;
+
     m_nWidth = 0;
     m_nHeight = 0;
 
@@ -30,7 +32,7 @@ ScreenCapture::ScreenCapture(QObject *parent) : QObject(parent)
     m_bi = {0};
     m_bf = {0};
 
-    m_dwSize = 0;
+    m_imageBytes = 0;
 
     m_hDib = NULL;
 
@@ -47,24 +49,7 @@ ScreenCapture::ScreenCapture(QObject *parent) : QObject(parent)
 
 ScreenCapture::~ScreenCapture()
 {
-
-#ifdef Q_OS_WIN
-
-    GlobalUnlock(m_hDib);
-    GlobalFree(m_hDib);
-
-    ::SelectObject(m_hMemDC, m_hOldBitmap);
-    ::DeleteObject(m_hBitmap);
-    ::DeleteDC(m_hMemDC);
-    ::ReleaseDC(m_hWnd, m_hSrcDC);
-
-#elif
-
-
-#endif
-
-    m_initialized = false;
-
+    deInitilize();
 }
 
 //const QByteArray ScreenCapture::bitmapData()
@@ -93,8 +78,16 @@ void ScreenCapture::getScreenRectInfo(int *pixelSize, int *width, int *height)
     }
 }
 
+const uchar * ScreenCapture::dataArray() const
+{
+    return m_dataArray;
+}
+
 bool ScreenCapture::init()
 {
+
+    delete [] m_dataArray;
+    m_imageBytes = 0;
 
 #ifdef Q_OS_WIN
 
@@ -111,6 +104,7 @@ bool ScreenCapture::init()
 
     if(NULL == m_hSrcDC){
         m_hSrcDC = ::GetWindowDC(m_hWnd);
+        //m_hSrcDC = ::CreateDC(L"display",NULL,NULL,NULL);
     }
     assert(m_hSrcDC);
 
@@ -133,20 +127,38 @@ bool ScreenCapture::init()
     m_bi.biPlanes = 1;
     m_bi.biBitCount = m_nBitCount;
     m_bi.biCompression = BI_RGB;
-    m_dwSize = ((m_nWidth * m_nBitCount + 31) / 32) * 4 * m_nHeight;
+    m_imageBytes = ((m_nWidth * m_nBitCount + 31) / 32) * 4 * m_nHeight;
+
+    m_dataArray = new uchar[m_imageBytes];
+    memset(m_dataArray, 0, m_imageBytes);
 
     m_bf = {0};
 
     if(NULL == m_hDib){
-        m_hDib = GlobalAlloc(GHND, m_dwSize + sizeof(BITMAPINFOHEADER));
+        m_hDib = GlobalAlloc(GHND, m_imageBytes + sizeof(BITMAPINFOHEADER));
     }
 
-#elif
+#else
     screen = QApplication::primaryScreen();
     if (!screen) {
         qCritical() << "ERROR! No primary screen.";
-        return;
+        return false;
     }
+
+    QPixmap pixmap = screen->grabWindow(0);
+    QImage screenImage = pixmap.toImage();
+
+    m_nWidth = screenImage.width();
+    m_nHeight = screenImage.height();
+    m_nBitCount = screenImage.depth();
+
+    if(m_imageBytes != (quint32)(screenImage.bytesPerLine()*screenImage.height())){
+        delete [] m_dataArray;
+        m_imageBytes = (quint32)(screenImage.bytesPerLine()*screenImage.height());
+        m_dataArray = new uchar[m_imageBytes];
+        memset(m_dataArray, 0, m_imageBytes);
+    }
+
 
 #endif
 
@@ -154,10 +166,94 @@ bool ScreenCapture::init()
     return true;
 }
 
-void ScreenCapture::capture(QByteArray *dataArray)
+void ScreenCapture::deInitilize()
 {
 
+    delete [] m_dataArray;
+    m_dataArray = 0;
+    m_imageBytes = 0;
+
+    m_nWidth = 0;
+    m_nHeight = 0;
+    m_nBitCount = 0;
+
+#ifdef Q_OS_WIN
+
+    GlobalUnlock(m_hDib);
+    GlobalFree(m_hDib);
+
+    ::SelectObject(m_hMemDC, m_hOldBitmap);
+    ::DeleteObject(m_hBitmap);
+    ::DeleteDC(m_hMemDC);
+    ::ReleaseDC(m_hWnd, m_hSrcDC);
+
+#else
+
+
+#endif
+
+    m_initialized = false;
+
+}
+
+bool ScreenCapture::capture()
+{
     assert(m_initialized);
+    assert(m_dataArray);
+
+
+    if(!m_initialized){
+        qCritical()<<"Not initialized!";
+        return false;
+    }
+
+
+#ifdef Q_OS_WIN
+
+
+    ::BitBlt(m_hMemDC, 0, 0, m_nWidth, m_nHeight, m_hSrcDC, 0, 0, SRCCOPY|CAPTUREBLT);
+
+
+    LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(m_hDib);
+    *lpbi = m_bi;
+
+    ::GetDIBits(m_hMemDC, m_hBitmap, 0, m_nHeight, (BYTE*)lpbi + sizeof(BITMAPINFOHEADER), (BITMAPINFO*)lpbi, DIB_RGB_COLORS);
+
+
+    m_bf.bfType = 0x4d42;
+    m_bf.bfSize = m_imageBytes + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+    m_bf.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+
+    memcpy(m_dataArray, (const uchar*)lpbi + sizeof(BITMAPINFOHEADER), m_imageBytes);
+
+
+    GlobalUnlock(m_hDib);
+//    GlobalFree(hDib);
+
+#else
+    QPixmap pixmap = screen->grabWindow(0);
+    QImage screenImage = pixmap.toImage();
+//    screenImage = QImage("./test/1.png");
+
+    if(m_imageBytes != (quint32)(screenImage.bytesPerLine()*screenImage.height())){
+        delete [] m_dataArray;
+        m_imageBytes = (quint32)(screenImage.bytesPerLine()*screenImage.height());
+        m_dataArray = new uchar[m_imageBytes];
+        memset(m_dataArray, 0, m_imageBytes);
+    }
+
+    memcpy(m_dataArray, screenImage.bits(), m_imageBytes);
+
+#endif
+
+    return true;
+}
+
+void ScreenCapture::capture(QByteArray *dataArray)
+{
+    assert(m_initialized);
+    assert(dataArray);
+
 
     if(!m_initialized){
         qCritical()<<"Not initialized!";
@@ -178,13 +274,19 @@ void ScreenCapture::capture(QByteArray *dataArray)
 
 
     m_bf.bfType = 0x4d42;
-    m_bf.bfSize = m_dwSize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+    m_bf.bfSize = m_imageBytes + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
     m_bf.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 
 
-    if(dataArray){
-        dataArray->append((const char*)lpbi + sizeof(BITMAPINFOHEADER), m_dwSize);
+    if(dataArray->size() < m_imageBytes){
+        dataArray->resize(m_imageBytes);
     }
+    memcpy(dataArray->data(), (const char*)lpbi + sizeof(BITMAPINFOHEADER), m_imageBytes);
+//    if(dataArray){
+//        dataArray->append((const char*)lpbi + sizeof(BITMAPINFOHEADER), m_imageBytes);
+//    }
+
+
 
 //    QMutexLocker locker(&m_mutex);
 //    m_bmpData.clear();
@@ -233,8 +335,15 @@ void ScreenCapture::capture(QByteArray *dataArray)
     QPixmap pixmap = screen->grabWindow(0);
     QImage screenImage = pixmap.toImage();
 
+    if(m_imageBytes != (quint32)(screenImage.bytesPerLine()*screenImage.height())){
+        delete [] m_dataArray;
+        m_imageBytes = (quint32)(screenImage.bytesPerLine()*screenImage.height());
+        m_dataArray = new uchar[m_imageBytes];
+        memset(m_dataArray, 0, m_imageBytes);
+    }
+
+    memcpy(dataArray->data(), screenImage.bits(), m_imageBytes);
 
 #endif
 
 }
-

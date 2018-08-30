@@ -74,7 +74,12 @@ class IMAGEVIEWER_LIB_API ImageViewer : public QWidget
     Q_OBJECT
 
 public:
-    ImageViewer(QWidget *parent = 0, Qt::WindowFlags fl = Qt::FramelessWindowHint);
+    enum ControlMode{
+        CONTROL_IMAGEVIEW,
+        CONTROL_REMOTEDESKTOPCONTROL
+    };
+
+    ImageViewer(ControlMode mode = CONTROL_IMAGEVIEW, QWidget *parent = 0, Qt::WindowFlags fl = Qt::FramelessWindowHint);
     virtual ~ImageViewer();
 
     QSize sizeHint() const;
@@ -82,6 +87,8 @@ public:
     RenderWidget *renderWidget();
     QScrollArea *scrollArea();
     ImageViewerControler *imageControler();
+    QPoint mapToRenderWidget(const QPoint &point);
+
 
     enum ScaleMode{
         Scale_Auto, //Scale the image only if it's size is larger than the view.
@@ -99,11 +106,15 @@ protected:
     //#endif
     //    void keyPressEvent(QKeyEvent *event);
     //    void resizeEvent(QResizeEvent * event);
-    //    void mouseMoveEvent(QMouseEvent * event);
+    //    void mouseMoveEvent(QMouseEvent * mouseEvent);
+    //    void resizeEvent(QResizeEvent *event);
 
     bool eventFilter(QObject *obj, QEvent *event);
     virtual bool processKeyEvent(QObject *obj, QKeyEvent *keyEvent);
     virtual bool processMouseButtonDblClick(QObject *obj, QMouseEvent *event);
+    virtual bool processMouseMoveEvent(QMouseEvent * mouseEvent);
+
+
 
 
 public slots:
@@ -161,6 +172,10 @@ protected slots:
     void showScaleFactor();
     void showImageInfo();
     void moveControler();
+    void controlerDragged(const QPoint &globalPoint);
+    void showControler();
+
+    void pinControler(bool pin);
 
 private:
     void createActions();
@@ -224,6 +239,9 @@ private:
     ScaleMode m_scaleMode;
 
     QMutex m_mutex;
+
+    ControlMode m_controlMode;
+    bool m_pinControler;
 
 };
 

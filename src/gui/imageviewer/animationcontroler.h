@@ -48,7 +48,7 @@ class AnimationControler : public QWidget
     Q_OBJECT
 
 public:
-    explicit AnimationControler(QWidget *parent = 0, Qt::WindowFlags fl = Qt::Popup | Qt::FramelessWindowHint);
+    explicit AnimationControler(QWidget *parent = 0, Qt::WindowFlags fl = /*Qt::Popup |*/ Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
     ~AnimationControler();
 
 
