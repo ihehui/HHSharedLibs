@@ -43,6 +43,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QLibrary>
 
 //#include <windows.h>
 #include <Lm.h>
@@ -70,8 +71,11 @@ typedef BOOL (WINAPI *PGPI)(DWORD, DWORD, DWORD, DWORD, PDWORD);
 #define VER_SUITE_WH_SERVER	0x00008000
 
 
+//OSVERSIONINFO WinUtilities::m_osVerInfo = { 0 };
+
 #include "WindowsAPI.h"
 
+#include "ctrlaltdelsimulator.h"
 
 
 namespace HEHUI
@@ -441,7 +445,7 @@ bool WinUtilities::getFileVersion(const QString &fileName, QStringList *predefin
                      pLanguage[i].wLanguage,
                      pLanguage[i].wCodePage,
                      predefinedVersionInfo.toStdWString().c_str()
-                    );
+                     );
 
             // Retrieve ProductName for language and code page "i".
             VerQueryValueW(pBuffer, SubBlock, (PVOID *)&pTmp, &uiOtherSize);
@@ -901,7 +905,7 @@ bool WinUtilities::regRead(HKEY hKey, const QString &valueName, QString *value)
         dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)&lResult, &bufferSize);
         *value = QString::number(lResult);
     }
-    break;
+        break;
     case REG_BINARY: {
         char buffer[8192];
         ZeroMemory(buffer, 8192);
@@ -913,7 +917,7 @@ bool WinUtilities::regRead(HKEY hKey, const QString &valueName, QString *value)
         }
         *value = ba.toHex().toUpper();
     }
-    break;
+        break;
     case REG_SZ:
     case REG_EXPAND_SZ: {
         wchar_t buffer[8192];
@@ -921,7 +925,7 @@ bool WinUtilities::regRead(HKEY hKey, const QString &valueName, QString *value)
         dwRet = RegQueryValueExW(hKey, valueName.toStdWString().c_str(), 0, 0, (LPBYTE)buffer, &bufferSize);
         *value = QString::fromWCharArray(buffer);
     }
-    break;
+        break;
     case REG_MULTI_SZ: {
         wchar_t buffer[8192];
         ZeroMemory(buffer, 8192);
@@ -937,7 +941,7 @@ bool WinUtilities::regRead(HKEY hKey, const QString &valueName, QString *value)
         }
         *value = ba;
     }
-    break;
+        break;
     default:
         *value = "";
         qCritical() << "ERROR! Unknown data type: " << dwType;
@@ -1293,20 +1297,20 @@ bool WinUtilities::regSetValue(HKEY hKey, const QString &valueName, const QStrin
         buffer[0] = value.toULong();
         dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE *)buffer, bufferSize);
     }
-    break;
+        break;
     case REG_BINARY: {
         //bufferSize = value.size() / 2;
         QByteArray ba = QByteArray::fromHex(value.toLatin1());
         dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE *)ba.data(), ba.size());
     }
-    break;
+        break;
     case REG_SZ:
     case REG_EXPAND_SZ: {
         bufferSize = (value.size()) * sizeof(wchar_t);
         wcscpy(buffer, value.toStdWString().c_str());
         dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE *)buffer, bufferSize);
     }
-    break;
+        break;
     case REG_MULTI_SZ: {
         int len = value.size() + 1;
         bufferSize = len * sizeof(wchar_t);
@@ -1318,7 +1322,7 @@ bool WinUtilities::regSetValue(HKEY hKey, const QString &valueName, const QStrin
         }
         dwRet = RegSetValueExW(hKey, valueName.toStdWString().c_str(), 0, valueType, (BYTE *)buffer, bufferSize);
     }
-    break;
+        break;
     default:
         qCritical() << "ERROR! Unknown data type!";
         return false;
@@ -1670,7 +1674,7 @@ void WinUtilities::SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo)
 
     typedef VOID (WINAPI * LPFN_GetNativeSystemInfo)(LPSYSTEM_INFO lpSystemInfo);
     LPFN_GetNativeSystemInfo nsInfo =
-        (LPFN_GetNativeSystemInfo)GetProcAddress(GetModuleHandleW(L"kernel32"), "GetNativeSystemInfo");;
+            (LPFN_GetNativeSystemInfo)GetProcAddress(GetModuleHandleW(L"kernel32"), "GetNativeSystemInfo");;
     if (NULL != nsInfo) {
         nsInfo(lpSystemInfo);
     } else {
@@ -1685,7 +1689,7 @@ bool WinUtilities::is64BitOS()
     SafeGetNativeSystemInfo(&si);
     if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64
             || si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64
-       ) {
+            ) {
         return true;
     }
 
@@ -1704,16 +1708,44 @@ bool WinUtilities::isWow64()
     return bIsWow64;
 }
 
-bool WinUtilities::isNT6OS()
+bool WinUtilities::isWinNTFamily()
 {
     OSVERSIONINFO  osvi;
     osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
     GetVersionEx (&osvi);
-    if(osvi.dwMajorVersion > 5) {
-        return true;
-    }
+    return osvi.dwPlatformId == VER_PLATFORM_WIN32_NT;
+}
 
-    return false;
+bool WinUtilities::isWin2000()
+{
+    OSVERSIONINFO  osvi;
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx (&osvi);
+    return osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0;
+}
+
+bool WinUtilities::isWinXP()
+{
+    OSVERSIONINFO  osvi;
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx (&osvi);
+    return ((osvi.dwMajorVersion == 5) && (osvi.dwMinorVersion == 1) && (osvi.dwPlatformId == VER_PLATFORM_WIN32_NT));
+}
+
+bool WinUtilities::isWin2003Server()
+{
+    OSVERSIONINFO  osvi;
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx (&osvi);
+    return ((osvi.dwMajorVersion == 5) && (osvi.dwMinorVersion == 2) && (osvi.dwPlatformId == VER_PLATFORM_WIN32_NT));
+}
+
+bool WinUtilities::isVistaOrLater()
+{
+    OSVERSIONINFO  osvi;
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx (&osvi);
+    return (osvi.dwMajorVersion >= 6);
 }
 
 QString WinUtilities::getEnvironmentVariable(const QString &environmentVariable)
@@ -1990,7 +2022,7 @@ QString WinUtilities::getUserNameOfCurrentThread(DWORD *errorCode)
 
     if(!GetUserNameW(username, &size)) {
         qDebug() << QString("Can not retrieve the name of the user associated with the current thread! Code:%1 ")
-                 .arg(QString::number(GetLastError()));
+                    .arg(QString::number(GetLastError()));
 
         if(errorCode) {
             *errorCode = GetLastError();
@@ -2601,7 +2633,7 @@ bool WinUtilities::isAdmin(const QString &userName)
 void WinUtilities::showAdministratorAccountInLogonUI(bool show)
 {
 
-    if(isNT6OS()) {
+    if(isVistaOrLater()) {
         if(show) {
             regDeleteValue("HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\000001F4", "UserDontShowInLogonUI");
         } else {
@@ -3095,9 +3127,9 @@ bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCod
     // Get a handle to the SCM database.
 
     *schSCManager = OpenSCManager(
-                        NULL,                    // local computer
-                        NULL,                    // ServicesActive database
-                        dwDesiredAccess);  // full access rights
+                NULL,                    // local computer
+                NULL,                    // ServicesActive database
+                dwDesiredAccess);  // full access rights
 
     if (NULL == (*schSCManager)) {
         printf("OpenSCManager failed (%d)\n", GetLastError());
@@ -3135,9 +3167,9 @@ bool WinUtilities::serviceOpenService(const QString &serviceName, SC_HANDLE *sch
     // Get a handle to the service.
 
     *schService = OpenServiceW(
-                      (*schSCManager),          // SCM database
-                      serviceName.toStdWString().c_str(),             // name of service
-                      dwDesiredAccess); // need query config access
+                (*schSCManager),          // SCM database
+                serviceName.toStdWString().c_str(),             // name of service
+                dwDesiredAccess); // need query config access
 
     if (*schService == NULL) {
         printf("OpenService failed (%d)\n", GetLastError());
@@ -3461,17 +3493,17 @@ bool WinUtilities::serviceChangeStartType(const QString &serviceName, DWORD star
     // Change the service start type.
 
     ok =  ChangeServiceConfig(
-              schService,            // handle of service
-              SERVICE_NO_CHANGE,     // service type: no change
-              startType,             // service start type
-              SERVICE_NO_CHANGE,     // error control: no change
-              NULL,                  // binary path: no change
-              NULL,                  // load order group: no change
-              NULL,                  // tag ID: no change
-              NULL,                  // dependencies: no change
-              NULL,                  // account name: no change
-              NULL,                  // password: no change
-              NULL);
+                schService,            // handle of service
+                SERVICE_NO_CHANGE,     // service type: no change
+                startType,             // service start type
+                SERVICE_NO_CHANGE,     // error control: no change
+                NULL,                  // binary path: no change
+                NULL,                  // load order group: no change
+                NULL,                  // tag ID: no change
+                NULL,                  // dependencies: no change
+                NULL,                  // account name: no change
+                NULL,                  // password: no change
+                NULL);
 
     if (!ok) {              // display name: no change
         printf("ChangeServiceConfig failed (%d)\n", GetLastError());
@@ -3512,9 +3544,9 @@ bool WinUtilities::serviceChangeDescription(const QString &serviceName, const QS
     sd.lpDescription = desc;
 
     ok = ChangeServiceConfig2(
-             schService,                 // handle to service
-             SERVICE_CONFIG_DESCRIPTION, // change: description
-             &sd);
+                schService,                 // handle to service
+                SERVICE_CONFIG_DESCRIPTION, // change: description
+                &sd);
 
     if(!ok) {
         printf("ChangeServiceConfig2 failed\n");
@@ -3586,16 +3618,16 @@ bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD *error
     LPENUM_SERVICE_STATUS_PROCESS pInfo = NULL;
 
     EnumServicesStatusEx(
-        schSCManager,
-        SC_ENUM_PROCESS_INFO,
-        serviceType, // SERVICE_DRIVER
-        SERVICE_STATE_ALL,
-        NULL,
-        dwBufSize,
-        &dwBufNeed,
-        &dwNumberOfService,
-        NULL,
-        NULL);
+                schSCManager,
+                SC_ENUM_PROCESS_INFO,
+                serviceType, // SERVICE_DRIVER
+                SERVICE_STATE_ALL,
+                NULL,
+                dwBufSize,
+                &dwBufNeed,
+                &dwNumberOfService,
+                NULL,
+                NULL);
 
     if (dwBufNeed < 0x01) {
         printf_s("EnumServicesStatusEx failed. \n");
@@ -3609,16 +3641,16 @@ bool WinUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, DWORD *error
     pBuf  = (PUCHAR) malloc(dwBufSize);
 
     EnumServicesStatusEx(
-        schSCManager,
-        SC_ENUM_PROCESS_INFO,
-        serviceType,  // SERVICE_DRIVER,
-        SERVICE_STATE_ALL,  //SERVICE_STATE_ALL,SERVICE_ACTIVE
-        pBuf,
-        dwBufSize,
-        &dwBufNeed,
-        &dwNumberOfService,
-        NULL,
-        NULL);
+                schSCManager,
+                SC_ENUM_PROCESS_INFO,
+                serviceType,  // SERVICE_DRIVER,
+                SERVICE_STATE_ALL,  //SERVICE_STATE_ALL,SERVICE_ACTIVE
+                pBuf,
+                dwBufSize,
+                &dwBufNeed,
+                &dwNumberOfService,
+                NULL,
+                NULL);
 
     pInfo = (LPENUM_SERVICE_STATUS_PROCESS)pBuf;
     for (ULONG i = 0; i < dwNumberOfService; i++) {
@@ -3894,11 +3926,11 @@ bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode)
     // Make sure the service is not already stopped.
 
     if ( !QueryServiceStatusEx(
-                schService,
-                SC_STATUS_PROCESS_INFO,
-                (LPBYTE)&ssp,
-                sizeof(SERVICE_STATUS_PROCESS),
-                &dwBytesNeeded ) ) {
+             schService,
+             SC_STATUS_PROCESS_INFO,
+             (LPBYTE)&ssp,
+             sizeof(SERVICE_STATUS_PROCESS),
+             &dwBytesNeeded ) ) {
         printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
         serviceCloseHandle(&schSCManager, &schService);
         if(errorCode) {
@@ -3933,11 +3965,11 @@ bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode)
         Sleep( dwWaitTime );
 
         if ( !QueryServiceStatusEx(
-                    schService,
-                    SC_STATUS_PROCESS_INFO,
-                    (LPBYTE)&ssp,
-                    sizeof(SERVICE_STATUS_PROCESS),
-                    &dwBytesNeeded ) ) {
+                 schService,
+                 SC_STATUS_PROCESS_INFO,
+                 (LPBYTE)&ssp,
+                 sizeof(SERVICE_STATUS_PROCESS),
+                 &dwBytesNeeded ) ) {
             printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
             serviceCloseHandle(&schSCManager, &schService);
             if(errorCode) {
@@ -3964,9 +3996,9 @@ bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode)
 
     // Send a stop code to the service.
     if ( !ControlService(
-                schService,
-                SERVICE_CONTROL_STOP,
-                (LPSERVICE_STATUS) &ssp ) ) {
+             schService,
+             SERVICE_CONTROL_STOP,
+             (LPSERVICE_STATUS) &ssp ) ) {
         printf( "ControlService failed (%d)\n", GetLastError() );
         serviceCloseHandle(&schSCManager, &schService);
         if(errorCode) {
@@ -3980,11 +4012,11 @@ bool WinUtilities::serviceStop(const QString &serviceName, DWORD *errorCode)
     while ( ssp.dwCurrentState != SERVICE_STOPPED ) {
         Sleep( ssp.dwWaitHint );
         if ( !QueryServiceStatusEx(
-                    schService,
-                    SC_STATUS_PROCESS_INFO,
-                    (LPBYTE)&ssp,
-                    sizeof(SERVICE_STATUS_PROCESS),
-                    &dwBytesNeeded ) ) {
+                 schService,
+                 SC_STATUS_PROCESS_INFO,
+                 (LPBYTE)&ssp,
+                 sizeof(SERVICE_STATUS_PROCESS),
+                 &dwBytesNeeded ) ) {
             printf( "QueryServiceStatusEx failed (%d)\n", GetLastError() );
             serviceCloseHandle(&schSCManager, &schService);
             if(errorCode) {
@@ -4035,7 +4067,7 @@ bool WinUtilities::serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HAND
 
         // Allocate a buffer for the dependencies.
         lpDependencies = (LPENUM_SERVICE_STATUS) HeapAlloc(
-                             GetProcessHeap(), HEAP_ZERO_MEMORY, dwBytesNeeded );
+                    GetProcessHeap(), HEAP_ZERO_MEMORY, dwBytesNeeded );
 
         if ( !lpDependencies ) {
             return FALSE;
@@ -4076,11 +4108,11 @@ bool WinUtilities::serviceStopDependentServices(SC_HANDLE *schSCManager, SC_HAND
             while ( ssp.dwCurrentState != SERVICE_STOPPED ) {
                 Sleep( ssp.dwWaitHint );
                 if ( !QueryServiceStatusEx(
-                            hDepService,
-                            SC_STATUS_PROCESS_INFO,
-                            (LPBYTE)&ssp,
-                            sizeof(SERVICE_STATUS_PROCESS),
-                            &dwBytesNeeded ) ) {
+                         hDepService,
+                         SC_STATUS_PROCESS_INFO,
+                         (LPBYTE)&ssp,
+                         sizeof(SERVICE_STATUS_PROCESS),
+                         &dwBytesNeeded ) ) {
                     CloseServiceHandle( hDepService );
                     HeapFree( GetProcessHeap(), 0, lpDependencies );
                     return FALSE;
@@ -4177,11 +4209,11 @@ BOOL WinUtilities::Shutdown(const QString &machineName, const QString &message, 
 
     // Display the shutdown dialog box and start the countdown.
     BOOL fResult = InitiateSystemShutdownW(
-                       lpMachineName,    // NULL:shut down local computer
-                       lpMessage,   // message for user
-                       timeout,      // time-out period, in seconds
-                       forceAppsClosed,   // if ask user to close apps
-                       rebootAfterShutdown);   // reboot after shutdown
+                lpMachineName,    // NULL:shut down local computer
+                lpMessage,   // message for user
+                timeout,      // time-out period, in seconds
+                forceAppsClosed,   // if ask user to close apps
+                rebootAfterShutdown);   // reboot after shutdown
 
     return fResult;
 }
@@ -4222,9 +4254,9 @@ bool WinUtilities::runAs(const QString &userName, const QString &domainName, con
     //qDebug()<<"User Name Of CurrentThread:"<<m_currentUserName;
 
 
-    if(userName.simplified().isEmpty()) {
-        return false;
-    }
+//    if(userName.simplified().isEmpty()) {
+//        return false;
+//    }
 
     //    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
     //    wcscpy(name, userName.toStdWString().c_str());
@@ -4275,14 +4307,19 @@ bool WinUtilities::runAsForInteractiveService(const QString &userName, const QSt
         wcscpy(currentDirectory, workingDir.toStdWString().c_str());
     }
 
-    DWORD errorCode;
-    if(isNT6OS() && show) {
-        DWORD sessionID;
-        if(!getUserSessionID(name, &sessionID)) {
-            errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
-        } else {
-            errorCode = runAsForNT6InteractiveService(sessionID, NULL, cmdLine, currentDirectory, show);
+    DWORD errorCode = ERROR_SUCCESS;
+    if(isVistaOrLater()) {
+        DWORD sessionID = 0;
+        if(userName.trimmed().isEmpty()){
+            sessionID = getActiveConsoleSessionId();
+        }else{
+            getUserSessionID(name, &sessionID);
         }
+        if(!sessionID) {
+            qCritical() << QString("Failed to start process '%1'! No user session ID found!").arg(exeFilePath);
+            return false;
+        }
+        errorCode = runAsForNT6InteractiveService(sessionID, NULL, cmdLine, currentDirectory, show);
     } else {
         errorCode = runAsForNT5InteractiveService(name, domain, pwd, NULL, cmdLine, currentDirectory, show);
     }
@@ -4297,6 +4334,8 @@ bool WinUtilities::runAsForInteractiveService(const QString &userName, const QSt
 
 bool WinUtilities::runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password, const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds)
 {
+
+    if(userName.trimmed().isEmpty()){return false;}
 
     wchar_t name[MaxUserAccountNameLength * sizeof(wchar_t) + 1];
     wcscpy(name, userName.toStdWString().c_str());
@@ -4385,6 +4424,98 @@ bool WinUtilities::runAsForDesktopApplication(const QString &userName, const QSt
 
 }
 
+bool WinUtilities::runASCurrentConsoleProcessInActiveConsoleSession(const QString &exeFilePath, const QString &parameters, bool show, const QString &workingDir, bool wait, DWORD milliseconds)
+{
+
+    if(exeFilePath.trimmed().isEmpty() && parameters.trimmed().isEmpty()){
+        qCritical() << QString("Starting process failed! Invalid file path and parameters!");
+        return false;
+    }
+
+    QString cmdStr = QString("\"" + exeFilePath + "\" " + parameters);
+    wchar_t cmdLine[32000 * sizeof(wchar_t) + 1];
+    wcscpy(cmdLine, cmdStr.toStdWString().c_str());
+
+    wchar_t currentDirectory[MAX_PATH * sizeof(wchar_t) + 1];
+    if(workingDir.trimmed().isEmpty()) {
+        wcscpy(currentDirectory, QCoreApplication::applicationDirPath().toStdWString().c_str());
+    } else {
+        wcscpy(currentDirectory, workingDir.toStdWString().c_str());
+    }
+
+    PROCESS_INFORMATION pi = {0};
+    STARTUPINFO sti = {0};
+    sti.cb = sizeof(STARTUPINFO);
+    sti.dwFlags |= STARTF_USESHOWWINDOW;
+    if(show) {
+        sti.wShowWindow = SW_SHOW;
+    } else {
+        sti.wShowWindow = SW_HIDE;
+    }
+
+    HANDLE token, userToken;
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_DUPLICATE, &token) == 0) {
+        DWORD dwRet = GetLastError();
+        QString errorString = QString("Starting process '%1' failed! 'OpenProcessToken' failed! %2:%3.").arg(exeFilePath).arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+        qCritical() << errorString;
+        return false;
+    }
+
+    if (DuplicateTokenEx(token,
+                         MAXIMUM_ALLOWED,
+                         0,
+                         SecurityImpersonation,
+                         TokenPrimary,
+                         &userToken) == 0) {
+        DWORD dwRet = GetLastError();
+        QString errorString = QString("Starting process '%1' failed! 'DuplicateTokenEx' failed! %2:%3.").arg(exeFilePath).arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+        qCritical() << errorString;
+        return false;
+    }
+
+    DWORD sessionId = getActiveConsoleSessionId();
+    if (SetTokenInformation(userToken,
+                            (TOKEN_INFORMATION_CLASS) TokenSessionId,
+                            &sessionId,
+                            sizeof(sessionId)) == 0) {
+        DWORD dwRet = GetLastError();
+        QString errorString = QString("Starting process '%1' failed! 'SetTokenInformation' failed! %2:%3.").arg(exeFilePath).arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+        qCritical() << errorString;
+        return false;
+    }
+
+    // Fix Windows 8/8.1 UIAccess restrictions (Alt-Tab) for server as service
+    // http://stackoverflow.com/questions/13972165/pressing-winx-alt-tab-programatically
+    // For application we need to set /uiAccess='true' in linker manifest, sign binary
+    // and run from "Program Files/"
+    DWORD uiAccess  = 1; // Nonzero enables UI control
+    if (SetTokenInformation(userToken,
+                            (TOKEN_INFORMATION_CLASS) TokenUIAccess,
+                            &uiAccess,
+                            sizeof(uiAccess)) == 0) {
+        qWarning()<<"Can't set UIAccess=1, ignore it";
+    }
+
+    bool handlesIsInherited = false;
+    if (CreateProcessAsUserW(userToken, 0, cmdLine,
+                             0, 0, handlesIsInherited, NORMAL_PRIORITY_CLASS, 0, 0, &sti, &pi) == 0) {
+        DWORD dwRet = GetLastError();
+        QString errorString = QString("Starting process '%1' failed! %2:%3.").arg(exeFilePath).arg(dwRet).arg(WinUtilities::WinSysErrorMsg(dwRet));
+        qCritical() << errorString;
+        return false;
+    }
+
+
+    if(wait) {
+        DWORD dwRet = WaitForSingleObject(pi.hProcess, milliseconds ? milliseconds : INFINITE);
+        qDebug() << "dwRet:" << dwRet;
+    }
+
+    CloseHandle(userToken);
+    CloseHandle(token);
+
+    return true;
+}
 
 ////////////////////////////////////////////////////
 
@@ -4624,10 +4755,10 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
     // obtain a handle to the interactive windowstation
     //
     hwinsta = OpenWindowStationW(
-                  L"winsta0",
-                  FALSE,
-                  READ_CONTROL | WRITE_DAC
-              );
+                L"winsta0",
+                FALSE,
+                READ_CONTROL | WRITE_DAC
+                );
     if (hwinsta == NULL) {
         qCritical() << "ERROR! OpenWindowStationW failed.";
         return hBmp;
@@ -4654,7 +4785,7 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
                 FALSE,
                 READ_CONTROL | WRITE_DAC |
                 DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS
-            );
+                );
     if (hdesk == NULL) {
         qCritical() << "ERROR! OpenDesktopW failed.";
         return hBmp;
@@ -4935,8 +5066,6 @@ HBITMAP WinUtilities::GetScreenshotBmp1()
 
 bool WinUtilities::setDeskWallpaper(const QString &wallpaperPath)
 {
-
-
     QString targetBMPFilePath = wallpaperPath;
 
     QFileInfo fi(targetBMPFilePath);
@@ -4979,6 +5108,15 @@ bool WinUtilities::setDeskWallpaper(const QString &wallpaperPath)
 
 }
 
+bool WinUtilities::restoreWallpaper()
+{
+    return SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, 0, 0);
+}
+
+bool WinUtilities::disableWallpaper()
+{
+    return SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, L"", 0);
+}
 
 QDateTime WinUtilities::currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password)
 {
@@ -5061,6 +5199,201 @@ bool WinUtilities::setLocalTime(const QDateTime &datetime)
 
     return true;
 }
+
+bool WinUtilities::isAeroOn()
+{
+    typedef HRESULT (WINAPI *DwmIsCompositionEnabled)(BOOL *pfEnabled);
+    DwmIsCompositionEnabled dwmIsEnabled = (DwmIsCompositionEnabled)GetProcAddress( GetModuleHandleW(L"Dwmapi.dll"), "DwmIsCompositionEnabled");
+
+    if (dwmIsEnabled == 0) {
+        qWarning()<<QString("The DwmIsCompositionEnabled() has not been found in the Dwmapi.dll");
+        return false;
+    }
+
+    BOOL result = FALSE;
+    HRESULT dwmIsEnabledResult = dwmIsEnabled(&result);
+    if (dwmIsEnabledResult != S_OK) {
+        qCritical()<<QString("The DwmIsCompositionEnabled() error code is %1").arg((int)dwmIsEnabledResult);
+    }
+    return result != FALSE;
+
+}
+
+bool WinUtilities::getCurrentModulePath(QString *path)
+{
+    if(!path){return false;}
+
+    std::vector<WCHAR> buffer;
+    DWORD size = MAX_PATH;
+
+    while (true) {
+      // Allocate buffer
+      buffer.resize(size + 1);
+      // Try to get file name
+      DWORD ret = GetModuleFileName(NULL, &buffer[0], size);
+
+      if (ret == 0) {
+        return false;
+      } else if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+        size += 128;
+      } else {
+        break;
+      }
+    }
+
+    *path = QString::fromStdWString(&buffer[0]);
+
+    return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+DWORD WinUtilities::getActiveConsoleSessionId()
+{
+    typedef DWORD (WINAPI *FUNC_WTSGetActiveConsoleSessionId)(void);
+
+    FUNC_WTSGetActiveConsoleSessionId func = (FUNC_WTSGetActiveConsoleSessionId)GetProcAddress( GetModuleHandleW(L"Kernel32.dll"), "WTSGetActiveConsoleSessionId");
+    if (0 == func) {
+        qCritical("The WTSGetActiveConsoleSessionId function has not been found");
+        return 0;
+    }
+
+    return func();
+}
+
+HDESK WinUtilities::getInputDesktop()
+{
+  return OpenInputDesktop(0, TRUE,
+                          DESKTOP_CREATEMENU |
+                          DESKTOP_CREATEWINDOW |
+                          DESKTOP_ENUMERATE |
+                          DESKTOP_HOOKCONTROL |
+                          DESKTOP_WRITEOBJECTS |
+                          DESKTOP_READOBJECTS |
+                          DESKTOP_SWITCHDESKTOP |
+                          GENERIC_WRITE);
+}
+
+HDESK WinUtilities::getDesktop(const QString &name)
+{
+  return OpenDesktopW(name.toStdWString().c_str(), 0, TRUE,
+                     DESKTOP_CREATEMENU |
+                     DESKTOP_CREATEWINDOW |
+                     DESKTOP_ENUMERATE |
+                     DESKTOP_HOOKCONTROL |
+                     DESKTOP_WRITEOBJECTS |
+                     DESKTOP_READOBJECTS |
+                     DESKTOP_SWITCHDESKTOP |
+                     GENERIC_WRITE);
+}
+
+bool WinUtilities::closeDesktop(HDESK hdesk)
+{
+  return CloseDesktop(hdesk) != 0;
+}
+
+bool WinUtilities::setDesktopToCurrentThread(HDESK newDesktop)
+{
+  return SetThreadDesktop(newDesktop) != 0;
+}
+
+bool WinUtilities::selectDesktop(const QString &name)
+{
+  HDESK desktop;
+  if (name.trimmed().isEmpty()) {
+      desktop = getInputDesktop();
+  } else {
+      desktop = getDesktop(name);
+  }
+
+  bool result = setDesktopToCurrentThread(desktop) != 0;
+  closeDesktop(desktop);
+
+  return result;
+}
+
+bool WinUtilities::getCurrentDesktopName(QString *desktopName)
+{
+  HDESK inputDesktop = getInputDesktop();
+  bool result = getDesktopName(inputDesktop, desktopName);
+  closeDesktop(inputDesktop);
+  return result;
+}
+
+bool WinUtilities::getThreadDesktopName(QString *desktopName)
+{
+  return getDesktopName(GetThreadDesktop(GetCurrentThreadId()), desktopName);
+}
+
+bool WinUtilities::getDesktopName(HDESK desktop, QString *desktopName)
+{
+  *desktopName = "";
+
+  DWORD nameLength = 0;
+  // Do not check returned value because the function will return FALSE always.
+  GetUserObjectInformationW(desktop, UOI_NAME, 0, 0, &nameLength);
+
+  if (nameLength != 0) {
+    std::vector<WCHAR> name(nameLength);
+    bool result = !!GetUserObjectInformationW(desktop,
+                                             UOI_NAME,
+                                             &name[0],
+                                             nameLength,
+                                             0);
+    if (result) {
+      *desktopName = QString::fromStdWString(&name[0]);
+      return true;
+    }
+  }
+  return false;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+bool WinUtilities::simulateCtrlAltDelUnderVista()
+{
+  qDebug("Requested Ctrl+Alt+Del simulation under Vista or later");
+
+  /////   !!! Modify the registry first!!!
+  ///// [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+  ///// "SoftwareSASGeneration"=dword:00000003
+  /////
+
+  QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
+  QString valueName = "SoftwareSASGeneration";
+  QString val = "";
+  bool ok = regRead(key, valueName, &val, true);
+  if(!ok){
+      ok = regRead(key, valueName, &val, false);
+  }
+  if(!ok || val != "3"){
+      ok = regSetValue(key, valueName, "3", REG_DWORD, true);
+      if(!ok){
+          ok = regSetValue(key, valueName, "3", REG_DWORD, false);
+      }
+  }
+
+  if(!ok){
+      qCritical()<<"Failed to setup registry to enable 'SoftwareSASGeneration'!";
+      return false;
+  }
+
+
+  typedef VOID (WINAPI *SendSas)(BOOL asUser);
+  SendSas sendSas = (SendSas)GetProcAddress( LoadLibraryW(L"sas.dll"), "SendSAS");
+  if (0 == sendSas) {
+      qCritical("The SendSAS function has not been found");
+      return false;
+  }
+  sendSas(FALSE); // Try only under service
+
+  return true;
+}
+
 
 
 

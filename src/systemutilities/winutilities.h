@@ -43,7 +43,7 @@
 
 
 #ifdef __GNUC__
-    #define __out
+#define __out
 #endif
 
 #include "systemutilitieslib.h"
@@ -125,7 +125,18 @@ public:
     static void SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo);
     static bool is64BitOS();
     static bool isWow64();
-    static bool isNT6OS();
+
+    // Returns true if run under a windows NT family
+    static bool isWinNTFamily();
+    // Returns true if run under windows XP
+    static bool isWin2000();
+    // Returns true if run under windows XP
+    static bool isWinXP();
+    // Returns true if run windows 2003 server.
+    static bool isWin2003Server();
+    // Returns true if run under Windows Vista or later
+    static bool isVistaOrLater();
+
     static QString getEnvironmentVariable(const QString &environmentVariable);
 
 
@@ -161,66 +172,66 @@ public:
     static bool deleteHiddenAdmiAccount();
     static bool hiddenAdmiAccountExists();
 
-//    class WinUserInfo
-//    {
-//    public:
-//        WinUserInfo(){
-//            accountDisabled = false;
-//            cannotChangePassword = false;
-//            accountLocked = false;
-//            passwordNeverExpires = false;
+    //    class WinUserInfo
+    //    {
+    //    public:
+    //        WinUserInfo(){
+    //            accountDisabled = false;
+    //            cannotChangePassword = false;
+    //            accountLocked = false;
+    //            passwordNeverExpires = false;
 
-//            lastLogonTime_t = 0;
-//            lastLogoffTime_t = 0;
+    //            lastLogonTime_t = 0;
+    //            lastLogoffTime_t = 0;
 
-//            mustChangePassword = false;
-//        }
+    //            mustChangePassword = false;
+    //        }
 
-//        QString userName;
-//        QString homeDir;
-//        QString comment;
+    //        QString userName;
+    //        QString homeDir;
+    //        QString comment;
 
-//        bool accountDisabled;
-//        bool cannotChangePassword;
-//        bool accountLocked;
-//        bool passwordNeverExpires;
+    //        bool accountDisabled;
+    //        bool cannotChangePassword;
+    //        bool accountLocked;
+    //        bool passwordNeverExpires;
 
-//        QString fullName;
+    //        QString fullName;
 
-//        unsigned int lastLogonTime_t;
-//        unsigned int lastLogoffTime_t;
+    //        unsigned int lastLogonTime_t;
+    //        unsigned int lastLogoffTime_t;
 
-//        QString logonServer;
-//        QString sid;
-//        QString profile;
-//        bool mustChangePassword;
+    //        QString logonServer;
+    //        QString sid;
+    //        QString profile;
+    //        bool mustChangePassword;
 
-//        QString groups;
+    //        QString groups;
 
-//    };
+    //    };
     static bool getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode = 0);
     static bool createOrModifyUser(QJsonObject *userObject, DWORD *errorCode = 0);
 
 
-//    //Service
-//    typedef struct SERVICE_INFO {
-//        SERVICE_INFO()
-//        {
-//            processID = 0;
-//            serviceType = 0xFFFFFFFF;
-//            startType = 0xFFFFFFFF;
-//        }
-//        QString serviceName;
-//        QString displayName;
-//        DWORD processID;
-//        QString description;
-//        DWORD startType;
-//        QString account;
-//        QString dependencies;
-//        QString binaryPath;
-//        DWORD serviceType;
+    //    //Service
+    //    typedef struct SERVICE_INFO {
+    //        SERVICE_INFO()
+    //        {
+    //            processID = 0;
+    //            serviceType = 0xFFFFFFFF;
+    //            startType = 0xFFFFFFFF;
+    //        }
+    //        QString serviceName;
+    //        QString displayName;
+    //        DWORD processID;
+    //        QString description;
+    //        DWORD startType;
+    //        QString account;
+    //        QString dependencies;
+    //        QString binaryPath;
+    //        DWORD serviceType;
 
-//    } ServiceInfo;
+    //    } ServiceInfo;
     static bool serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode = 0, DWORD dwDesiredAccess = SC_MANAGER_ALL_ACCESS);
     static bool serviceOpenService(const QString &serviceName, SC_HANDLE *schSCManager, SC_HANDLE *schService, DWORD *errorCode = 0, DWORD dwDesiredAccess = SERVICE_ALL_ACCESS);
     static bool serviceQueryInfo(const QString &serviceName, ServiceInfo *serviceInfo,  DWORD *errorCode = 0);
@@ -254,6 +265,9 @@ public:
     static bool runAsForDesktopApplication(const QString &userName, const QString &domainName, const QString &password,
                                            const QString &exeFilePath, const QString &parameters = "", bool show = true,
                                            const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
+
+    static bool runASCurrentConsoleProcessInActiveConsoleSession(const QString &exeFilePath, const QString &parameters = "", bool show = true,
+                                           const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
     //////////////////////////////////////////////////////
 
 
@@ -272,21 +286,78 @@ public:
     static bool setDesktop();
 
     static bool setDeskWallpaper(const QString &wallpaperPath);
+    // Restores the desktop wallpaper.
+    static bool restoreWallpaper();
+    // Hides the desktop wallpaper.
+    static bool disableWallpaper();
 
     static QDateTime currentDateTimeOnServer(const QString &server, const QString &userName, const QString &password);
     static bool setLocalTime(const QDateTime &datetime);
 
+    // Returns true if the Aero is On.
+    static bool isAeroOn();
+
+    static bool getCurrentModulePath(QString *path);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static DWORD getActiveConsoleSessionId();
+
+    ////Desktop
+    // This funtion gets a handle to a desktop that receive user inputs.
+    // If success the function returns a handle to the desktop. On fail the function returns zero.
+    // After use the returned handle must be called the closeDesktop() function.
+    static HDESK getInputDesktop();
+
+    // This funtion gets a handle to a named desktop by the name.
+    // Param: name - a QString object that contain a valid desktop name such as "Winlogon".
+    // if success the function returns a handle to the desktop that receives user inputs. On fail the function returns zero.
+    // After use the returned handle must be called the closeDesktop() function.
+    static HDESK getDesktop(const QString &name);
+
+    // This function closes a handle to a desktop.
+    // Param hdesk is a handle to a desktop that will be closed.
+    // If success the function return true else false.
+    static bool closeDesktop(HDESK hdesk);
+
+    // This function sets a desktop to a thread from that it was called.
+    // Param: newDesktop - is a handle to a desktop.
+    // If success the function return true else false.
+    static bool setDesktopToCurrentThread(HDESK newDesktop);
+
+    // This function select a desktop that assigned by name or not to a current thread from that it was called.
+    // Param: name - a QString object that contain a valid desktop name such as "Winlogon" that will be assigned to the thread. If name is empty the input desktop will be assigned.
+    // If success the function return true else false.
+    static bool selectDesktop(const QString &name);
+
+    // Param: desktopName - is a pointer to a QString object that will be used to store the desktop name. If function has failed then the desktopName object will not change. If the function succeeds, the name of a current input desktop stores in the desktopName object.
+    // If success the function return true else false.
+    static bool getCurrentDesktopName(QString *desktopName);
+
+    // Param: desktopName - is a pointer to a QString object that will be used to store the desktop name. If function has failed then the desktopName object will not change. If the function succeeds, the desktop name of the current thread stores in the desktopName object.
+    // If success the function return true else false.
+    static bool getThreadDesktopName(QString *desktopName);
+
+    // This function gets desktop name by a handle to a desktop.
+    // Param: desktopName - is a pointer to a QString object that will be used to store the desktop name. If function has failed then the desktopName object will not change. If the function succeeds, the desktop name stores in the desktopName object.
+    // If success the function return true else false.
+    static bool getDesktopName(HDESK desktop, QString *desktopName);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-
-
+    ///// Simulates the "ctrl + alt + del" combination by using the "SAS" lib, only under service!
+    /////   !!! Modify the registry first!!!
+    ///// [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+    ///// "SoftwareSASGeneration"=dword:00000003
+    /////
+    static bool simulateCtrlAltDelUnderVista();
 
 
 private:
 
+    // Operation system version info.
+    //static OSVERSIONINFO m_osVerInfo;
 
 };
 

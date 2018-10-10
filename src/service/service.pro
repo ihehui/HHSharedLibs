@@ -23,7 +23,7 @@ include(service_source.pri)
 # include the service
 CONFIG( debug, debug|release ) {
         #Output Debugging Messages
-        DEFINES	+= QTSERVICE_DEBUG
+        DEFINES	+= SERVICE_DEBUG
 }
 include(./3rdparty/qtservice/src/qtservice.pri)
 

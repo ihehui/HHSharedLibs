@@ -1,36 +1,39 @@
 # Input
 
 HEADERS += \
-    systemutilities.h \
-    systemutilitieslib.h \
+    $$PWD/systemutilities.h \
+    $$PWD/systemutilitieslib.h \
     $$PWD/utilities_def.h
 
-SOURCES += systemutilities.cpp
+SOURCES += $$PWD/systemutilities.cpp
 
 unix {
-HEADERS += unixutilities.h
+HEADERS += $$PWD/unixutilities.h
 
-SOURCES += unixutilities.cpp
+SOURCES += $$PWD/unixutilities.cpp
 }
 
 win32 { 
 
 HEADERS += \
-    windowsmanagement.h \
-    adsi.h \
-    hardwaremonitor/hardwaremonitor.h \
-    activex/qaxtypefunctions.h \
-    activex/qaxtypes.h \
-    activex/wmiquery.h \
-    winutilities.h
+    $$PWD/windowsmanagement.h \
+    $$PWD/adsi.h \
+    $$PWD/hardwaremonitor/hardwaremonitor.h \
+    $$PWD/activex/qaxtypefunctions.h \
+    $$PWD/activex/qaxtypes.h \
+    $$PWD/activex/wmiquery.h \
+    $$PWD/winutilities.h \
+    $$PWD/ctrlaltdelsimulator.h
 
-SOURCES += windowsmanagement.cpp \
-    adsi.cpp \
-    hardwaremonitor/hardwaremonitor.cpp \
-    activex/qaxtypefunctions.cpp \
-    activex/qaxtypes.cpp \
-    activex/wmiquery.cpp \
-    winutilities.cpp
+
+SOURCES += $$PWD/windowsmanagement.cpp \
+    $$PWD/adsi.cpp \
+    $$PWD/hardwaremonitor/hardwaremonitor.cpp \
+    $$PWD/activex/qaxtypefunctions.cpp \
+    $$PWD/activex/qaxtypes.cpp \
+    $$PWD/activex/wmiquery.cpp \
+    $$PWD/winutilities.cpp \
+    $$PWD/ctrlaltdelsimulator.cpp
 
 
     INCLUDEPATH += $$PWD \

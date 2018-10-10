@@ -45,7 +45,7 @@ Service::Service(int argc, char **argv, const QString &serviceName, const QStrin
     setServiceFlags(QtServiceBase::Default);
 
 
-#if defined(QTSERVICE_DEBUG)
+#if defined(SERVICE_DEBUG)
     enableLog(true, serviceName);
 #else
     for(int i = 0; i < argc; i++){

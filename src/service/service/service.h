@@ -59,7 +59,7 @@ public:
 //    void resetDesktop();
 //#endif
 
-    static void enableLog(bool enable, const QString &fileBaseName = "log", const QString &baseDir = QCoreApplication::applicationDirPath());
+    static void enableLog(bool enable, const QString &fileBaseName = "log", const QString &baseDir = "./");
 
 protected:
     virtual void start() = 0;
