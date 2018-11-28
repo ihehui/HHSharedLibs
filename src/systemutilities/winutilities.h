@@ -297,7 +297,7 @@ public:
     // Returns true if the Aero is On.
     static bool isAeroOn();
 
-    static bool getCurrentModulePath(QString *path);
+    static bool getCurrentModuleFileName(QString *path);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

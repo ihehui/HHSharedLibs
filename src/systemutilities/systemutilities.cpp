@@ -329,7 +329,30 @@ void SystemUtilities::getAllUsersLoggedOn(QStringList *users, const QString &ser
 #endif
 }
 
+bool SystemUtilities::getCurrentModuleFileName(QString *path)
+{
 
+    if(!path){return false;}
+
+#ifdef Q_OS_WIN
+    return WinUtilities::getCurrentModuleFileName(path);
+#else
+
+    QFileInfo fi("/proc/self/exe");
+    if(!fi.exists()){
+        return false;
+    }
+
+    if(fi.isSymLink()){
+        *path =  fi.symLinkTarget();
+        return true;
+    }
+
+    return  false;
+
+#endif
+
+}
 
 
 

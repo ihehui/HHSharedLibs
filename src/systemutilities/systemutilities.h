@@ -33,6 +33,7 @@ public:
     static bool getLogonInfoOfCurrentUser(QString *userName, QString *domain = 0, QString *logonServer = 0, QString *errorMessage = 0);
     static void getAllUsersLoggedOn(QStringList *users, const QString &serverName = "", unsigned long *apiStatus = 0);
 
+    static bool getCurrentModuleFileName(QString *path);
 
 
 public slots:

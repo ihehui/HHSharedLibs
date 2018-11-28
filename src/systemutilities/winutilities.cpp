@@ -5219,7 +5219,7 @@ bool WinUtilities::isAeroOn()
 
 }
 
-bool WinUtilities::getCurrentModulePath(QString *path)
+bool WinUtilities::getCurrentModuleFileName(QString *path)
 {
     if(!path){return false;}
 
