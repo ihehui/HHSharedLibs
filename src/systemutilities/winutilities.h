@@ -266,8 +266,15 @@ public:
                                            const QString &exeFilePath, const QString &parameters = "", bool show = true,
                                            const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
 
+    //// Run application in active console session with current console process token information.
+    //// Service application(usually in session 0) can start another process in active console session(usually session 1) which has the same token information, the child process can interact with the input desktop(usually session 1)
     static bool runASCurrentConsoleProcessInActiveConsoleSession(const QString &exeFilePath, const QString &parameters = "", bool show = true,
                                            const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
+
+    static bool getTokenByProcessName(HANDLE &hToken, const QString &processName, bool justQuery = true);
+    static QList<HANDLE> getTokenListByProcessName(const QString &processName, bool justQuery = true);
+    static QString getAccountNameOfProcess(HANDLE &hToken);
+    static QString getAccountNameOfProcess(const QString &processName);
     //////////////////////////////////////////////////////
 
 
@@ -297,6 +304,7 @@ public:
     // Returns true if the Aero is On.
     static bool isAeroOn();
 
+    // Param: path - points to current application file path, with file name
     static bool getCurrentModuleFileName(QString *path);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -347,9 +355,9 @@ public:
 
 
     ///// Simulates the "ctrl + alt + del" combination by using the "SAS" lib, only under service!
-    /////   !!! Modify the registry first!!!
-    ///// [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
-    ///// "SoftwareSASGeneration"=dword:00000003
+    /////  !!! Modify the registry first!!!
+    /////  [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+    /////  "SoftwareSASGeneration"=dword:00000003
     /////
     static bool simulateCtrlAltDelUnderVista();
 

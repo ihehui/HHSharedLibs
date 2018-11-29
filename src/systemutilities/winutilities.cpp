@@ -4254,9 +4254,9 @@ bool WinUtilities::runAs(const QString &userName, const QString &domainName, con
     //qDebug()<<"User Name Of CurrentThread:"<<m_currentUserName;
 
 
-//    if(userName.simplified().isEmpty()) {
-//        return false;
-//    }
+    //    if(userName.simplified().isEmpty()) {
+    //        return false;
+    //    }
 
     //    wchar_t name[MaxUserAccountNameLength*sizeof(wchar_t)+1];
     //    wcscpy(name, userName.toStdWString().c_str());
@@ -4453,6 +4453,17 @@ bool WinUtilities::runASCurrentConsoleProcessInActiveConsoleSession(const QStrin
         sti.wShowWindow = SW_HIDE;
     }
 
+//    QString desktopName = "";
+//    getDesktopName(getDesktop(""), &desktopName);
+//    if(desktopName.toLower() == "winlogon"){
+//        sti.lpDesktop = L"WinSta0\\Winlogon";
+//        qDebug()<<"-----------winlogon";
+//    }
+
+//    wchar_t desktop[MAX_PATH * sizeof(wchar_t) + 1];
+//    wcscpy(desktop, desktopName.toStdWString().c_str());
+//    sti.lpDesktop = desktop;
+
     HANDLE token, userToken;
     if (OpenProcessToken(GetCurrentProcess(), TOKEN_DUPLICATE, &token) == 0) {
         DWORD dwRet = GetLastError();
@@ -4514,7 +4525,149 @@ bool WinUtilities::runASCurrentConsoleProcessInActiveConsoleSession(const QStrin
     CloseHandle(userToken);
     CloseHandle(token);
 
+
+    qDebug()<<"------------dwProcessId:"<<pi.dwProcessId;
+
     return true;
+}
+
+
+bool WinUtilities::getTokenByProcessName(HANDLE &hToken, const QString &processName, bool justQuery)
+{
+
+    if (processName.trimmed().isEmpty()) {
+        return false;
+    }
+
+    HANDLE hProcessSnap = NULL;
+    BOOL bRet = FALSE;
+    PROCESSENTRY32W pe32 = { 0 };
+
+    hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hProcessSnap == INVALID_HANDLE_VALUE) {
+        return (FALSE);
+    }
+    pe32.dwSize = sizeof(PROCESSENTRY32W);
+    if (Process32First(hProcessSnap, &pe32)) {
+        do {
+            //if (wcscmp(pe32.szExeFile, processName.toStdWString().c_str()) == 0) {
+            if (QString::fromWCharArray(pe32.szExeFile).toLower() == processName.toLower()) {
+                HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE,
+                                              pe32.th32ProcessID);
+                bRet = OpenProcessToken(hProcess, justQuery ? TOKEN_QUERY : TOKEN_ALL_ACCESS, &hToken);
+                CloseHandle(hProcessSnap);
+                //qWarning()<<"~~~~~~~~~~~~~~~~~~~~~~~";
+                return (bRet);
+            }
+            //qWarning()<<"~~~"<<QString::fromWCharArray(pe32.szExeFile);
+        } while (Process32Next(hProcessSnap, &pe32));
+        bRet = TRUE;
+    } else {
+        bRet = FALSE;
+    }
+    CloseHandle(hProcessSnap);
+    return (bRet);
+
+}
+
+QList<HANDLE> WinUtilities::getTokenListByProcessName(const QString &processName, bool justQuery)
+{
+
+    QList<HANDLE> tokenList;
+
+    if (processName.trimmed().isEmpty()) {
+        return tokenList;
+    }
+
+    HANDLE hProcessSnap = NULL;
+    PROCESSENTRY32W pe32 = { 0 };
+
+    hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hProcessSnap == INVALID_HANDLE_VALUE) {
+        return tokenList;
+    }
+    pe32.dwSize = sizeof(PROCESSENTRY32W);
+    if (Process32First(hProcessSnap, &pe32)) {
+        do {
+            //if (wcscmp(pe32.szExeFile, processName.toStdWString().c_str()) == 0) {
+            if (QString::fromWCharArray(pe32.szExeFile).toLower() == processName.toLower()) {
+                HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE,
+                                              pe32.th32ProcessID);
+                HANDLE hToken = 0;
+                bool bRet = OpenProcessToken(hProcess, justQuery ? TOKEN_QUERY : TOKEN_ALL_ACCESS, &hToken);
+                CloseHandle(hProcessSnap);
+
+                if(bRet) {
+                    tokenList.append(hToken);
+                } else {
+                    qCritical() << "Error! Process Found, but can not get the token!";
+                }
+                qDebug() << "--tokenList.size():" << tokenList.size();
+            }
+            qDebug() << "~~Exe File:" << QString::fromWCharArray(pe32.szExeFile);
+        } while (Process32Next(hProcessSnap, &pe32));
+
+    }
+
+    CloseHandle(hProcessSnap);
+
+    return tokenList;
+
+}
+
+QString WinUtilities::getAccountNameOfProcess(HANDLE &hToken)
+{
+    QString accountName = "";
+
+    if(!hToken) {
+        qCritical()<<QString("Invalid Process Token!");
+        return accountName;
+    }
+
+    SID_NAME_USE peUse;
+
+    bool isok = false;
+    DWORD size = 256;
+    wchar_t buf[256];
+    wchar_t accountNamebuf[256];
+    wchar_t domainNamebuf[256];
+    DWORD dwNumBytesRet;
+    DWORD dwNumBytesRet1;
+
+    isok = GetTokenInformation(hToken, TokenUser, &buf, size, &dwNumBytesRet);
+    if (isok) {
+        dwNumBytesRet = size;
+        dwNumBytesRet1 = size;
+        isok = LookupAccountSidW(NULL, (DWORD *) (*(DWORD *) buf), accountNamebuf, &dwNumBytesRet, domainNamebuf, &dwNumBytesRet1, &peUse);
+        if (isok) {
+            accountName = QString::fromWCharArray(accountNamebuf);
+            qDebug() << "Account Name Of Process:" << accountName;
+            return accountName;
+        } else {
+            DWORD err = GetLastError();
+            qCritical()<<QString("Can not get account name of process! %1:%2.").arg(err).arg(WinUtilities::WinSysErrorMsg(err));
+        }
+    }
+
+    return accountName;
+
+}
+
+QString WinUtilities::getAccountNameOfProcess(const QString &processName)
+{
+
+    HANDLE hToken;
+    getTokenByProcessName(hToken, processName);
+    return getAccountNameOfProcess(hToken);
+
+
+    //    QList<HANDLE> list = getTokenListByProcessName(processName);
+    //    qWarning()<<"~~~~list.size():"<<list.size();
+    //    foreach(HANDLE token, list){
+    //        getAccountNameOfProcess(token);
+    //        CloseHandle(token);
+    //    }
+
 }
 
 ////////////////////////////////////////////////////
@@ -4568,6 +4721,7 @@ QByteArray WinUtilities::ConvertHBITMAPToJpeg(HBITMAP hbitmap)
     Gdiplus::Status  status;
     //QString tempFilePath = QDir::tempPath() + QString("/hh%1.tmp").arg(QDateTime::currentDateTime().toTime_t());
     QString tempFilePath = QDir::tempPath() + QString("/hh%1.jpg").arg(QDateTime::currentDateTime().toTime_t());
+    //QString tempFilePath = QString("c:/hh%1.jpg").arg(QDateTime::currentDateTime().toTime_t());
 
     // Get the CLSID of the jpeg encoder.
     GetEncoderClsid(L"image/jpeg", &encoderClsid);
@@ -4732,7 +4886,7 @@ HBITMAP WinUtilities::GetScreenshotBmp()
     MemDC   =   CreateCompatibleDC(hDC);
     hBmp   =   CreateDIBSection(MemDC,   &bi, DIB_RGB_COLORS,   (void **)&Data,   NULL,   0);
     SelectObject(MemDC,   hBmp);
-    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight, hDC,   0,   0,   SRCCOPY);
+    BitBlt(MemDC,   0,   0,   bi.bmiHeader.biWidth,   bi.bmiHeader.biHeight, hDC,   0,   0,   SRCCOPY|CAPTUREBLT);
     ReleaseDC(NULL,   hDC);
     DeleteDC(MemDC);
     return   hBmp;
@@ -4760,7 +4914,7 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
                 READ_CONTROL | WRITE_DAC
                 );
     if (hwinsta == NULL) {
-        qCritical() << "ERROR! OpenWindowStationW failed.";
+        qCritical() << "ERROR! OpenWindowStationW failed."<<WinSysErrorMsg(GetLastError());
         return hBmp;
     }
 
@@ -4771,7 +4925,7 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
     // correct default desktop
     //
     if (!SetProcessWindowStation(hwinsta)) {
-        qCritical() << "ERROR! SetProcessWindowStation failed.";
+        qCritical() << "ERROR! SetProcessWindowStation failed."<<WinSysErrorMsg(GetLastError());
         return hBmp;
     }
 
@@ -4787,13 +4941,13 @@ HBITMAP WinUtilities::GetScreenshotBmpForNT5InteractiveService()
                 DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS
                 );
     if (hdesk == NULL) {
-        qCritical() << "ERROR! OpenDesktopW failed.";
+        qCritical() << "ERROR! OpenDesktopW failed."<<WinSysErrorMsg(GetLastError());
         return hBmp;
     }
 
 
     if(!SetThreadDesktop(hdesk)) {
-        qCritical() << "ERROR! SetThreadDesktop failed.";
+        qCritical() << "ERROR! SetThreadDesktop failed."<<WinSysErrorMsg(GetLastError());
         return hBmp;
     }
 
@@ -5110,7 +5264,11 @@ bool WinUtilities::setDeskWallpaper(const QString &wallpaperPath)
 
 bool WinUtilities::restoreWallpaper()
 {
-    return SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, 0, 0);
+    bool ok = SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, 0, 0);
+    if(!ok){
+        qCritical()<<"Failed to restore wallpaper!"<<WinSysErrorMsg(GetLastError());
+    }
+    return ok;
 }
 
 bool WinUtilities::disableWallpaper()
@@ -5227,18 +5385,18 @@ bool WinUtilities::getCurrentModuleFileName(QString *path)
     DWORD size = MAX_PATH;
 
     while (true) {
-      // Allocate buffer
-      buffer.resize(size + 1);
-      // Try to get file name
-      DWORD ret = GetModuleFileName(NULL, &buffer[0], size);
+        // Allocate buffer
+        buffer.resize(size + 1);
+        // Try to get file name
+        DWORD ret = GetModuleFileName(NULL, &buffer[0], size);
 
-      if (ret == 0) {
-        return false;
-      } else if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
-        size += 128;
-      } else {
-        break;
-      }
+        if (ret == 0) {
+            return false;
+        } else if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+            size += 128;
+        } else {
+            break;
+        }
     }
 
     *path = QString::fromStdWString(&buffer[0]);
@@ -5263,89 +5421,96 @@ DWORD WinUtilities::getActiveConsoleSessionId()
 
 HDESK WinUtilities::getInputDesktop()
 {
-  return OpenInputDesktop(0, TRUE,
-                          DESKTOP_CREATEMENU |
-                          DESKTOP_CREATEWINDOW |
-                          DESKTOP_ENUMERATE |
-                          DESKTOP_HOOKCONTROL |
-                          DESKTOP_WRITEOBJECTS |
-                          DESKTOP_READOBJECTS |
-                          DESKTOP_SWITCHDESKTOP |
-                          GENERIC_WRITE);
+    return OpenInputDesktop(0, TRUE,
+                            DESKTOP_CREATEMENU |
+                            DESKTOP_CREATEWINDOW |
+                            DESKTOP_ENUMERATE |
+                            DESKTOP_HOOKCONTROL |
+                            DESKTOP_WRITEOBJECTS |
+                            DESKTOP_READOBJECTS |
+                            DESKTOP_SWITCHDESKTOP |
+                            GENERIC_WRITE);
 }
 
 HDESK WinUtilities::getDesktop(const QString &name)
 {
-  return OpenDesktopW(name.toStdWString().c_str(), 0, TRUE,
-                     DESKTOP_CREATEMENU |
-                     DESKTOP_CREATEWINDOW |
-                     DESKTOP_ENUMERATE |
-                     DESKTOP_HOOKCONTROL |
-                     DESKTOP_WRITEOBJECTS |
-                     DESKTOP_READOBJECTS |
-                     DESKTOP_SWITCHDESKTOP |
-                     GENERIC_WRITE);
+    return OpenDesktopW(name.toStdWString().c_str(), 0, TRUE,
+                        DESKTOP_CREATEMENU |
+                        DESKTOP_CREATEWINDOW |
+                        DESKTOP_ENUMERATE |
+                        DESKTOP_HOOKCONTROL |
+                        DESKTOP_WRITEOBJECTS |
+                        DESKTOP_READOBJECTS |
+                        DESKTOP_SWITCHDESKTOP |
+                        GENERIC_WRITE);
 }
 
 bool WinUtilities::closeDesktop(HDESK hdesk)
 {
-  return CloseDesktop(hdesk) != 0;
+    return CloseDesktop(hdesk) != 0;
 }
 
 bool WinUtilities::setDesktopToCurrentThread(HDESK newDesktop)
 {
-  return SetThreadDesktop(newDesktop) != 0;
+    bool ok = SetThreadDesktop(newDesktop);
+    if(!ok){
+        DWORD dwRet = GetLastError();
+        QString errorString = QString("setDesktopToCurrentThread Failed! %1:%2.").arg(dwRet).arg(WinSysErrorMsg(dwRet));
+        qCritical() << errorString;
+    }
+
+    return ok;
 }
 
 bool WinUtilities::selectDesktop(const QString &name)
 {
-  HDESK desktop;
-  if (name.trimmed().isEmpty()) {
-      desktop = getInputDesktop();
-  } else {
-      desktop = getDesktop(name);
-  }
+    HDESK desktop;
+    if (name.trimmed().isEmpty()) {
+        desktop = getInputDesktop();
+    } else {
+        desktop = getDesktop(name);
+    }
 
-  bool result = setDesktopToCurrentThread(desktop) != 0;
-  closeDesktop(desktop);
+    bool result = setDesktopToCurrentThread(desktop) != 0;
+    closeDesktop(desktop);
 
-  return result;
+    return result;
 }
 
 bool WinUtilities::getCurrentDesktopName(QString *desktopName)
 {
-  HDESK inputDesktop = getInputDesktop();
-  bool result = getDesktopName(inputDesktop, desktopName);
-  closeDesktop(inputDesktop);
-  return result;
+    HDESK inputDesktop = getInputDesktop();
+    bool result = getDesktopName(inputDesktop, desktopName);
+    closeDesktop(inputDesktop);
+    return result;
 }
 
 bool WinUtilities::getThreadDesktopName(QString *desktopName)
 {
-  return getDesktopName(GetThreadDesktop(GetCurrentThreadId()), desktopName);
+    return getDesktopName(GetThreadDesktop(GetCurrentThreadId()), desktopName);
 }
 
 bool WinUtilities::getDesktopName(HDESK desktop, QString *desktopName)
 {
-  *desktopName = "";
+    *desktopName = "";
 
-  DWORD nameLength = 0;
-  // Do not check returned value because the function will return FALSE always.
-  GetUserObjectInformationW(desktop, UOI_NAME, 0, 0, &nameLength);
+    DWORD nameLength = 0;
+    // Do not check returned value because the function will return FALSE always.
+    GetUserObjectInformationW(desktop, UOI_NAME, 0, 0, &nameLength);
 
-  if (nameLength != 0) {
-    std::vector<WCHAR> name(nameLength);
-    bool result = !!GetUserObjectInformationW(desktop,
-                                             UOI_NAME,
-                                             &name[0],
-                                             nameLength,
-                                             0);
-    if (result) {
-      *desktopName = QString::fromStdWString(&name[0]);
-      return true;
+    if (nameLength != 0) {
+        std::vector<WCHAR> name(nameLength);
+        bool result = !!GetUserObjectInformationW(desktop,
+                                                  UOI_NAME,
+                                                  &name[0],
+                nameLength,
+                0);
+        if (result) {
+            *desktopName = QString::fromStdWString(&name[0]);
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 
@@ -5356,42 +5521,42 @@ bool WinUtilities::getDesktopName(HDESK desktop, QString *desktopName)
 
 bool WinUtilities::simulateCtrlAltDelUnderVista()
 {
-  qDebug("Requested Ctrl+Alt+Del simulation under Vista or later");
+    qDebug("Requested Ctrl+Alt+Del simulation under Vista or later");
 
-  /////   !!! Modify the registry first!!!
-  ///// [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
-  ///// "SoftwareSASGeneration"=dword:00000003
-  /////
+    /////   !!! Modify the registry first!!!
+    ///// [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+    ///// "SoftwareSASGeneration"=dword:00000003
+    /////
 
-  QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
-  QString valueName = "SoftwareSASGeneration";
-  QString val = "";
-  bool ok = regRead(key, valueName, &val, true);
-  if(!ok){
-      ok = regRead(key, valueName, &val, false);
-  }
-  if(!ok || val != "3"){
-      ok = regSetValue(key, valueName, "3", REG_DWORD, true);
-      if(!ok){
-          ok = regSetValue(key, valueName, "3", REG_DWORD, false);
-      }
-  }
+    QString key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
+    QString valueName = "SoftwareSASGeneration";
+    QString val = "";
+    bool ok = regRead(key, valueName, &val, true);
+    if(!ok){
+        ok = regRead(key, valueName, &val, false);
+    }
+    if(!ok || val != "3"){
+        ok = regSetValue(key, valueName, "3", REG_DWORD, true);
+        if(!ok){
+            ok = regSetValue(key, valueName, "3", REG_DWORD, false);
+        }
+    }
 
-  if(!ok){
-      qCritical()<<"Failed to setup registry to enable 'SoftwareSASGeneration'!";
-      return false;
-  }
+    if(!ok){
+        qCritical()<<"Failed to setup registry to enable 'SoftwareSASGeneration'!";
+        return false;
+    }
 
 
-  typedef VOID (WINAPI *SendSas)(BOOL asUser);
-  SendSas sendSas = (SendSas)GetProcAddress( LoadLibraryW(L"sas.dll"), "SendSAS");
-  if (0 == sendSas) {
-      qCritical("The SendSAS function has not been found");
-      return false;
-  }
-  sendSas(FALSE); // Try only under service
+    typedef VOID (WINAPI *SendSas)(BOOL asUser);
+    SendSas sendSas = (SendSas)GetProcAddress( LoadLibraryW(L"sas.dll"), "SendSAS");
+    if (0 == sendSas) {
+        qCritical("The SendSAS function has not been found");
+        return false;
+    }
+    sendSas(FALSE); // Try only under service
 
-  return true;
+    return true;
 }
 
 
