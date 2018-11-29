@@ -266,8 +266,9 @@ public:
                                            const QString &exeFilePath, const QString &parameters = "", bool show = true,
                                            const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
 
-    //// Run application in active console session with current console process token information.
-    //// Service application(usually in session 0) can start another process in active console session(usually session 1) which has the same token information, the child process can interact with the input desktop(usually session 1)
+    /// Run application in active console session with current console process token information.
+    /// Service application(usually in session 0) can start another process in active console session(usually session 1) which has the same token information,
+    /// the child process can interact with the input desktop(usually session 1) if setDesktopToCurrentThread(OpenInputDesktop()) is called.
     static bool runASCurrentConsoleProcessInActiveConsoleSession(const QString &exeFilePath, const QString &parameters = "", bool show = true,
                                            const QString &workingDir = "", bool wait = false, DWORD milliseconds = 6000);
 
