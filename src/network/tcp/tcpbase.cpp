@@ -489,7 +489,6 @@ void TCPBase::readSocketdData(SOCKETID socketID, QTcpSocket *socket)
             }
             in >> nextBlockSize;
             m_socketBlockSizeInfoHash[socketID] = nextBlockSize;
-            //qDebug()<<"---------------nextBlockSize:"<<nextBlockSize;
         }
 
 //        if (nextBlockSize == PACKET_TERMINATING_SYMBOL) {
@@ -505,13 +504,11 @@ void TCPBase::readSocketdData(SOCKETID socketID, QTcpSocket *socket)
 
         QByteArray buffer;
         buffer.resize(nextBlockSize);
-
         in >> buffer;
 
         //qDebug()<<QString("Data Received From %1:%2. Size:%3").arg(socket->peerAddress().toString()).arg(socket->peerPort()).arg(buffer.size());
 
         processData(socketID, &buffer);
-
 
         nextBlockSize = 0;
         m_socketBlockSizeInfoHash[socketID] = 0;
@@ -542,10 +539,8 @@ void TCPBase::readSocketdData(SOCKETID socketID, QTcpSocket *socket)
 
 //}
 
-void TCPBase::processData(quint32 socketID, QByteArray *data)
-{
-
-
+//void TCPBase::processData(quint32 socketID, QByteArray *data)
+//{
 //    QHostAddress address;
 //    quint16 port = 0;
 //    socketPeerAddressInfo(socketID, &address, &port);
@@ -560,7 +555,6 @@ void TCPBase::processData(quint32 socketID, QByteArray *data)
 //        packet->setTransmissionProtocol(TP_TCP);
 //        //packet->setSocketID(socketID);
 
-
 //        packet->setPeerHostAddress(address);
 //        packet->setPeerHostPort(port);
 ////        packet->setLocalHostAddress(m_udpSocket->localAddress());
@@ -570,9 +564,7 @@ void TCPBase::processData(quint32 socketID, QByteArray *data)
 
 ////        emit packetReceived(packet);
 //    }
-
-
-}
+//}
 
 bool TCPBase::isSocketBusy(SOCKETID socketID)
 {

@@ -421,17 +421,20 @@ QString HardwareMonitor::WinOSProductKey(){
 
     //Memory Initializationd
     memset(DigitalProductID, 0, DataLength);
+    memset(ProductKeyExtract, 0, sizeof(ProductKeyExtract));
+
 
     DigitalProductID = (BYTE *)byteBuffer.data();
 
     //reading a value start position 52, by 66
     for(ByteCounter=52; ByteCounter<=66; ByteCounter++)
     {
-        ProductKeyExtract[ByteCounter - 52] =
-                DigitalProductID[ByteCounter];
+        ProductKeyExtract[ByteCounter - 52] = DigitalProductID[ByteCounter];
     }
+
     //Last Indexer
-    ProductKeyExtract[sizeof(ProductKeyExtract)] = NULL;
+    ProductKeyExtract[sizeof(ProductKeyExtract) - 1] = NULL;
+
 
     memset(sCDKey, 0, sizeof(sCDKey));
     for(ByteCounter=24; ByteCounter>=0; ByteCounter--)

@@ -11,7 +11,7 @@ win32 {
     HEADERS += 
     SOURCES += 
     INCLUDEPATH +=
-    LIBS += 
+    LIBS += -luser32 -lAdvapi32
 
 }
 unix { 

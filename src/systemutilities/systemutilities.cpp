@@ -9,6 +9,7 @@
 #include "winutilities.h"
 #else
 #include "unixutilities.h"
+#include <sys/sysinfo.h>
 #endif
 
 namespace HEHUI
@@ -31,23 +32,7 @@ int SystemUtilities::getCPULoad()
 #ifdef Q_OS_WIN32
     return WinUtilities::getCPULoad();
 #else
-    QProcess process;
-    //QString cmdString = QString("top -n 1 |grep Cpu | cut -d \",\" -f 1 | cut -d \":\" -f 2");
-    QString cmdString = QString("top -n 1 |grep Cpu | cut -d \",\" -f 4");
-    process.start(cmdString);
-    if(!process.waitForFinished()) {
-        return 0;
-    }
-    if(!process.waitForReadyRead()) {
-        return 0;
-    }
-    QString idle = QString::fromLocal8Bit(process.readAllStandardOutput());
-    if(!idle.endsWith("%id")) {
-        return 0;
-    }
-    idle = idle.replace("%id", "");
-    return idle.toUInt();
-
+    return UnixUtilities::getCPULoad();
 #endif
 
 }
@@ -60,13 +45,12 @@ QString SystemUtilities::getCPUName()
 #else
 
     QProcess process;
-    QString cmdString = QString("cat /proc/cpuinfo |grep \"model name\" | cut -d \":\" -f 2");
-    process.start(cmdString);
-    if(!process.waitForFinished()) {
-        return QSysInfo::prettyProductName();
+    process.start("sh", QStringList()<<"-c"<<"cat /proc/cpuinfo |grep \"model name\" | uniq | cut -d \":\" -f 2 ");
+    if(!process.waitForStarted()) {
+        return "";
     }
-    if(!process.waitForReadyRead()) {
-        return QSysInfo::prettyProductName();
+    if(!process.waitForFinished()) {
+        return "";
     }
     return QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
 
@@ -84,10 +68,10 @@ QString SystemUtilities::getCPUSerialNumber()
     QString cmdString = QString("dmidecode -t 4 | grep ID"); //root only
 
     process.start(cmdString);
-    if(!process.waitForFinished()) {
-        return QSysInfo::prettyProductName();
+    if(!process.waitForStarted()) {
+        return "";
     }
-    if(!process.waitForReadyRead()) {
+    if(!process.waitForFinished()) {
         return QSysInfo::prettyProductName();
     }
     return QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
@@ -103,14 +87,22 @@ QString SystemUtilities::getHardDriveSerialNumber(unsigned int driveIndex)
     return WinUtilities::getHardDriveSerialNumber(driveIndex);
 #else
 
+    //// For Root ONLY!!!
+    char idx = 'a' + driveIndex;
+    return UnixUtilities::getDriveSN(QString("/dev/sd") + QChar(idx));
+
+
+
+
     QProcess process;
-    QString cmdString = QString("lsscsi | grep disk | awk '{print $7}'");
-    process.start(cmdString);
-    if(!process.waitForFinished()) {
-        return QSysInfo::prettyProductName();
+    //QString cmdString  = "lsscsi | grep disk | awk '{print $4}'";
+    QString cmdString  = "cat /proc/scsi/scsi | grep Model: | awk '{print $4}'";
+    process.start("sh", QStringList()<<"-c"<<cmdString);
+    if(!process.waitForStarted()) {
+        return "";
     }
-    if(!process.waitForReadyRead()) {
-        return QSysInfo::prettyProductName();
+    if(!process.waitForFinished()) {
+        return "";
     }
     QStringList disks =  QString::fromLocal8Bit(process.readAllStandardOutput()).split("\n");
     if(driveIndex >= (unsigned int)disks.size()){
@@ -118,13 +110,13 @@ QString SystemUtilities::getHardDriveSerialNumber(unsigned int driveIndex)
     }
     process.close();
 
-    cmdString = QString("hdparm -i %1 | grep SerialNo | awk '{print $4}' | cut -d \"=\" -f 2").arg(disks.at(driveIndex)); //root only
-    process.start(cmdString);
-    if(!process.waitForFinished()) {
-        return QSysInfo::prettyProductName();
+    cmdString = QString("hdparm -i %1 | grep SerialNo | awk '{print $3}' | cut -d \"=\" -f 2").arg(disks.at(driveIndex)); //root only
+    process.start("sh", QStringList()<<"-c"<<cmdString);
+    if(!process.waitForStarted()) {
+        return "";
     }
-    if(!process.waitForReadyRead()) {
-        return QSysInfo::prettyProductName();
+    if(!process.waitForFinished()) {
+        return "";
     }
 
     return QString::fromLocal8Bit(process.readAllStandardOutput());
@@ -134,57 +126,16 @@ QString SystemUtilities::getHardDriveSerialNumber(unsigned int driveIndex)
 }
 
 
-bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, float *loadPercentage)
+bool SystemUtilities::getMemoryStatus(quint64 *totalBytes, int *loadPercentage)
 {
 
 #ifdef Q_OS_WIN32
-
     return WinUtilities::getMemoryStatus(totalBytes, loadPercentage);
-
 #else
-    QProcess process;
-    //QString cmdString = QString("top -n 1 | grep Cpu | cut -d \",\" -f 1 | cut -d \":\" -f 2");
-    //QString cmdString = QString("cat /proc/meminfo | grep Mem");
-    QString cmdString = QString("top -n 1 | grep Mem");
-
-    process.start(cmdString);
-    if(!process.waitForFinished()) {
-        return false;
-    }
-    if(!process.waitForReadyRead()) {
-        return false;
-    }
-    QString memString = QString::fromLocal8Bit(process.readAllStandardOutput());
-    if(!memString.startsWith("Mem:")) {
-        return false;
-    }
-    memString = memString.replace("Mem:", "").simplified();
-    QStringList list = memString.split(",");
-    if(list.size() != 4) {
-        return false;
-    }
-    QString str = list.at(0);
-    quint64 totalMem = str.replace("total", "").simplified().toULongLong();
-    str = list.at(0);
-    quint64 usedMem = str.replace("used", "").simplified().toULongLong();
-    if(!totalMem || !usedMem) {
-        return false;
-    }
-
-    if(totalBytes) {
-        *totalBytes = totalMem * 1024;
-    }
-
-    if(loadPercentage) {
-        *loadPercentage = (float)usedMem / (*totalBytes);
-    }
-
-
-    return true;
+    return UnixUtilities::getMemoryStatus(totalBytes, loadPercentage);
 #endif
 
     return true;
-
 }
 
 bool SystemUtilities::getDiskPartionStatus(const QString &partionRootPath, float *totalBytes, float *freeBytes)
@@ -195,16 +146,17 @@ bool SystemUtilities::getDiskPartionStatus(const QString &partionRootPath, float
     return WinUtilities::getDiskPartionStatus(partionRootPath, totalBytes, freeBytes);
 
 #else
+
     QProcess process;
     //QString cmdString = QString("df -l | grep %1 | cut -d " " -f 2-30");
     //QString cmdString = QString("cat /proc/meminfo | grep Mem");
     QString cmdString = QString("df -l | grep %1 | cut -d " " -f 2-30").arg(partionRootPath);
 
-    process.start(cmdString);
-    if(!process.waitForFinished()) {
+    process.start("sh", QStringList()<<"-c"<<cmdString);
+    if(!process.waitForStarted()) {
         return false;
     }
-    if(!process.waitForReadyRead()) {
+    if(!process.waitForFinished()) {
         return false;
     }
 
@@ -260,20 +212,24 @@ QString SystemUtilities::getDisksInfo()
 
 
 #else
-    QProcess process;
-    //QString cmdString = QString("df -l | grep %1 | cut -d " " -f 2-30");
-    QString cmdString = QString("df -lhT");
 
-    process.start(cmdString);
-    if(!process.waitForFinished()) {
-        return "";
-    }
-    if(!process.waitForReadyRead()) {
-        return "";
-    }
+    return UnixUtilities::getDrivesStatus().join("\n");
 
-    disksInfo = QString::fromLocal8Bit(process.readAllStandardOutput());
-    disksInfo = disksInfo.replace("Mounted on", "Mounted");
+
+//    QProcess process;
+//    //QString cmdString = QString("df -l | grep %1 | cut -d " " -f 2-30");
+//    QString cmdString = QString("df -lhT");
+
+//    process.start("sh", QStringList()<<"-c"<<cmdString);
+//    if(!process.waitForFinished()) {
+//        return "";
+//    }
+//    if(!process.waitForReadyRead()) {
+//        return "";
+//    }
+
+//    disksInfo = QString::fromLocal8Bit(process.readAllStandardOutput());
+//    disksInfo = disksInfo.replace("Mounted on", "Mounted");
 
 #endif
 
@@ -295,14 +251,17 @@ QString SystemUtilities::getOSVersionInfo()
 
     QProcess process;
     QString cmdString = QString("lsb_release  -a | grep Description | cut -d \":\" -f 2");
-    process.start(cmdString);
+    process.start("sh", QStringList()<<"-c"<<cmdString);
+    if(!process.waitForStarted()) {
+        return QSysInfo::prettyProductName();
+    }
     if(!process.waitForFinished()) {
         return QSysInfo::prettyProductName();
     }
-    if(!process.waitForReadyRead()) {
+    osInfo = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
+    if(osInfo.trimmed().isEmpty()){
         return QSysInfo::prettyProductName();
     }
-    osInfo = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
 
 
 #endif
@@ -315,29 +274,31 @@ bool SystemUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *doma
 
 #ifdef Q_OS_WIN
     unsigned long apiStatus = 0;
-    bool ok = WinUtilities::getLogonInfoOfCurrentUser(userName, domain, logonServer, apiStatus);
+    bool ok = WinUtilities::getLogonInfoOfCurrentUser(userName, domain, logonServer, &apiStatus);
     if( (!ok) && errorMessage){
-        *errorMessage = WinUtilities::WinSysErrorMsg(status);
+        *errorMessage = WinUtilities::WinSysErrorMsg(apiStatus);
     }
     return ok;
 #else
 
     QProcess process;
     QString cmdString = QString("whoami");
-
-    process.start(cmdString);
+    process.start("sh", QStringList()<<"-c"<<cmdString);
+    if(!process.waitForStarted()) {
+        return false;
+    }
     if(!process.waitForFinished()) {
         if(errorMessage){
             *errorMessage = process.errorString();
         }
         return false;
     }
-    if(!process.waitForReadyRead()) {
-        if(errorMessage){
-            *errorMessage = process.errorString();
-        }
-        return false;
-    }
+//    if(!process.waitForReadyRead()) {
+//        if(errorMessage){
+//            *errorMessage = process.errorString();
+//        }
+//        return false;
+//    }
 
     *userName = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
 
@@ -355,12 +316,11 @@ void SystemUtilities::getAllUsersLoggedOn(QStringList *users, const QString &ser
 
     QProcess process;
     QString cmdString = QString("who | cut -d' ' -f1 | sort | uniq");
-
-    process.start(cmdString);
-    if(!process.waitForFinished()) {
+    process.start("sh", QStringList()<<"-c"<<cmdString);
+    if(!process.waitForStarted()) {
         return;
     }
-    if(!process.waitForReadyRead()) {
+    if(!process.waitForFinished()) {
         return;
     }
 
@@ -369,7 +329,30 @@ void SystemUtilities::getAllUsersLoggedOn(QStringList *users, const QString &ser
 #endif
 }
 
+bool SystemUtilities::getCurrentModuleFileName(QString *path)
+{
 
+    if(!path){return false;}
+
+#ifdef Q_OS_WIN
+    return WinUtilities::getCurrentModuleFileName(path);
+#else
+
+    QFileInfo fi("/proc/self/exe");
+    if(!fi.exists()){
+        return false;
+    }
+
+    if(fi.isSymLink()){
+        *path =  fi.symLinkTarget();
+        return true;
+    }
+
+    return  false;
+
+#endif
+
+}
 
 
 

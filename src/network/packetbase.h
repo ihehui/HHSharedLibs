@@ -102,6 +102,7 @@ public:
 
     QByteArray getPacketBody() const ;
     void setPacketBody(const QByteArray &data);
+    void clearPacketBody();
 
 
 private:
@@ -130,8 +131,14 @@ public:
     Packet &operator = (const PacketBase &base);
     ~Packet();
 
+    bool isEncrypted() const;
+    void setEncrypted(bool encrypted);
+
     virtual QByteArray toByteArray();
-    void fromPacket(const PacketBase &base);
+//    void parsePacketBody();
+
+    virtual void fromPacket(const PacketBase &base);
+
 
 private:
     //virtual void init() = 0;
@@ -142,6 +149,10 @@ protected:
     virtual void convert(const PacketBase &base);
     virtual QByteArray encrypt(const QByteArray &data) = 0;
     virtual QByteArray decrypt(const QByteArray &encryptedData) = 0;
+
+private:
+    bool m_encrypted;
+
 
 };
 

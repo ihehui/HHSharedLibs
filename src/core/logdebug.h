@@ -19,14 +19,29 @@
 #endif
 
 
+//#ifndef LOGCRITICAL
+//#define LOGCRITICAL qCritical() << QString("%1:%2, %3").arg(__FILE__).arg(__LINE__).arg(Q_FUNC_INFO)
+//#endif
+
+//#ifndef LOGWARNING
+//#define LOGWARNING qWarning() << QString("%1:%2, %3").arg(__FILE__).arg(__LINE__).arg(Q_FUNC_INFO)
+//#endif
+
+//#ifndef LOGDEBUG
+//#define LOGDEBUG qDebug() << QString("%1:%2, %3").arg(__FILE__).arg(__LINE__).arg(Q_FUNC_INFO)
+//#endif
+
+
 //#if defined(Q_OS_WIN32)
 //static QString logFileName = "c:/macs_debuglog.txt";
 //#else
 //static QString logFileName = "/tmp/macs_debuglog.txt";
 //#endif
 
-static QString m_baseDir = QCoreApplication::applicationDirPath();
-static QString m_fileBaseName = QCoreApplication::applicationName();
+//static QString m_baseDir = QCoreApplication::applicationDirPath();
+//static QString m_fileBaseName = QCoreApplication::applicationName();
+static QString m_baseDir = "./";
+static QString m_fileBaseName = "log";
 
 
 static QFile* file = 0;
@@ -77,7 +92,7 @@ static void logDebug(QtMsgType type, const char* msg)
     ba += "] ";
 
 
-    QString logFileName = m_baseDir + "/" + curTime.toString("yyyy") + "/" + m_fileBaseName + curTime.toString("yyyyMMdd") + ".log";
+    QString logFileName = m_baseDir + "/" + curTime.toString("yyyyMM") + "/" + m_fileBaseName + curTime.toString("yyyyMMdd") + ".log";
     if(file && file->fileName() != logFileName){
         closeDebugLog();
     }
@@ -92,7 +107,7 @@ static void logDebug(QtMsgType type, const char* msg)
             file = 0;
             return;
         }
-        QByteArray ps('\n' + ba + "------ DEBUG LOG OPENED " + curTime.toString("yyyy.MM.dd").toLatin1() + " ------\n");
+        QByteArray ps('\n' + ba + "------ DEBUG LOG OPENED " + "[" + APP_VERSION + "] " + curTime.toString("yyyy.MM.dd").toLatin1() + " ------\n");
         file->write(ps);
     }
 

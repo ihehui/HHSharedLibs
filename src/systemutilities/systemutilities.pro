@@ -60,3 +60,4 @@ QMAKE_TARGET_PRODUCT	= "System Utilities Library"
 QMAKE_TARGET_DESCRIPTION	= "System Utilities Library"
 #QMAKE_TARGET_COPYRIGHT	= "Copyright (C) 2007 - 2014 He Hui"
 
+

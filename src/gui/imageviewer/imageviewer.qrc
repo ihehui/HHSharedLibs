@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="/">
+    <file>resources/images/pin2.png</file>
+    <file>resources/images/pin.png</file>
     <file>resources/images/filesaveas.png</file>
     <file>resources/images/rotate_left.png</file>
     <file>resources/images/rotate_right.png</file>

@@ -42,14 +42,35 @@ ImageViewerControler::ImageViewerControler(QWidget *parent, Qt::WindowFlags fl) 
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_TranslucentBackground, true);
+    setWindowModality(Qt::WindowModal);
 
     setMouseTracking(true);
+
+    m_iconSize = QSize(32, 32);
+    m_dragPoint = QPoint(0, 0);
 
 }
 
 ImageViewerControler::~ImageViewerControler()
 {
     delete ui;
+}
+
+void ImageViewerControler::mousePressEvent(QMouseEvent *event)
+{
+    if(Qt::LeftButton == event->button()){
+        m_dragPoint = event->globalPos() - geometry().topLeft();
+        event->accept();
+    }
+}
+
+void ImageViewerControler::mouseMoveEvent(QMouseEvent *event)
+{
+    if(event->buttons() & Qt::LeftButton){
+        //move(event->globalPos() - m_dragPoint);
+        emit signalDragged(event->globalPos() - m_dragPoint);
+        event->accept();
+    }
 }
 
 void ImageViewerControler::reset()
@@ -103,6 +124,40 @@ void ImageViewerControler::insertWidget(int index, QWidget *widget, int stretch,
     ui->horizontalLayout->insertWidget(index, widget, stretch, alignment);
 }
 
+void ImageViewerControler::setIconSize(int width, int height)
+{
+    setIconSize(QSize(width, height));
+}
+
+void ImageViewerControler::setIconSize(const QSize &size)
+{
+    m_iconSize = size;
+
+    ui->toolButtonRotateLeft->setIconSize(size);
+    ui->dial->setMaximumSize(size);
+    ui->toolButtonRotateRight->setIconSize(size);
+    ui->toolButtonFlipVertical->setIconSize(size);
+    ui->toolButtonFlipHorizontal->setIconSize(size);
+    ui->toolButtonZoomIn->setIconSize(size);
+    ui->toolButtonZoomOut->setIconSize(size);
+    ui->toolButtonZoomFitBest->setIconSize(size);
+    ui->toolButtonZoomOriginal->setIconSize(size);
+    ui->toolButtonSave->setIconSize(size);
+    ui->toolButtonSaveAs->setIconSize(size);
+
+}
+
+QSize ImageViewerControler::iconSize() const
+{
+    return m_iconSize;
+}
+
+void ImageViewerControler::pinControler(bool pin)
+{
+    on_toolButtonPin_clicked(pin);
+    ui->toolButtonPin->setChecked(pin);
+}
+
 void ImageViewerControler::on_toolButtonRotateLeft_clicked()
 {
     int value = ui->dial->value();
@@ -136,5 +191,21 @@ void ImageViewerControler::on_toolButtonRotateRight_clicked()
 
 }
 
+void ImageViewerControler::on_toolButtonPin_clicked(bool checked)
+{
+    if(checked){
+        ui->toolButtonPin->setIcon(QIcon(":/resources/images/pin.png"));
+    }else{
+        ui->toolButtonPin->setIcon(QIcon(":/resources/images/pin2.png"));
+    }
+
+    emit signalPin(checked);
+}
+
+
+
+
 
 } //namespace HEHUI
+
+

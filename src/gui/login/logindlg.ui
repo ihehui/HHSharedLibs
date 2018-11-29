@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>217</height>
+    <height>262</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -173,7 +173,7 @@
                <string notr="true"/>
               </property>
               <property name="echoMode">
-               <enum>QLineEdit::NoEcho</enum>
+               <enum>QLineEdit::Password</enum>
               </property>
              </widget>
             </item>
@@ -401,7 +401,6 @@
   <tabstop>pushButtonAbort</tabstop>
  </tabstops>
  <resources>
-  <include location="../gui.qrc"/>
   <include location="../gui.qrc"/>
  </resources>
  <connections/>

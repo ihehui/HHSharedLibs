@@ -2,12 +2,15 @@
 #define LOGDEBUG_H
 
 
-//#if defined(LOG_DEBUG)
 #include <QDebug>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QTime>
 #include <QtCore/QMutex>
+#include <QCoreApplication>
+#include <QFileInfo>
+#include <QDir>
+
 #if defined(Q_OS_WIN32)
     #include <qt_windows.h>
 #else
@@ -15,80 +18,118 @@
     #include <stdlib.h>
 #endif
 
-static QFile *f = 0;
+
+//#ifndef LOGCRITICAL
+//#define LOGCRITICAL qCritical() << QString("%1:%2, %3").arg(__FILE__).arg(__LINE__).arg(Q_FUNC_INFO)
+//#endif
+
+//#ifndef LOGWARNING
+//#define LOGWARNING qWarning() << QString("%1:%2, %3").arg(__FILE__).arg(__LINE__).arg(Q_FUNC_INFO)
+//#endif
+
+//#ifndef LOGDEBUG
+//#define LOGDEBUG qDebug() << QString("%1:%2, %3").arg(__FILE__).arg(__LINE__).arg(Q_FUNC_INFO)
+//#endif
+
+
+//#if defined(Q_OS_WIN32)
+//static QString logFileName = "c:/macs_debuglog.txt";
+//#else
+//static QString logFileName = "/tmp/macs_debuglog.txt";
+//#endif
+
+//static QString m_baseDir = QCoreApplication::applicationDirPath();
+//static QString m_fileBaseName = QCoreApplication::applicationName();
+static QString m_baseDir = "./";
+static QString m_fileBaseName = "log";
+
+
+static QFile* file = 0;
 static qulonglong processId = 0;
+static bool printTostderr = false;
 
 static void closeDebugLog()
 {
-    if (!f) {
-        return;
-    }
+    if (!file){return;}
 
-    QByteArray s(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
+    QDateTime curTime = QDateTime::currentDateTime();
+
+    QByteArray s(curTime.toString("HH:mm:ss.zzz").toLatin1());
     s += " [";
     s += QByteArray::number(processId);
     s += "] ";
-    QByteArray ps(s + "------ DEBUG LOG CLOSED ------\n");
-    f->write(ps);
-    f->flush();
-    f->close();
-    delete f;
-    f = 0;
+    QByteArray ps(s + "------ DEBUG LOG CLOSED " + curTime.toString("yyyy.MM.dd").toLatin1() + " ------\n");
+    file->write(ps);
+    file->flush();
+    file->close();
+    delete file;
+    file = 0;
 }
 
 
 #if QT_VERSION >= 0x050000
-    static void logDebug(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+static void logDebug(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 #else
-    static void logDebug(QtMsgType type, const char *msg)
+static void logDebug(QtMsgType type, const char* msg)
 #endif
 {
     static QMutex mutex;
     QMutexLocker locker(&mutex);
 
-    if(!processId) {
+    if(!processId){
 #if defined(Q_OS_WIN32)
-        processId = GetCurrentProcessId();
+    processId = GetCurrentProcessId();
 #else
-        processId = getpid();
+    processId = getpid();
 #endif
     }
 
-    QByteArray s(QTime::currentTime().toString("HH:mm:ss.zzz").toLatin1());
-    s += " [";
-    s += QByteArray::number(processId);
-    s += "] ";
+    QDateTime curTime = QDateTime::currentDateTime();
 
-    if (!f) {
-#if defined(Q_OS_WIN32)
-        f = new QFile("c:/service-debuglog.txt");
-#else
-        f = new QFile("/tmp/service-debuglog.txt");
-#endif
-        if (!f->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
-            delete f;
-            f = 0;
+    QByteArray ba(curTime.toString("HH:mm:ss.zzz").toLatin1());
+    ba += " [";
+    ba += QByteArray::number(processId);
+    ba += "] ";
+
+
+    QString logFileName = m_baseDir + "/" + curTime.toString("yyyyMM") + "/" + m_fileBaseName + curTime.toString("yyyyMMdd") + ".log";
+    if(file && file->fileName() != logFileName){
+        closeDebugLog();
+    }
+
+    if (!file) {
+        QFileInfo info(logFileName);
+        QDir dir;
+        dir.mkpath(info.path());
+        file = new QFile(logFileName);
+        if (!file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
+            delete file;
+            file = 0;
             return;
         }
-        QByteArray ps('\n' + s + "------ DEBUG LOG OPENED ------\n");
-        f->write(ps);
+        QByteArray ps('\n' + ba + "------ DEBUG LOG OPENED " + "[" + APP_VERSION + "] " + curTime.toString("yyyy.MM.dd").toLatin1() + " ------\n");
+        file->write(ps);
     }
 
     switch (type) {
     case QtWarningMsg:
-        s += "WARNING: ";
+        ba += " WARNING: ";
         break;
     case QtCriticalMsg:
-        s += "CRITICAL: ";
+        ba += "CRITICAL: ";
         break;
     case QtFatalMsg:
-        s += "FATAL: ";
+        ba+= "    FATAL: ";
         break;
     case QtDebugMsg:
-        s += "DEBUG: ";
+        ba += "   DEBUG: ";
         break;
+//    case QtInfoMsg:
+//        s += "    INFO: ";
+//        break;
+
     default:
-        // Nothing
+        ba += "    INFO: ";
         break;
     }
 
@@ -97,9 +138,9 @@ static void closeDebugLog()
 
 #if QT_VERSION >= 0x050000
     QString str = QString("%1 (%2:%3, %4)").arg(msg).arg(context.file).arg(context.line).arg(context.function);
-    s += str.toUtf8();
+    ba += str.toUtf8();
 #else
-    s += msg;
+    ba += msg;
 #endif
 
 
@@ -111,10 +152,14 @@ static void closeDebugLog()
 //#else
 //    s += msg;
 //#endif
-    s += '\n';
+    ba += '\n';
 
-    f->write(s);
-    f->flush();
+    file->write(ba);
+    file->flush();
+
+    if(printTostderr){
+        fprintf(stderr, "%s\n", ba.data());
+    }
 
     if (type == QtFatalMsg) {
         closeDebugLog();
@@ -124,25 +169,29 @@ static void closeDebugLog()
 
 
 
-static void installMessageLogger()
-{
+static void installMessageLogger(const QString &baseDir, const QString &fileBaseName, bool printMsgTostderr = false){
+    if(!baseDir.trimmed().isEmpty()){
+        m_baseDir = baseDir;
+    }
+    if(!fileBaseName.trimmed().isEmpty()){
+        m_fileBaseName = fileBaseName;
+    }
 
 #  if QT_VERSION >= 0x050000
     //reset the message handler
     qInstallMessageHandler(0);
-    //qInstallMessageHandler(qtServiceLogDebug);
     qInstallMessageHandler(logDebug);
 #  else
     qInstallMsgHandler(0);
     qInstallMsgHandler(logDebug);
 #  endif
-//    qAddPostRoutine(qtServiceCloseDebugLog);
     qAddPostRoutine(closeDebugLog);
+
+    printTostderr = printMsgTostderr;
 
 }
 
-static void uninstallMessageLogger()
-{
+static void uninstallMessageLogger(){
     //reset the message handler
 #  if QT_VERSION >= 0x050000
     qInstallMessageHandler(0);

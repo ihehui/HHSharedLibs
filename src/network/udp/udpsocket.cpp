@@ -172,7 +172,7 @@ bool UDPSocket::sendDatagram(const QByteArray &data, const QHostAddress &targetA
         return false;
     }
 
-    return (size == data.size()) ? true : false;;
+    return (size == data.size()) ? true : false;
 
 }
 
