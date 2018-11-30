@@ -25,14 +25,18 @@ public:
 
     const uchar *dataArray() const;
 
+    QSize seenGeometry();
+
 signals:
+//    void screenGeometryChanged(const QRect &rect);
 
 public slots:
     bool init();
     void deInitilize();
+
+    bool isGeometryChanged();
     bool capture();
     void capture(QByteArray *dataArray);
-
 
 
 private:

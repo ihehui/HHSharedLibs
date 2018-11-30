@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QTime>
 #include <QApplication>
+#include <QScreen>
 
 #include <iostream>
 #include <fstream>
@@ -671,43 +672,44 @@ ScreenCaptureProcessor::ScreenCaptureProcessor(bool captureMode, QObject *parent
     m_blockRows = 0;
     m_blockColumns = 0;
 
-    if(captureMode){
-        m_capture = new ScreenCapture(this);
-        m_capture->init();
-        m_capture->getScreenRectInfo(&m_pixelSize, &m_imageWidth, &m_imageHeight);
-        ImageBlock::setImageInfo(m_pixelSize, m_imageWidth, m_imageHeight);
+    init();
+//    if(captureMode){
+//        m_capture = new ScreenCapture(this);
+//        m_capture->init();
+//        m_capture->getScreenRectInfo(&m_pixelSize, &m_imageWidth, &m_imageHeight);
+//        ImageBlock::setImageInfo(m_pixelSize, m_imageWidth, m_imageHeight);
 
-        m_dataSize = m_imageWidth * m_imageHeight * m_pixelSize;
-        m_previousBitmapData = new uchar[m_dataSize];
-        m_newBitmapData = new uchar[m_dataSize];
-        memset(m_previousBitmapData, 1, m_dataSize);
-        memset(m_newBitmapData, 1, m_dataSize);
-
-
-//        bi.biSize = sizeof(BITMAPINFOHEADER);
-//        bi.biWidth = m_imageWidth;
-//        bi.biHeight = m_imageHeight;
-//        bi.biPlanes = 1;
-//        bi.biBitCount = m_pixelSize * 3;
-//        bi.biCompression = BI_RGB;
-
-//        bf.bfType = 0x4d42;
-//        bf.bfSize = m_dataSize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
-//        bf.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+//        m_dataSize = m_imageWidth * m_imageHeight * m_pixelSize;
+//        m_previousBitmapData = new uchar[m_dataSize];
+//        m_newBitmapData = new uchar[m_dataSize];
+//        memset(m_previousBitmapData, 1, m_dataSize);
+//        memset(m_newBitmapData, 1, m_dataSize);
 
 
-        //m_previousBitmapData.resize(m_imageWidth * m_imageHeight * m_pixelSize);
-        //m_previousBitmapData.fill(1);
+////        bi.biSize = sizeof(BITMAPINFOHEADER);
+////        bi.biWidth = m_imageWidth;
+////        bi.biHeight = m_imageHeight;
+////        bi.biPlanes = 1;
+////        bi.biBitCount = m_pixelSize * 3;
+////        bi.biCompression = BI_RGB;
+
+////        bf.bfType = 0x4d42;
+////        bf.bfSize = m_dataSize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+////        bf.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+
+
+//        //m_previousBitmapData.resize(m_imageWidth * m_imageHeight * m_pixelSize);
+//        //m_previousBitmapData.fill(1);
 
 
 
-        setBlockInfo(10, 10);
+//        setBlockInfo(16, 16);
 
-    }
+//    }
 
-    m_timeInterval = 250;
+    m_timeInterval = 150;
     //m_linesInterval = 10;
-    m_lineStartOffset = 0;
+    //m_lineStartOffset = 0;
 
 
     m_aboutToQuit = false;
@@ -724,33 +726,40 @@ ScreenCaptureProcessor::ScreenCaptureProcessor(bool captureMode, QObject *parent
     m_keyFrameSent = false;
     m_moreThanHalfChangesCount = 0;
 
+    m_seenGeometryChangedEmitterTimer.setSingleShot(false);
+    m_seenGeometryChangedEmitterTimer.setInterval(50);
+    connect(&m_seenGeometryChangedEmitterTimer, SIGNAL(timeout()), this, SLOT(checkSeenGeometry()));
+    m_seenGeometryChangedEmitterTimer.start();
 
 }
 
 ScreenCaptureProcessor::~ScreenCaptureProcessor()
 {
-    setAboutToQuit(true);
+    setAboutToQuit();
     quit();
 
     while (!threadFinished()) {
         qApp->processEvents();
     }
 
-    if(m_captureMode){
-        m_capture->deInitilize();
-        delete m_capture;
-        m_capture = 0;
-    }
+    deInitilize();
 
-    foreach (ImageBlock *blk, m_imageBlocks) {
-        delete blk;
-        blk = 0;
-    }
-    m_imageBlocks.clear();
 
-    m_changedBlockIndexList.clear();
-    delete [] m_previousBitmapData;
-    delete [] m_newBitmapData;
+//    if(m_captureMode){
+//        m_capture->deInitilize();
+//        delete m_capture;
+//        m_capture = 0;
+//    }
+
+//    foreach (ImageBlock *blk, m_imageBlocks) {
+//        delete blk;
+//        blk = 0;
+//    }
+//    m_imageBlocks.clear();
+
+//    m_changedBlockIndexList.clear();
+//    delete [] m_previousBitmapData;
+//    delete [] m_newBitmapData;
 
 }
 
@@ -894,10 +903,11 @@ bool ScreenCaptureProcessor::getScreenCapture(QList<int> *blockIndex, QList<QByt
     return true;
 }
 
-void ScreenCaptureProcessor::setAboutToQuit(bool quit)
+void ScreenCaptureProcessor::setAboutToQuit()
 {
+    qDebug()<<"------setAboutToQuit()";
     QMutexLocker locker(&m_mutex);
-    m_aboutToQuit = quit;
+    m_aboutToQuit = true;
 
     cond.wakeAll();
 }
@@ -927,7 +937,7 @@ void ScreenCaptureProcessor::setTimerInterval(int interval)
     m_timeInterval = interval;
 }
 
-void ScreenCaptureProcessor::setBlockInfo(uint blockRows, uint blockColumns)
+void ScreenCaptureProcessor::clearBlockInfo()
 {
     QMutexLocker locker(&m_mutex);
 
@@ -938,7 +948,23 @@ void ScreenCaptureProcessor::setBlockInfo(uint blockRows, uint blockColumns)
     m_imageBlocks.clear();
     m_changedBlockIndexList.clear();
 
-    int maxValue = 100;
+    m_initialized = false;
+}
+
+void ScreenCaptureProcessor::setBlockInfo(uint blockRows, uint blockColumns)
+{
+    qDebug()<<"-----setBlockInfo()";
+
+    QMutexLocker locker(&m_mutex);
+
+//    foreach (ImageBlock *blk, m_imageBlocks) {
+//        delete blk;
+//        blk = 0;
+//    }
+//    m_imageBlocks.clear();
+//    m_changedBlockIndexList.clear();
+
+    int maxValue = 50;
 
     m_blockRows = qMax((uint)1, blockRows);
     m_blockColumns = qMax((uint)1, blockColumns);
@@ -996,7 +1022,7 @@ void ScreenCaptureProcessor::setBlockInfo(uint blockRows, uint blockColumns)
 
             blk->setSiblings(siblingRight, siblingBelow);
 
-            qDebug()<<"-----"<<i*m_blockColumns + j<<":"<<(i*m_blockColumns + j + 1)<<" "<<((i+1)*m_blockColumns + j);
+            //qDebug()<<"-----"<<i*m_blockColumns + j<<":"<<(i*m_blockColumns + j + 1)<<" "<<((i+1)*m_blockColumns + j);
         }
     }
 
@@ -1118,7 +1144,7 @@ void ScreenCaptureProcessor::setKeyFrameSent(bool sent)
     QMutexLocker locker(&m_keyFrameMutex);
     m_keyFrameSent = sent;
 
-    qDebug()<<"----m_keyFrameSent:"<<m_keyFrameSent;
+    //qDebug()<<"----m_keyFrameSent:"<<m_keyFrameSent;
 }
 
 bool ScreenCaptureProcessor::isKeyFrameSent()
@@ -1145,6 +1171,102 @@ QByteArray ScreenCaptureProcessor::dequeue()
     return m_queue.dequeue();
 }
 
+bool ScreenCaptureProcessor::init()
+{
+    qDebug()<<"------------ScreenCaptureProcessor::init()";
+
+
+    //QMutexLocker locker(&m_mutex);
+
+    if(m_capture){
+        return true;
+    }
+
+    if(m_captureMode){
+        m_capture = new ScreenCapture(this);
+        m_capture->init();
+        m_capture->getScreenRectInfo(&m_pixelSize, &m_imageWidth, &m_imageHeight);
+        ImageBlock::setImageInfo(m_pixelSize, m_imageWidth, m_imageHeight);
+
+        m_dataSize = m_imageWidth * m_imageHeight * m_pixelSize;
+        m_previousBitmapData = new uchar[m_dataSize];
+        m_newBitmapData = new uchar[m_dataSize];
+        memset(m_previousBitmapData, 1, m_dataSize);
+        memset(m_newBitmapData, 1, m_dataSize);
+
+
+//        bi.biSize = sizeof(BITMAPINFOHEADER);
+//        bi.biWidth = m_imageWidth;
+//        bi.biHeight = m_imageHeight;
+//        bi.biPlanes = 1;
+//        bi.biBitCount = m_pixelSize * 3;
+//        bi.biCompression = BI_RGB;
+
+//        bf.bfType = 0x4d42;
+//        bf.bfSize = m_dataSize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+//        bf.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+
+
+        //m_previousBitmapData.resize(m_imageWidth * m_imageHeight * m_pixelSize);
+        //m_previousBitmapData.fill(1);
+
+
+
+        setBlockInfo(16, 16);
+
+    }
+
+    m_aboutToQuit = false;
+    m_threadFinished = true;
+    m_bitmapFormat = ImageBlock::isBitmapFormat();
+
+    m_updateFixedBitmapData = false;
+
+    m_keyframeID = 1;
+    m_keyFrameInterval = m_orignalKeyFrameInterval = 5000;
+
+    return true;
+}
+
+void ScreenCaptureProcessor::deInitilize()
+{
+
+    qDebug()<<"------------ScreenCaptureProcessor::deInitilize()";
+
+    clearBlockInfo();
+
+    QMutexLocker locker(&m_mutex);
+
+    if(!m_capture){
+        return;
+    }
+
+    if(m_captureMode){
+        delete m_capture;
+        m_capture = 0;
+
+        m_dataSize = 0;
+        delete []m_previousBitmapData;
+        m_previousBitmapData = 0;
+
+        delete []m_newBitmapData;
+        m_newBitmapData = 0;
+
+    }
+
+    m_pixelSize = 0;
+    m_imageWidth = 0;
+    m_imageHeight = 0;
+
+
+    m_threadFinished = true;
+
+    m_keyframeID = 1;
+
+    m_changedBlockIndexList.clear();
+
+
+}
 
 void ScreenCaptureProcessor::updateKeyFrame()
 {
@@ -1276,7 +1398,7 @@ void ScreenCaptureProcessor::generateImageFromBitmapData()
 
 
         {
-            qDebug()<<"----------:"<<m_changedBlockIndexList.size();//<<"  "<<m_changedBlockIndexList;
+            //qDebug()<<"----------:"<<m_changedBlockIndexList.size();//<<"  "<<m_changedBlockIndexList;
             QPainter painter(&image);
             painter.setPen(Qt::red);
             for(int i=0; i<m_changedBlockIndexList.size(); i++){
@@ -1297,8 +1419,94 @@ void ScreenCaptureProcessor::generateImageFromBitmapData()
 
 }
 
+
+bool ScreenCaptureProcessor::setDesktop()
+{
+
+#ifdef Q_OS_WIN
+
+    WCHAR pvInfo[128] = {0};
+
+    HDESK hActiveDesktop;
+    DWORD dwLen;
+    hActiveDesktop = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, FALSE, MAXIMUM_ALLOWED);
+    if(!hActiveDesktop) {
+        qCritical() << "ERROR! OpenInputDesktop failed.";
+        return false;
+    }
+    //获取指定桌面对象的信息，一般情况和屏保状态为default，登陆界面为winlogon
+    GetUserObjectInformation(hActiveDesktop, UOI_NAME, pvInfo, sizeof(pvInfo), &dwLen);
+    if(dwLen == 0) {
+        qCritical() << "ERROR! GetUserObjectInformation failed.";
+        return false;
+    }
+    CloseDesktop(hActiveDesktop);
+    //打开winsta0
+    HWINSTA m_hwinsta = OpenWindowStationW(L"winsta0", FALSE,
+                                           WINSTA_ACCESSCLIPBOARD   |
+                                           WINSTA_ACCESSGLOBALATOMS |
+                                           WINSTA_CREATEDESKTOP     |
+                                           WINSTA_ENUMDESKTOPS      |
+                                           WINSTA_ENUMERATE         |
+                                           WINSTA_EXITWINDOWS       |
+                                           WINSTA_READATTRIBUTES    |
+                                           WINSTA_READSCREEN        |
+                                           WINSTA_WRITEATTRIBUTES);
+    if (m_hwinsta == NULL) {
+        qCritical() << "ERROR! OpenWindowStationW failed.";
+        return false;
+    }
+
+    if (!SetProcessWindowStation(m_hwinsta)) {
+        qCritical() << "ERROR! SetProcessWindowStation failed.";
+        return false;
+    }
+
+    //打开desktop
+    HDESK m_hdesk = OpenDesktopW(pvInfo, 0, FALSE,
+                                 DESKTOP_CREATEMENU |
+                                 DESKTOP_CREATEWINDOW |
+                                 DESKTOP_ENUMERATE    |
+                                 DESKTOP_HOOKCONTROL |
+                                 DESKTOP_JOURNALPLAYBACK |
+                                 DESKTOP_JOURNALRECORD |
+                                 DESKTOP_READOBJECTS |
+                                 DESKTOP_SWITCHDESKTOP |
+                                 DESKTOP_WRITEOBJECTS);
+    if (m_hdesk == NULL) {
+        qCritical() << "ERROR! OpenDesktopW failed.";
+        return false;
+    }
+
+    return SetThreadDesktop(m_hdesk);
+
+#endif
+
+    return true;
+}
+
+void ScreenCaptureProcessor::checkSeenGeometry()
+{
+
+#ifdef Q_OS_WIN
+
+    if(m_capture){
+        int curWidth   =  GetSystemMetrics(SM_CXSCREEN);
+        int curHeight   = GetSystemMetrics(SM_CYSCREEN);
+        if(m_imageWidth != curWidth || (m_imageHeight != curHeight)){
+            //qCritical()<<QString("Screen geometry changed from %1x%2 to %3x%4!").arg(m_nWidth).arg(m_nHeight).arg(curWidth).arg(curHeight);
+            emit signalSeenGeometryChanged();
+        }
+    }
+#endif
+
+}
+
 void ScreenCaptureProcessor::run()
 {
+    qWarning()<<"Thread started!";
+
+    setDesktop();
 
     {
         QMutexLocker locker(&m_mutex);
@@ -1313,10 +1521,7 @@ void ScreenCaptureProcessor::run()
             memset(m_newBitmapData, 1, m_dataSize);
         }
 
-
-        qWarning()<<"Thread started!";
     }
-
 
 
     if(m_captureMode){
@@ -1362,7 +1567,12 @@ void ScreenCaptureProcessor::run()
 
                     m_changedBlockIndexList.clear();
                     //m_newBitmapData.clear();
-                    m_capture->capture();
+                    if(!m_capture->capture() && m_capture->isGeometryChanged()){
+                        m_aboutToQuit = true;
+                        m_threadFinished = true;
+                        //emit signalSeenGeometryChanged();
+                        return;
+                    }
                     const uchar *dataArray = m_capture->dataArray();
                     memcpy(m_newBitmapData, dataArray, m_dataSize);
 
@@ -1521,7 +1731,7 @@ void ScreenCaptureProcessor::run()
             m_changedBlockIndexList.clear();
 
 
-            qWarning()<<"--4--"<<t2.elapsed();
+//            qWarning()<<"--4--"<<t2.elapsed();
             t2.restart();
 
         }
@@ -1546,7 +1756,9 @@ void ScreenCaptureProcessor::run()
         delete [] m_newBitmapData;
         m_newBitmapData = 0;
 
-        qWarning()<<"Thread finished!";
     }
+
+    qWarning()<<"Thread finished!";
+
 
 }
