@@ -129,6 +129,8 @@ signals:
     void signalScreenDataChanged(const QList<int> &blockIndexList);
     void signalScreenDataChanged();
 
+    void signalSeenGeometryChanged();
+
 
 public slots:
     void getScreenRectInfo(int *pixelSize, int *width, int *height, uint *blockRows, uint *blockColumns, bool *bitmapFormat);
@@ -137,13 +139,15 @@ public slots:
     bool getScreenCapture(QList<int> *blockIndex, QList<QByteArray> *blockData, bool onlyChanged = true);
     void updateBlockData(QList<int> *blockIndexList, QList<QByteArray> *blockDataList); //Receiver
 
-    void setAboutToQuit(bool quit);
+    void setAboutToQuit();
     bool isAboutToQuit();
     bool threadFinished();
 
     void setBitmapFormat(bool bitmap);
 
     void setTimerInterval(int interval);
+
+    void clearBlockInfo();
     void setBlockInfo(uint blockRows, uint blockColumns);
 
     const QByteArray fullFixedBitmapData();
@@ -159,12 +163,22 @@ public slots:
     void enqueue(const QByteArray &data);
     QByteArray dequeue();
 
+
+    bool init();
+    void deInitilize();
+
 private slots:
+
+
     //void timerTimeout();
     void updateKeyFrame();
 
     void generateImage();
     void generateImageFromBitmapData();
+
+    bool setDesktop();
+
+    void checkSeenGeometry();
 
 
 protected:
@@ -192,7 +206,7 @@ private:
 
     int m_timeInterval; //ms
     //int m_linesInterval;
-    int m_lineStartOffset;
+    //int m_lineStartOffset;
 
 
 
@@ -226,6 +240,8 @@ private:
     int m_moreThanHalfChangesCount;
 
     QQueue<QByteArray> m_queue;
+
+    QTimer m_seenGeometryChangedEmitterTimer;
 
 
 };

@@ -49,7 +49,9 @@ ScreenCapture::ScreenCapture(QObject *parent) : QObject(parent)
 
 ScreenCapture::~ScreenCapture()
 {
-    deInitilize();
+    if(m_initialized){
+        deInitilize();
+    }
 }
 
 //const QByteArray ScreenCapture::bitmapData()
@@ -83,8 +85,21 @@ const uchar * ScreenCapture::dataArray() const
     return m_dataArray;
 }
 
+QSize ScreenCapture::seenGeometry()
+{
+
+#ifdef Q_OS_WIN
+    return QSize(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+#else
+
+#endif
+
+    return QSize(0, 0);
+}
+
 bool ScreenCapture::init()
 {
+    qDebug()<<"------ScreenCapture::init()";
 
     delete [] m_dataArray;
     m_imageBytes = 0;
@@ -102,9 +117,13 @@ bool ScreenCapture::init()
     m_nWidth = rect.right - rect.left;
     m_nHeight = rect.bottom - rect.top;
 
+//    m_nWidth   =  GetSystemMetrics(SM_CXSCREEN);
+//    m_nHeight   = GetSystemMetrics(SM_CYSCREEN);
+
     if(NULL == m_hSrcDC){
-        m_hSrcDC = ::GetWindowDC(m_hWnd);
-        //m_hSrcDC = ::CreateDC(L"display",NULL,NULL,NULL);
+        //m_hSrcDC = ::GetWindowDC(m_hWnd);
+        //m_hSrcDC = ::GetDC(NULL);
+        m_hSrcDC = ::CreateDC(L"display",NULL,NULL,NULL);
     }
     assert(m_hSrcDC);
 
@@ -168,6 +187,7 @@ bool ScreenCapture::init()
 
 void ScreenCapture::deInitilize()
 {
+    qDebug()<<"------ScreenCapture::deInitilize()";
 
     delete [] m_dataArray;
     m_dataArray = 0;
@@ -196,6 +216,24 @@ void ScreenCapture::deInitilize()
 
 }
 
+bool ScreenCapture::isGeometryChanged()
+{
+#ifdef Q_OS_WIN
+
+    int curWidth   =  GetSystemMetrics(SM_CXSCREEN);
+    int curHeight   = GetSystemMetrics(SM_CYSCREEN);
+    if(m_nWidth != curWidth || (m_nHeight != curHeight)){
+        qCritical()<<QString("Screen geometry changed from %1x%2 to %3x%4!").arg(m_nWidth).arg(m_nHeight).arg(curWidth).arg(curHeight);
+        return true;
+    }
+
+#else
+
+#endif
+
+    return false;
+}
+
 bool ScreenCapture::capture()
 {
     assert(m_initialized);
@@ -211,21 +249,25 @@ bool ScreenCapture::capture()
 #ifdef Q_OS_WIN
 
 
-    ::BitBlt(m_hMemDC, 0, 0, m_nWidth, m_nHeight, m_hSrcDC, 0, 0, SRCCOPY|CAPTUREBLT);
+    if(isGeometryChanged()){
+        //deInitilize();
+        //init();
+        return false;
+    }
 
+
+    ::BitBlt(m_hMemDC, 0, 0, m_nWidth, m_nHeight, m_hSrcDC, 0, 0, SRCCOPY|CAPTUREBLT);
 
     LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(m_hDib);
     *lpbi = m_bi;
 
     ::GetDIBits(m_hMemDC, m_hBitmap, 0, m_nHeight, (BYTE*)lpbi + sizeof(BITMAPINFOHEADER), (BITMAPINFO*)lpbi, DIB_RGB_COLORS);
 
-
     m_bf.bfType = 0x4d42;
     m_bf.bfSize = m_imageBytes + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
     m_bf.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 
     memcpy(m_dataArray, (const uchar*)lpbi + sizeof(BITMAPINFOHEADER), m_imageBytes);
-
 
     GlobalUnlock(m_hDib);
 //    GlobalFree(hDib);
