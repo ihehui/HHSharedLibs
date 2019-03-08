@@ -2,7 +2,7 @@
 
 #include <QProcess>
 #include <QDebug>
-
+#include <QFileInfo>
 
 
 #ifdef Q_OS_WIN32

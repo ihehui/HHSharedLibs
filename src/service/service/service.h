@@ -114,6 +114,8 @@ public:
 #endif
 
     static void enableLog(bool enable, const QString &fileBaseName = "log", const QString &baseDir = "./");
+    static bool getCurrentModuleFileName(QString *path);
+    static QString applicationDirPath();
 
 protected:
     virtual void start() = 0;

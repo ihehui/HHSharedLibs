@@ -17,7 +17,8 @@ HEADERS += $$PWD/logdebug.h \
     $$PWD/core_lib.h \
     $$PWD/jobmonitor.h \
     $$PWD/logger/messagelogger.h \
-    $$PWD/logger/messageloggerbase.h
+    $$PWD/logger/messageloggerbase.h \
+    $$PWD/crashhandler.h
 FORMS += 
 SOURCES += $$PWD/cryptography/tea/teacrypt.cpp \
     $$PWD/cryptography/cryptography.cpp \

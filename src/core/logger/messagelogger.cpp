@@ -18,7 +18,12 @@ void afterCrashDump(int signalNO, const QStringList &dump)
     QString text = QObject::tr("An unhandled exception has occurred, the application has been terminated!\nSignal:%1").arg(signalNO);
     QString detail = dump.join("\n");
 
-    bool isKDE = qgetenv("XDG_CURRENT_DESKTOP").toLower() == "kde";
+    QString curDesktop = qgetenv("XDG_CURRENT_DESKTOP").trimmed().toLower();
+    if(curDesktop.isEmpty()){
+        return;
+    }
+
+    bool isKDE = (curDesktop == "kde");
     QString process;
     QStringList args;
     if(isKDE){
@@ -31,7 +36,6 @@ void afterCrashDump(int signalNO, const QStringList &dump)
     QProcess::startDetached(process,  args);
 
     exit(signalNO);
-    return;
 
 //    QMessageBox msgBox;
 //    msgBox.setWindowTitle(QObject::tr("Exception"));
@@ -46,7 +50,6 @@ void afterCrashDump(int signalNO, const QStringList &dump)
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-
 
 
 

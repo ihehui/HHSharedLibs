@@ -35,8 +35,6 @@ void cleanup_ptr()
 
 
 //// Linux Signals: SIGPIPE, SIGSEGV, SIGFPE, SIGABRT
-//// g++ -g src.cpp
-
 ////USAGE:  signal(SIGSEGV, gdbdump); // SIGSEGV 11  Core Invalid memory reference
 void gdbdump(int signo)
 {

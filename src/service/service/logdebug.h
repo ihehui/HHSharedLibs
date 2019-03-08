@@ -173,6 +173,10 @@ static void installMessageLogger(const QString &baseDir, const QString &fileBase
     if(!baseDir.trimmed().isEmpty()){
         m_baseDir = baseDir;
     }
+    QDir dir(baseDir);
+    if(!dir.exists()){
+        dir.mkpath(baseDir);
+    }
     if(!fileBaseName.trimmed().isEmpty()){
         m_fileBaseName = fileBaseName;
     }

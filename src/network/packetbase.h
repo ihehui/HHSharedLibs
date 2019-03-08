@@ -93,8 +93,8 @@ public:
     SOCKETID getSocketID() const;
     void setSocketID(SOCKETID id);
 
-    QString getPeerID() const;
-    void setPeerID(const QString &id);
+    QString getSenderID() const;
+    void setSenderID(const QString &id);
 
     const static QString getLocalID();
     static void setLocalID(const QString &id);
@@ -117,7 +117,7 @@ private:
     quint16 peerHostPort;
 
     SOCKETID m_socketID;
-    QString m_peerID;
+    QString m_senderID;
 
 };
 

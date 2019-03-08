@@ -91,7 +91,7 @@ PacketBase::PacketBase()
     this->peerHostPort = 0;
 
     this->m_socketID = 0;
-    this->m_peerID = "";
+    this->m_senderID = "";
 
 
 }
@@ -108,7 +108,7 @@ PacketBase::PacketBase(quint8 packetType, quint8 packetSubType)
     this->peerHostPort = 0;
 
     this->m_socketID = 0;
-    this->m_peerID = "";
+    this->m_senderID = "";
 
 }
 
@@ -128,7 +128,7 @@ PacketBase &PacketBase::operator = (const PacketBase &packet)
     this->peerHostPort = packet.peerHostPort;
 
     this->m_socketID = packet.m_socketID;
-    this->m_peerID = packet.m_peerID;
+    this->m_senderID = packet.m_senderID;
 
     return *this;
 }
@@ -165,7 +165,7 @@ void PacketBase::resetPacket()
     this->peerHostPort = 0;
 
     this->m_socketID = 0;
-    this->m_peerID = "";
+    this->m_senderID = "";
 }
 
 bool PacketBase::isValid()
@@ -192,13 +192,13 @@ bool PacketBase::fromByteArray(QByteArray *data)
     };
 
     this->m_packetType = UnKnownPacket;
-    this->m_peerID = "";
+    this->m_senderID = "";
     this->m_packetBody.clear();
     this->m_packetBody.resize(0);
 
     QDataStream in(data, QIODevice::ReadOnly);
     in.setVersion(QDataStream::Qt_4_8);
-    in >> m_packetType >> m_packetSubType >> m_peerID >> m_packetBody;
+    in >> m_packetType >> m_packetSubType >> m_senderID >> m_packetBody;
 
     return (UnKnownPacket != m_packetType) && (!m_packetBody.isEmpty());
 }
@@ -321,14 +321,14 @@ void PacketBase::setSocketID(SOCKETID id)
     this->m_socketID = id;
 }
 
-QString PacketBase::getPeerID() const
+QString PacketBase::getSenderID() const
 {
-    return m_peerID;
+    return m_senderID;
 }
 
-void PacketBase::setPeerID(const QString &id)
+void PacketBase::setSenderID(const QString &id)
 {
-    this->m_peerID = id;
+    this->m_senderID = id;
 }
 
 const QString PacketBase::getLocalID()
@@ -448,7 +448,7 @@ void Packet::fromPacket(const PacketBase &base)
     setPeerHostPort(base.getPeerHostPort());
 
     setSocketID(base.getSocketID());
-    setPeerID(base.getPeerID());
+    setSenderID(base.getSenderID());
 
     QByteArray packetBody;
     if(m_encrypted){
@@ -469,7 +469,7 @@ void Packet::convert(const PacketBase &base)
     setPeerHostPort(base.getPeerHostPort());
 
     setSocketID(base.getSocketID());
-    setPeerID(base.getPeerID());
+    setSenderID(base.getSenderID());
 
     setPacketBody(base.getPacketBody());
 

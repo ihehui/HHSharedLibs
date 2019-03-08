@@ -34,7 +34,12 @@
 #include "service.h"
 #include "logdebug.h"
 
-
+#ifdef Q_OS_UNIX
+//    #include <stdio.h>
+//    #include <string.h>
+//    #include <stdlib.h>
+//    #include <limits.h>
+#endif
 
 
 Service::Service(int argc, char **argv, const QString &serviceName, const QString &description, bool interactive)
@@ -56,7 +61,7 @@ Service::Service(int argc, char **argv, const QString &serviceName, const QStrin
 
 
 #if defined(SERVICE_DEBUG)
-    enableLog(true, serviceName);
+    enableLog(true, serviceName, applicationDirPath() + "/log/" + serviceName);
 #else
     for(int i = 0; i < argc; i++){
         if("-log" == QString(argv[i]).toLower()){
@@ -91,6 +96,68 @@ void Service::enableLog(bool enable, const QString &fileBaseName, const QString 
     }
 
 }
+
+bool Service::getCurrentModuleFileName(QString *path)
+{
+    if(!path){return false;}
+
+#ifdef Q_OS_WIN
+
+    std::vector<WCHAR> buffer;
+    DWORD size = MAX_PATH;
+
+    while (true) {
+        // Allocate buffer
+        buffer.resize(size + 1);
+        // Try to get file name
+        DWORD ret = GetModuleFileName(NULL, &buffer[0], size);
+
+        if (ret == 0) {
+            return false;
+        } else if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+            size += 128;
+        } else {
+            break;
+        }
+    }
+
+    *path = QString::fromStdWString(&buffer[0]);
+
+#else
+
+    const int MAX_SIZE = 4096;
+    char current_absolute_path[MAX_SIZE];
+
+//    if (NULL == getcwd(current_absolute_path, MAX_SIZE)){
+//        return false;
+//    }
+
+    int cnt = readlink("/proc/self/exe", current_absolute_path, MAX_SIZE);
+    if (cnt < 0 || cnt >= MAX_SIZE)
+    {
+        return false;
+    }
+
+    *path = QString::fromLocal8Bit(current_absolute_path);
+#endif
+
+
+    return true;
+}
+
+QString Service::applicationDirPath()
+{
+    QString path = "";
+    bool ok = getCurrentModuleFileName(&path);
+    Q_ASSERT(ok);
+    if(ok){
+        QFileInfo fi(path);
+        return fi.absolutePath();
+    }
+
+    return "";
+}
+
 
 #ifdef Q_OS_WIN
 
