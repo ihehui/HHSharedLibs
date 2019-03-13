@@ -354,8 +354,40 @@ bool SystemUtilities::getCurrentModuleFileName(QString *path)
 
 }
 
+QStringList SystemUtilities::localCreatedUsers()
+{
+#ifdef Q_OS_WIN
+    return WinUtilities::localCreatedUsers();
+#else
+    return UnixUtilities::localCreatedUsers();
+#endif
+}
 
+bool SystemUtilities::getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName, unsigned long *errorCode)
+{
+#ifdef Q_OS_WIN
+    return WinUtilities::getLocalGroupsTheUserBelongs(groups, userName, errorCode);
+#else
+    return UnixUtilities::getLocalGroupsTheUserBelongs(groups, userName, errorCode);
+#endif
+}
 
+bool SystemUtilities::getAllUsersInfo(QJsonArray *jsonArray, unsigned long *errorCode)
+{
+#ifdef Q_OS_WIN
+    return WinUtilities::getAllUsersInfo(jsonArray, errorCode);
+#else
+    return UnixUtilities::getAllUsersInfo(jsonArray, errorCode);
+#endif
+}
 
+bool SystemUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, unsigned long *errorCode, unsigned long serviceType)
+{
+#ifdef Q_OS_WIN
+    return WinUtilities::serviceGetAllServicesInfo(jsonArray, errorCode, serviceType);
+#else
+    return UnixUtilities::serviceGetAllServicesInfo(jsonArray, errorCode, serviceType);
+#endif
+}
 
 } //namespace HEHUI

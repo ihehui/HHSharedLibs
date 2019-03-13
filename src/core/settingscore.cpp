@@ -121,7 +121,7 @@ void SettingsCore::enableLog(bool enable, const QString &logFileBaaseName, bool 
             targets |= MessageLoggerBase::TARGET_DATABASE;
         }
 
-#ifdef DEBUG
+#ifdef _DEBUG_
     initLogger(targets | MessageLoggerBase::TARGET_CONSOLE, logFileBaaseName);
 #else
     initLogger(targets, logFileBaaseName);

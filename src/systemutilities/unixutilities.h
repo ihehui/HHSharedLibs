@@ -2,6 +2,8 @@
 #define UNIXUTILITIES_H
 
 #include <QObject>
+#include <QJsonArray>
+
 #include "utilities_def.h"
 
 
@@ -39,6 +41,12 @@ public:
     static QStringList getDrivesStatus();
     static QString getDriveSN(const QString &drive); // drive: /dev/sda, Root NOLY!!!
 
+    static bool getAllUsersLoggedOn(QStringList *users);
+    static QStringList localCreatedUsers();
+    static bool getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "", unsigned long *errorCode = 0);
+    static bool getAllUsersInfo(QJsonArray *jsonArray, unsigned long *errorCode = 0);
+
+    static bool serviceGetAllServicesInfo(QJsonArray *jsonArray, unsigned long *errorCode = 0, unsigned long serviceType = 0);
 
 signals:
 

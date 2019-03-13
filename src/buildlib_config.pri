@@ -70,6 +70,7 @@ CONFIG( debug, debug|release ) {
         #message( DEBUG Build )
         #Output Debugging Messages, For Windows
         CONFIG	+= console
+        DEFINES += _DEBUG_ _DEBUG
 
 	unix:PACKAGE_TARGET	= $$quote($$join(PACKAGE_TARGET,,,_debug))
 	else:PACKAGE_TARGET	= $$quote($$join(PACKAGE_TARGET,,,d))

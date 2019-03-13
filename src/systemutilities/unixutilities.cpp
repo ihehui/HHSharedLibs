@@ -16,6 +16,9 @@
 #include <mntent.h>
 
 #include <QDebug>
+#include <QProcess>
+#include <QFile>
+
 
 
 double cal_cpuoccupy (CPU_OCCUPY *o, CPU_OCCUPY *n)
@@ -285,4 +288,210 @@ QString UnixUtilities::getDriveSN(const QString &drive){
     }
 
     return "";
+}
+
+bool UnixUtilities::getAllUsersLoggedOn(QStringList *users)
+{
+    if(!users){return false;}
+
+    QProcess process;
+    QString cmdString = QString("who -m");
+    process.start(cmdString);
+    if(!process.waitForFinished()) {
+        return false;
+    }
+    if(!process.waitForReadyRead()) {
+        return false;
+    }
+
+    QByteArray output = process.readAllStandardOutput();
+    QString line = "";
+    QTextStream in(&output);
+    QString name = "";
+    while (in.readLineInto(&line)) {
+        name = line.split(" ").first();
+        if(name.trimmed().isEmpty()){continue;}
+        users->append(name);
+    }
+
+    return true;
+}
+
+QStringList UnixUtilities::localCreatedUsers()
+{
+    QStringList usersList;
+
+    QFile file("/etc/passwd");
+    if(!file.open(QIODevice::Text | QIODevice::ReadOnly)){
+        qCritical()<<QString("Failed to open file! %1").arg(file.errorString());
+        return usersList;
+    }
+
+    QString line = "";
+    QString name = "";
+    while (!file.atEnd()) {
+        line = QString::fromLocal8Bit(file.readLine());
+        name = line.split(":").first();
+        if(name.trimmed().isEmpty()){continue;}
+        usersList.append(name);
+    }
+
+    return usersList;
+}
+
+bool UnixUtilities::getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName, unsigned long *errorCode)
+{
+    if(!groups || userName.trimmed().isEmpty()){
+        return false;
+    }
+
+    QFile file("/etc/group");
+    if(!file.open(QIODevice::Text | QIODevice::ReadOnly)){
+        qCritical()<<QString("Failed to open file! %1").arg(file.errorString());
+        return false;
+    }
+
+    QString line = "";
+    QString groupName = "";
+    QStringList infoList;
+    while (!file.atEnd()) {
+        line = QString::fromLocal8Bit(file.readLine());
+        infoList = line.split(":");
+        if(infoList.size() < 4){continue;}
+
+        groupName = infoList.first();
+        if(groupName.trimmed().isEmpty()){continue;}
+
+        infoList = infoList.at(3).split(",");
+        if(infoList.contains(userName)){
+            groups->append(groupName);
+        }
+
+    }
+
+    return true;
+}
+
+bool UnixUtilities::getAllUsersInfo(QJsonArray *jsonArray,  unsigned long *errorCode)
+{
+
+    if(!jsonArray) {
+        return false;
+    }
+
+    QFile file("/etc/passwd");
+    if(!file.open(QIODevice::Text | QIODevice::ReadOnly)){
+        qCritical()<<QString("Failed to open file! %1").arg(file.errorString());
+        return false;
+    }
+
+    QStringList loggedonUser;
+    getAllUsersLoggedOn(&loggedonUser);
+    loggedonUser.removeDuplicates();
+
+    QString line = "";
+    QString userName = "";
+    QStringList infoList;
+    while (!file.atEnd()) {
+        line = QString::fromLocal8Bit(file.readLine());
+        infoList = line.split(":");
+        if(infoList.size() < 7){continue;}
+        userName = infoList.first();
+
+        QJsonArray array;
+        array.append(userName); //User Name
+
+        bool loggedon =  loggedonUser.contains(userName, Qt::CaseInsensitive);
+        array.append(QString::number(loggedon)); //Loggedon
+
+        array.append(infoList.at(5)); //Home Dir
+        array.append(infoList.at(4)); //Comment
+
+        array.append(QString::number(0)); //Account Disabled
+        array.append(QString::number(0)); //Can not Change Password
+        array.append(QString::number(0)); //Account Locked
+        array.append(QString::number(1)); //Password Never Expires
+
+        array.append(infoList.at(4)); //FullName
+
+        array.append(QString::number(0)); //Last Logon Time
+        array.append(QString::number(0)); //Last Logoff Time
+        array.append(infoList.at(2)); //UID
+
+        array.append(infoList.at(6)); //Profile
+
+        array.append(QString::number(0)); //Must Change Password
+
+        QStringList groups;
+        getLocalGroupsTheUserBelongs(&groups, userName);
+        groups.sort(Qt::CaseInsensitive);
+        array.append(groups.join(";")); //Groups
+
+
+        jsonArray->append(array);
+    }
+
+    return true;
+}
+
+bool UnixUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, unsigned long *errorCode, unsigned long serviceType)
+{
+
+    if(!jsonArray) {
+        return false;
+    }
+
+    QProcess process;
+    QString cmdString = QString("who -m");
+    process.start(cmdString);
+    if(!process.waitForFinished()) {
+        return false;
+    }
+    if(!process.waitForReadyRead()) {
+        return false;
+    }
+    QByteArray output = process.readAllStandardOutput();
+    if(output.trimmed().isEmpty()){
+        return false;
+    }
+
+    char serviceName[1024];
+    char loaded[32];
+    char active[32];
+    char running[32];
+    char description[1024];
+    int num = 0;
+
+    QString line = "";
+    QTextStream in(&output);
+    while (in.readLineInto(&line)) {
+
+        memset(serviceName, 0, 1024);
+        memset(loaded, 0, 32);
+        memset(active, 0, 32);
+        memset(running, 0, 32);
+        memset(description, 0, 1024);
+        num = sscanf(line.toLocal8Bit().data(), "%s %s %s %s %[^\n]", serviceName, loaded, active, running, description);
+        if(5 != num){
+            QString msg = tr("Failed to parse data: %1").arg(line);
+            qCritical()<<msg;
+            continue;
+        }
+
+        QJsonArray array;
+        array.append(serviceName); //Service Name
+        array.append(QString(serviceName).replace(".service", "")); //Display Name
+        array.append(QString::number(0)); //Process ID
+        array.append(QString(description).trimmed()); //Description
+        array.append(active); //Start Type
+        array.append("Root"); //Account
+        array.append(""); //Dependencies
+        array.append(""); //Binary Path
+        array.append(""); //Service Type
+
+        jsonArray->append(array);
+    }
+
+    return true;
+
 }

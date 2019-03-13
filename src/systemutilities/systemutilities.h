@@ -35,6 +35,12 @@ public:
 
     static bool getCurrentModuleFileName(QString *path);
 
+    static QStringList localCreatedUsers();
+    static bool getLocalGroupsTheUserBelongs(QStringList *groups, const QString &userName = "", unsigned long *errorCode = 0);
+    static bool getAllUsersInfo(QJsonArray *jsonArray, unsigned long *errorCode = 0);
+
+    static bool serviceGetAllServicesInfo(QJsonArray *jsonArray, unsigned long *errorCode = 0, unsigned long serviceType = 0);
+
 
 public slots:
 
