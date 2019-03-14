@@ -1,5 +1,5 @@
-#ifndef HARDWAREMONITOR_H
-#define HARDWAREMONITOR_H
+#ifndef HARDWARINFO_WIN_H
+#define HARDWARINFO_WIN_H
 
 #include <QObject>
 #include "../systemutilitieslib.h"
@@ -13,16 +13,16 @@ namespace HEHUI
 class WMIQuery;
 
 
-class SYSUTIL_LIB_API HardwareMonitor : public QObject
+class SYSUTIL_LIB_API HardwareInfoWin : public QObject
 {
     Q_OBJECT
 public:
-    explicit HardwareMonitor(QObject *parent = 0);
-    ~HardwareMonitor();
+    explicit HardwareInfoWin(QObject *parent = 0);
+    ~HardwareInfoWin();
 
     QString getCPUTemperature();
     int getCPUTemperature2(int processorIndex = 0);
-    bool getCPUInfo(int *numberOfLogicalProcessors, int *numberOfProcessorCores = 0, int *numberOfPhysicalProcessorPackages = 0);
+    bool getCPUInfo(int *numberOfLogicalProcessors, int *numberOfProcessorCores = 0, int *numberOfPhysicalProcessorPackages = 0, QString *modelName = 0);
 
     //All harddisk temperatures are separted by ','
     QString getHardDiskTemperature();
@@ -32,7 +32,7 @@ public:
     static QString WinOSProductKey();
 
     QString EDIDBinToChr(const QString &bin);
-    QString MonitorID(const QString &pnpDeviceID);
+    QString monitorID(const QString &pnpDeviceID);
 
     bool getOSInfo(QJsonObject *object);
     bool getBaseBoardInfo(QJsonObject *object);
@@ -65,4 +65,4 @@ private:
 
 } //namespace HEHUI
 
-#endif // HARDWAREMONITOR_H
+#endif // HARDWARINFO_WIN_H

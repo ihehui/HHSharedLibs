@@ -3,14 +3,19 @@
 HEADERS += \
     $$PWD/systemutilities.h \
     $$PWD/systemutilitieslib.h \
-    $$PWD/utilities_def.h
+    $$PWD/utilities_def.h \
+    $$PWD/hardwareinfo/hardwareinfo.h
 
-SOURCES += $$PWD/systemutilities.cpp
+SOURCES += $$PWD/systemutilities.cpp \
+    $$PWD/hardwareinfo/hardwareinfo.cpp
+
 
 unix {
-HEADERS += $$PWD/unixutilities.h
+HEADERS += $$PWD/unixutilities.h \
+    $$PWD/hardwareinfo/hardwareinfo_unix.h
 
-SOURCES += $$PWD/unixutilities.cpp
+SOURCES += $$PWD/unixutilities.cpp \
+    $$PWD/hardwareinfo/hardwareinfo_unix.cpp
 }
 
 win32 { 
@@ -18,22 +23,22 @@ win32 {
 HEADERS += \
     $$PWD/windowsmanagement.h \
     $$PWD/adsi.h \
-    $$PWD/hardwaremonitor/hardwaremonitor.h \
     $$PWD/activex/qaxtypefunctions.h \
     $$PWD/activex/qaxtypes.h \
     $$PWD/activex/wmiquery.h \
     $$PWD/winutilities.h \
-    $$PWD/ctrlaltdelsimulator.h
+    $$PWD/ctrlaltdelsimulator.h \
+    $$PWD/hardwareinfo/hardwareinfo_win.h
 
 
 SOURCES += $$PWD/windowsmanagement.cpp \
     $$PWD/adsi.cpp \
-    $$PWD/hardwaremonitor/hardwaremonitor.cpp \
     $$PWD/activex/qaxtypefunctions.cpp \
     $$PWD/activex/qaxtypes.cpp \
     $$PWD/activex/wmiquery.cpp \
     $$PWD/winutilities.cpp \
-    $$PWD/ctrlaltdelsimulator.cpp
+    $$PWD/ctrlaltdelsimulator.cpp \
+    $$PWD/hardwareinfo/hardwareinfo_win.cpp
 
 
     INCLUDEPATH += $$PWD \

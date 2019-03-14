@@ -3,7 +3,7 @@
 #include <QJsonDocument>
 #include <QDate>
 
-#include "hardwaremonitor.h"
+#include "hardwareinfo_win.h"
 
 //Load-Time Dynamic Linking
 //#include "OlsApi.h"
@@ -27,7 +27,7 @@
 namespace HEHUI {
 
 
-HardwareMonitor::HardwareMonitor(QObject *parent) : QObject(parent)
+HardwareInfoWin::HardwareInfoWin(QObject *parent) : QObject(parent)
 {
 
     m_winRing0Initialized = false;
@@ -36,7 +36,7 @@ HardwareMonitor::HardwareMonitor(QObject *parent) : QObject(parent)
 
 }
 
-HardwareMonitor::~HardwareMonitor()
+HardwareInfoWin::~HardwareInfoWin()
 {
 
     if(m_winRing0Initialized){
@@ -50,7 +50,7 @@ HardwareMonitor::~HardwareMonitor()
 
 }
 
-bool HardwareMonitor::initWinRing0(){
+bool HardwareInfoWin::initWinRing0(){
 
     if(m_winRing0Initialized){
         return true;
@@ -94,13 +94,13 @@ bool HardwareMonitor::initWinRing0(){
 
 }
 
-void HardwareMonitor::initWMIQuery(){
+void HardwareInfoWin::initWMIQuery(){
     if(!m_wmiQuery){
         m_wmiQuery = new WMIQuery(this);
     }
 }
 
-QString HardwareMonitor::getCPUTemperature(){
+QString HardwareInfoWin::getCPUTemperature(){
 
     initWinRing0();
     if(!m_winRing0Initialized){
@@ -148,7 +148,7 @@ QString HardwareMonitor::getCPUTemperature(){
 
 }
 
-int HardwareMonitor::getCPUTemperature2(int processorIndex){
+int HardwareInfoWin::getCPUTemperature2(int processorIndex){
 
     initWinRing0();
     if(!m_winRing0Initialized){
@@ -187,7 +187,7 @@ int HardwareMonitor::getCPUTemperature2(int processorIndex){
 
 
 // Helper function to count set bits in the processor mask.
-DWORD HardwareMonitor::CountSetBits(ULONG_PTR bitMask)
+DWORD HardwareInfoWin::CountSetBits(ULONG_PTR bitMask)
 {
     DWORD LSHIFT = sizeof(ULONG_PTR)*8 - 1;
     DWORD bitSetCount = 0;
@@ -204,7 +204,7 @@ DWORD HardwareMonitor::CountSetBits(ULONG_PTR bitMask)
 }
 
 typedef BOOL (WINAPI *LPFN_GLPI)(PSYSTEM_LOGICAL_PROCESSOR_INFORMATION, PDWORD);
-bool HardwareMonitor::getCPUInfo(int *numberOfLogicalProcessors, int *numberOfProcessorCores, int *numberOfPhysicalProcessorPackages)
+bool HardwareInfoWin::getCPUInfo(int *numberOfLogicalProcessors, int *numberOfProcessorCores, int *numberOfPhysicalProcessorPackages, QString *modelName)
 {
     LPFN_GLPI glpi;
     BOOL done = FALSE;
@@ -334,10 +334,16 @@ bool HardwareMonitor::getCPUInfo(int *numberOfLogicalProcessors, int *numberOfPr
         *numberOfPhysicalProcessorPackages = processorPackageCount;
     }
 
+
+    //TODO: modelName
+    if(modelName){
+        *modelName = "";
+    }
+
     return true;
 }
 
-QString HardwareMonitor::getHardDiskTemperature(){
+QString HardwareInfoWin::getHardDiskTemperature(){
     initWMIQuery();
 
     QString queryString = QString("SELECT VendorSpecific FROM MSStorageDriver_ATAPISmartData ");
@@ -367,7 +373,7 @@ QString HardwareMonitor::getHardDiskTemperature(){
 
 }
 
-float HardwareMonitor::getMotherBoardTemperature(){
+float HardwareInfoWin::getMotherBoardTemperature(){
     initWMIQuery();
 
     QString queryString = QString("SELECT CurrentTemperature FROM MSAcpi_ThermalZoneTemperature ");
@@ -388,7 +394,7 @@ float HardwareMonitor::getMotherBoardTemperature(){
 
 }
 
-QString HardwareMonitor::WinOSProductKey(){
+QString HardwareInfoWin::WinOSProductKey(){
 
     ////See:http://www.codeproject.com/Articles/15261/WebControls/
 
@@ -464,7 +470,7 @@ QString HardwareMonitor::WinOSProductKey(){
     return QString::fromLatin1(sCDKey);
 }
 
-QString HardwareMonitor::EDIDBinToChr(const QString &bin){
+QString HardwareInfoWin::EDIDBinToChr(const QString &bin){
     QHash<QString, QString> hash;
     hash.insert("00001", "A");
     hash.insert("00010", "B");
@@ -497,7 +503,7 @@ QString HardwareMonitor::EDIDBinToChr(const QString &bin){
 
 }
 
-QString HardwareMonitor::MonitorID(const QString &pnpDeviceID){
+QString HardwareInfoWin::monitorID(const QString &pnpDeviceID){
 
     QString value;
     bool ok = WinUtilities::regRead("HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Enum\\" + pnpDeviceID + "\\Device Parameters", "EDID", &value);
@@ -519,17 +525,17 @@ QString HardwareMonitor::MonitorID(const QString &pnpDeviceID){
     quint16 num = 0;
     memcpy(&num, manufacturerID.data(), 2);
 
-    QString monitorID = QString::number(num, 2);
-    monitorID = monitorID.rightJustified(15, '0');
+    QString mID = QString::number(num, 2);
+    mID = mID.rightJustified(15, '0');
 
-    monitorID = EDIDBinToChr(monitorID.left(5)) + EDIDBinToChr(monitorID.mid(5,5)) + EDIDBinToChr(monitorID.right(5));
-    monitorID += productID.toHex().toUpper();
+    mID = EDIDBinToChr(mID.left(5)) + EDIDBinToChr(mID.mid(5,5)) + EDIDBinToChr(mID.right(5));
+    mID += productID.toHex().toUpper();
 
-    return monitorID;
+    return mID;
 }
 
 
-bool HardwareMonitor::getOSInfo(QJsonObject *object){
+bool HardwareInfoWin::getOSInfo(QJsonObject *object){
 
     if(!object){return false;}
 
@@ -558,7 +564,7 @@ bool HardwareMonitor::getOSInfo(QJsonObject *object){
     return true;
 }
 
-bool HardwareMonitor::getBaseBoardInfo(QJsonObject *object){
+bool HardwareInfoWin::getBaseBoardInfo(QJsonObject *object){
     qDebug()<<"--HardwareMonitor::getBaseBoardInfo(...)";
 
     if(!object){return false;}
@@ -579,7 +585,7 @@ bool HardwareMonitor::getBaseBoardInfo(QJsonObject *object){
 
 }
 
-bool HardwareMonitor::getProcessorInfo(QJsonObject *object){
+bool HardwareInfoWin::getProcessorInfo(QJsonObject *object){
     if(!object){return false;}
 
     initWMIQuery();
@@ -597,7 +603,7 @@ bool HardwareMonitor::getProcessorInfo(QJsonObject *object){
     return true;
 }
 
-bool HardwareMonitor::getPhysicalMemoryInfo(QJsonObject *object){
+bool HardwareInfoWin::getPhysicalMemoryInfo(QJsonObject *object){
     if(!object){return false;}
 
     initWMIQuery();
@@ -628,7 +634,7 @@ bool HardwareMonitor::getPhysicalMemoryInfo(QJsonObject *object){
     return true;
 }
 
-bool HardwareMonitor::getDiskDriveInfo(QJsonObject *object){
+bool HardwareInfoWin::getDiskDriveInfo(QJsonObject *object){
     if(!object){return false;}
 
     initWMIQuery();
@@ -655,7 +661,7 @@ bool HardwareMonitor::getDiskDriveInfo(QJsonObject *object){
     return true;
 }
 
-bool HardwareMonitor::getVideoControllerInfo(QJsonObject *object){
+bool HardwareInfoWin::getVideoControllerInfo(QJsonObject *object){
     if(!object){return false;}
 
     initWMIQuery();
@@ -673,7 +679,7 @@ bool HardwareMonitor::getVideoControllerInfo(QJsonObject *object){
     return true;
 }
 
-bool HardwareMonitor::getSoundDeviceInfo(QJsonObject *object){
+bool HardwareInfoWin::getSoundDeviceInfo(QJsonObject *object){
     if(!object){return false;}
 
     initWMIQuery();
@@ -691,7 +697,7 @@ bool HardwareMonitor::getSoundDeviceInfo(QJsonObject *object){
     return true;
 }
 
-bool HardwareMonitor::getMonitorInfo(QJsonObject *object){
+bool HardwareInfoWin::getMonitorInfo(QJsonObject *object){
     if(!object){return false;}
 
     initWMIQuery();
@@ -721,7 +727,7 @@ bool HardwareMonitor::getMonitorInfo(QJsonObject *object){
     return true;
 }
 
-bool HardwareMonitor::getNetworkAdapterInfo(QJsonObject *object){
+bool HardwareInfoWin::getNetworkAdapterInfo(QJsonObject *object){
     if(!object){return false;}
 
     initWMIQuery();
