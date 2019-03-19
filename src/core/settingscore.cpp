@@ -66,17 +66,6 @@ SettingsCore::~SettingsCore()
     //endGroup();
 }
 
-void SettingsCore::setLanguage(const QString &language)
-{
-    setValue("MainWindow/Language", language);
-}
-
-QString SettingsCore::getLanguage() const
-{
-    //return value("MainWindow/Language",QString("en_US")).toString();
-    return value("MainWindow/Language", QLocale::system().name()).toString();
-}
-
 void SettingsCore::setValueWithEncryption(const QString &settingsKey, const QVariant &value, const QByteArray &encryptionKey)
 {
     QByteArray destination;

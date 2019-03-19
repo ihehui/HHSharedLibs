@@ -60,23 +60,23 @@ namespace HEHUI
 {
 
 
-QList<QTranslator *> Utilities::translators = QList<QTranslator *>();
-QMutex *Utilities::translatorsMutex = new QMutex();
+QList<QTranslator *> CoreUtilities::translators = QList<QTranslator *>();
+QMutex *CoreUtilities::translatorsMutex = new QMutex();
 
-Utilities::Utilities()
+CoreUtilities::CoreUtilities()
 {
     // TODO Auto-generated constructor stub
 
 
 }
 
-Utilities::~Utilities()
+CoreUtilities::~CoreUtilities()
 {
     // TODO Auto-generated destructor stub
 }
 
 
-const QString Utilities::currentUserNameOfOS()
+const QString CoreUtilities::currentUserNameOfOS()
 {
     QString username;
     QStringList envVariables;
@@ -104,7 +104,7 @@ const QString Utilities::currentUserNameOfOS()
 
 }
 
-QStringList Utilities::availableTranslationLanguages(const QString &translationFilesDir)
+QStringList CoreUtilities::availableTranslationLanguages(const QString &translationFilesDir)
 {
 
     //查找语言文件
@@ -132,7 +132,7 @@ QStringList Utilities::availableTranslationLanguages(const QString &translationF
 }
 
 
-bool Utilities::changeLangeuage(const QString &translationFilesDir, const QString &qmLocale)
+bool CoreUtilities::changeLangeuage(const QString &translationFilesDir, const QString &qmLocale)
 {
 
     qDebug() << "~~ Locale System Name:" << QLocale::system().name();
@@ -177,7 +177,7 @@ bool Utilities::changeLangeuage(const QString &translationFilesDir, const QStrin
 
 }
 
-int Utilities::versionCompare(const QString &exeFile1Version, const QString &exeFile2Version)
+int CoreUtilities::versionCompare(const QString &exeFile1Version, const QString &exeFile2Version)
 {
 
 
@@ -217,7 +217,7 @@ int Utilities::versionCompare(const QString &exeFile1Version, const QString &exe
 
 }
 
-void Utilities::msleep(int msec)
+void CoreUtilities::msleep(int msec)
 {
 
 #ifdef Q_OS_WIN32
@@ -228,7 +228,7 @@ void Utilities::msleep(int msec)
 
 }
 
-const QString Utilities::getFileMD5EncodedWithHex(const QString &fileName)
+const QString CoreUtilities::getFileMD5EncodedWithHex(const QString &fileName)
 {
 
     QString md5String = "";
@@ -300,7 +300,7 @@ static inline bool isWhiteSpace(const QStringRef &in)
 // Richtext simplification filter: Remove hard-coded font settings,
 // <style> elements, <p> attributes other than 'align' and
 // and unnecessary meta-information.
-QString Utilities::simplifyRichTextFilter(const QString &in, bool *isPlainTextPtr)
+QString CoreUtilities::simplifyRichTextFilter(const QString &in, bool *isPlainTextPtr)
 {
     unsigned elementCount = 0;
     bool paragraphAlignmentFound = false;
@@ -345,7 +345,7 @@ QString Utilities::simplifyRichTextFilter(const QString &in, bool *isPlainTextPt
     return out;
 }
 
-quint64 Utilities::timeGet()
+quint64 CoreUtilities::timeGet()
 {
 #ifdef Q_OS_WIN32
     return timeGetTime ();

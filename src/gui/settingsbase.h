@@ -53,12 +53,10 @@ public:
     SettingsBase( const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject *parent = 0 );
     ~SettingsBase();
 
-
     void setStyle(const QString &style);
     QString getStyle() const;
-
-    void setPalette(bool useStylePalette);
-    bool getPalette();
+    void setUseStylesPalette(bool checked);
+    bool isUsingStylesPalette();
 
     void setHideOnClose(bool hideOnClose);
     bool getHideOnClose();
@@ -69,9 +67,31 @@ public:
     void setRestoreWindowStateOnStartup(bool restore);
     bool getRestoreWindowStateOnStartup();
 
+    void setLanguage(const QString &language);
+    QString getLanguage() const;
+
+    //static QStringList availableTranslationLanguages(const QString &translationFilesDir);
+    ////Load translation
+    //static bool changeLangeuage(const QString &translationFilesDir, const QString &qmLocale);
+
+public slots:
+    //void loadStyleSettings();
+    //void setupStyleMenu(QMenu *styleMenu);
+
+    //void setupLanguageMenu(QMenu *languageMenu, const QString &translationFilesDir = "");
+
+
+
+private slots:
+    //void changeStyle(QAction *styleAction);
+    //void changePalette();
+
+    //void changeLanguage(QAction *languageAction);
+
+
 private:
-
-
+    //QString m_translationFilesDir;
+    //static QList<QTranslator *>translators;
 
 };
 

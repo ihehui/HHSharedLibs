@@ -45,16 +45,14 @@
 
 #include <QSystemTrayIcon>
 
-//#include "../../core/global_core.h"
-//#include "../../core/plugin/abstractplugininterface.h"
-//#include "../../core/plugin/coreinterface.h"
-
 #include "HHSharedCore/hglobal_core.h"
 //#include "HHSharedCore/hcoreinterface.h"
 
 #include "../plugin/guiinterface.h"
 
 #include "../guilib.h"
+
+#include "../guiutilities.h"
 
 
 namespace HEHUI
@@ -68,29 +66,15 @@ public:
     MainWindowBase(QWidget *parent = 0);
     virtual~ MainWindowBase();
 
-    //virtual void restoreWindowState() = 0;
-    //virtual void saveWindowState() = 0;
-
-    virtual void createActions();
-    //virtual void setupMenus();
-    //virtual void updateMenus();
-
 
     virtual void retranslateUi() = 0;
-
-    virtual void moveWindow(HEHUI::WindowPosition positon);
-
-    //QProgressBar* progressBar();
-
-//    QList<HEHUI::AbstractPluginInterface *> pluginsList() const;
-//    QList<HEHUI::GUIInterface *> guiPluginsList() const;
 
     virtual void loadPlugins(const QString &pluginsDirPath = QApplication::applicationDirPath() + QDir::separator () + QString(PLUGINS_MAIN_DIR) + QDir::separator () + QString(PLUGINS_MYPLUGINS_DIR));
     void unloadPlugins();
 
-    bool useStylePalette();
-    QString preferedStyle();
-    QString preferedLanguage();
+//    bool useStylePalette();
+//    QString preferedStyle();
+//    QString preferedLanguage();
 
 public slots:
     void slotResetStatusBar(bool show);
@@ -105,20 +89,20 @@ private slots:
     virtual void slotInitPlugin(AbstractPluginInterface *plugin) = 0;
 
 
-    void slotChangeLanguage(QAction *action);
-    void slotChangeStyle(QAction *action);
+    void slotChangeLanguage(const QString &preferedLanguage);
+    void slotChangeStyle(const QString &preferedStyle);
     void slotChangePalette(bool useStylePalette);
+
     void slotManagePlugins();
 
+    virtual void savePreferedStyle(const QString &preferedStyle) = 0;
+    virtual void saveUsingStylePalette(bool useStylePalette) = 0;
+    virtual void savePreferedLanguage(const QString &preferedLanguage) = 0;
 
 private:
     virtual void initStatusBar();
 
-    void changeStyle(const QString &style);
     void languageChanged();
-
-    virtual void savePreferedStyle(const QString &preferedStyle, bool useStylePalette) = 0;
-    virtual void savePreferedLanguage(const QString &preferedLanguage) = 0;
 
 
 protected:
@@ -137,8 +121,8 @@ private:
     QString m_preferedStyle;
     QString m_preferedLanguage;
 
-    QAction *actionLanguageDefaultEnglish;
-    QAction *actionUseStylesPalette;
+    //QAction *actionLanguageDefaultEnglish;
+    //QAction *actionUseStylesPalette;
     QAction *actionPluginsManagement;
 
     QString qmPath;
@@ -147,6 +131,8 @@ private:
     QMenu *m_languageMenu;
     QMenu *m_styleMenu;
     QMenu *m_pluginsMenu;
+
+    GUIUtilities *m_guiUtilities;
 
 
 //    QList<HEHUI::AbstractPluginInterface *> plugins;

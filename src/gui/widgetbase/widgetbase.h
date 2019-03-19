@@ -54,12 +54,6 @@ public:
     virtual ~WidgetBase();
 
 
-    virtual void moveWindow(HEHUI::WindowPosition positon);
-
-    virtual QSystemTrayIcon *SystemTrayIcon() = 0;
-    virtual void updateSystemTray(const QString &toolTip, const QIcon &icon, QMenu *menu = 0);
-    virtual void showSystemTrayMsg( const QString &title, const QString &message, QSystemTrayIcon::MessageIcon iconType = QSystemTrayIcon::Information, int secondsTimeoutHint = 3 );
-
 
 protected:
     virtual void languageChange() = 0;

@@ -28,6 +28,7 @@ HEADERS += screenshot/screenshot.h \
     guilib.h \
     richtexteditor/htmlhighlighter_p.h \
     richtexteditor/richtexteditorwidget.h \
+    $$PWD/guiutilities.h
 
 SOURCES += screenshot/screenshot.cpp \
     screenshot/selecttargetimagewidget.cpp \
@@ -49,6 +50,7 @@ SOURCES += screenshot/screenshot.cpp \
     widgetbase/widgetbase.cpp \
     richtexteditor/htmlhighlighter.cpp \
     richtexteditor/richtexteditorwidget.cpp \
+    $$PWD/guiutilities.cpp
 
 FORMS += screenshot/screenshot.ui \
     screenshot/selecttargetimagewidget.ui \

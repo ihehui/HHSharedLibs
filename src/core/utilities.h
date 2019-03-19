@@ -30,8 +30,8 @@
 
 
 
-#ifndef UTILITIES_H_
-#define UTILITIES_H_
+#ifndef COREUTILITIES_H_
+#define COREUTILITIES_H_
 
 
 
@@ -48,12 +48,12 @@ namespace HEHUI
 {
 
 
-class CORE_LIB_API Utilities
+class CORE_LIB_API CoreUtilities
 {
 
 public:
-    Utilities();
-    virtual ~Utilities();
+    CoreUtilities();
+    virtual ~CoreUtilities();
 
     static const QString currentUserNameOfOS();
 
@@ -85,4 +85,4 @@ private:
 
 } //namespace HEHUI
 
-#endif /* UTILITIES_H_ */
+#endif /* COREUTILITIES_H_ */

@@ -470,8 +470,7 @@ LogMessage::LogMessage(const QString &fileName, const QString &funtionName, int 
 {
 
     m_messageStruct = new MessageStruct();
-    quint64 tid = *(quint64*)QThread::currentThreadId();
-    m_messageStruct->threadId = "0x" + QString::number(tid, 16);
+    m_messageStruct->threadId = QString::number((quint64)QThread::currentThreadId());
     m_messageStruct->time = QDateTime::currentDateTime();
     m_messageStruct->logType = type;
 

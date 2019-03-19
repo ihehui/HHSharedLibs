@@ -138,11 +138,6 @@ enum DatabaseType {
 
 };
 
-enum WindowPosition {
-    Center = 0,
-    BottomRight = 1
-};
-
 
 
 }/* namespace */
