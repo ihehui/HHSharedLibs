@@ -39,7 +39,7 @@
 #include <QSystemTrayIcon>
 
 //#include "../../core/global_core.h"
-#include "HHSharedCore/hglobal_core.h"
+#include "HHSharedCore/GlobalCore"
 
 #include "../guilib.h"
 

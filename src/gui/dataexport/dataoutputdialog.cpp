@@ -12,7 +12,7 @@
 #include "ui_dataoutputdialog.h"
 
 //#include "../../../shared/gui/dataprint.h"
-#include "HHSharedGUI/hdataprint.h"
+#include "HHSharedGUI/DataPrint"
 
 
 namespace HEHUI

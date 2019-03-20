@@ -43,7 +43,7 @@
 
 
 
-#include "utilities.h"
+#include "coreutilities.h"
 
 #ifdef Q_OS_WIN32
     #include <windows.h>
@@ -104,49 +104,58 @@ const QString CoreUtilities::currentUserNameOfOS()
 
 }
 
-QStringList CoreUtilities::availableTranslationLanguages(const QString &translationFilesDir)
-{
+QStringList CoreUtilities::availableTranslationLanguages(const QString &translationFilesDir){
 
-    //查找语言文件
     //Search language files
     QDir dir(translationFilesDir);
     QStringList fileNames = dir.entryList(QStringList("*.qm"));
-    qDebug() << "~~ Language Files: " << fileNames.join(",");
+    qDebug()<<"Available Language Files: "<<fileNames.join(",");
 
     if (fileNames.isEmpty()) {
         return QStringList();
     }
 
+    QString errorStr = "Invalid file name format! The file name should have the format \"filename_language[_country].qm\", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example \"myapp_zh_CN.qm\".";
+
     QStringList translationLanguages;
-    foreach(QString file, fileNames) {
-        file.truncate(file.lastIndexOf(".qm", -1, Qt::CaseInsensitive));
-        QString translationLanguageName = file.right(5);
-        qDebug() << "~~translationLanguageName:" << translationLanguageName;
-        if((translationLanguageName.size() == 5) && (!translationLanguages.contains(translationLanguageName))) {
-            translationLanguages.append(translationLanguageName);
+    QString translationLanguageName;
+    int lastIdx = 0;
+    foreach(QString name, fileNames){
+        name.truncate(name.lastIndexOf(".qm", -1, Qt::CaseInsensitive));
+        lastIdx = name.lastIndexOf(QRegExp("_[a-z]{2}(_[a-zA-Z]{2,3})?$"));
+        if(lastIdx < 1){
+            qCritical()<<name<<": "<<errorStr;
+            continue;
         }
+
+        translationLanguageName = name.mid(lastIdx+1);
+        if(translationLanguages.contains(translationLanguageName)){continue;}
+
+        QLocale local(translationLanguageName);
+        if(local.name().size() < 2){
+            qCritical()<<name<<": "<<errorStr;
+            continue;
+        }
+
+        translationLanguages.append(translationLanguageName);
     }
 
+    qDebug()<<"Available translation languages: "<<translationLanguages.join(",");
+
     return translationLanguages;
-
 }
-
 
 bool CoreUtilities::changeLangeuage(const QString &translationFilesDir, const QString &qmLocale)
 {
-
-    qDebug() << "~~ Locale System Name:" << QLocale::system().name();
+    qDebug() << "Locale System Name:" << QLocale::system().name();
 
     QMutexLocker locker(translatorsMutex);
 
-    if(qmLocale.size() != 5) {
-        qCritical() << "Invalid local name! It should be a string of the form 'language_country', where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two-letter ISO 3166 country code.";
+    int lastIdx = qmLocale.lastIndexOf(QRegExp("^[a-z]{2}(_[a-zA-Z]{2,3})?$"));
+    if(lastIdx < 1){
+        qCritical() << "Invalid local name format! It should be a string of the form \"filename_language[_country].qm\", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example \"zh_CN\".";
         return false;
     }
-
-    //    if(!availableTranslationLanguages(translationFilesDir).contains(qmLocale)){
-    //        return false;
-    //    }
 
     foreach(QTranslator *translator, translators) {
         qApp->removeTranslator(translator);

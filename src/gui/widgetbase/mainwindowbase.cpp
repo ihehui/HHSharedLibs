@@ -36,7 +36,7 @@
 #include "mainwindowbase.h"
 
 #include "../../core/plugin/pluginmanager.h"
-#include "../../core/utilities.h"
+#include "../../core/coreutilities.h"
 
 #include "../plugin/pluginmanager/pluginmanagerwindow.h"
 

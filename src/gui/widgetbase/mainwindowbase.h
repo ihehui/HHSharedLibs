@@ -45,8 +45,7 @@
 
 #include <QSystemTrayIcon>
 
-#include "HHSharedCore/hglobal_core.h"
-//#include "HHSharedCore/hcoreinterface.h"
+#include "HHSharedCore/GlobalCore"
 
 #include "../plugin/guiinterface.h"
 

@@ -37,7 +37,7 @@
 
 //#include "../core/settingscore.h"
 
-#include "HHSharedCore/hsettingscore.h"
+#include "HHSharedCore/SettingsCore"
 #include "guilib.h"
 
 

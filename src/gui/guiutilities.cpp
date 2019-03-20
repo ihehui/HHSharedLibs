@@ -77,59 +77,79 @@ QStringList GUIUtilities::availableTranslationLanguages(const QString &translati
     //Search language files
     QDir dir(translationFilesDir);
     QStringList fileNames = dir.entryList(QStringList("*.qm"));
-    qDebug()<<"Available Language Files: "<<fileNames.join(",");
+    qDebug()<<"Available language files: "<<fileNames.join(",");
 
     if (fileNames.isEmpty()) {
         return QStringList();
     }
 
+    QString errorStr = "Invalid file name format! The file name should have the format \"filename_language[_country].qm\", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example \"myapp_zh_CN.qm\".";
+
     QStringList translationLanguages;
-    foreach(QString file, fileNames){
-        file.truncate(file.lastIndexOf(".qm", -1, Qt::CaseInsensitive));
-        QString translationLanguageName = file.right(5);
-        //qDebug()<<"~~translationLanguageName:"<<translationLanguageName;
-        if((translationLanguageName.size() == 5) && (!translationLanguages.contains(translationLanguageName))){
-            translationLanguages.append(translationLanguageName);
+    QString translationLanguageName;
+    int lastIdx = 0;
+    foreach(QString name, fileNames){
+        name.truncate(name.lastIndexOf(".qm", -1, Qt::CaseInsensitive));
+        lastIdx = name.lastIndexOf(QRegExp("_[a-z]{2}(_[a-zA-Z]{2,3})?$"));
+        if(lastIdx < 1){
+            qCritical()<<name<<": "<<errorStr;
+            continue;
         }
+
+        translationLanguageName = name.mid(lastIdx+1);
+        if(translationLanguages.contains(translationLanguageName)){continue;}
+
+        QLocale local(translationLanguageName);
+        if(local.name().size() < 2){
+            qCritical()<<name<<": "<<errorStr;
+            continue;
+        }
+
+        translationLanguages.append(translationLanguageName);
     }
+
+    qDebug()<<"Available translation languages: "<<translationLanguages.join(",");
 
     return translationLanguages;
 }
 
-bool GUIUtilities::changeLangeuage(const QString &translationFilesDir, const QString &qmLocale){
+bool GUIUtilities::changeLangeuage(const QString &translationFilesDir, const QString &qmLocale)
+{
+    qDebug() << "Locale System Name:" << QLocale::system().name();
 
-    qDebug()<<"Locale System Name:"<< QLocale::system().name();
-
-    if(qmLocale.size() != 5){
-        qCritical()<<"Invalid local name! It should be a string of the form 'language_country', where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two-letter ISO 3166 country code.";
+    int lastIdx = qmLocale.lastIndexOf(QRegExp("^[a-z]{2}(_[a-zA-Z]{2,3})?$"));
+    if(lastIdx < 1){
+        qCritical() << "Invalid local name format! It should be a string of the form \"filename_language[_country].qm\", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example \"zh_CN\".";
         return false;
     }
 
-    foreach(QTranslator *translator, translators){
+    foreach(QTranslator *translator, translators) {
         qApp->removeTranslator(translator);
         delete translator;
         translator = 0;
     }
     translators.clear();
 
+
     QStringList filters;
     filters << QString("*" + qmLocale + ".qm");
-    foreach(QString file, QDir(translationFilesDir).entryList(filters, QDir::Files|QDir::System|QDir::Hidden))
-    {
-        qDebug()<<"Loading language file:"<<file;
+    foreach(QString file, QDir(translationFilesDir).entryList(filters, QDir::Files | QDir::System | QDir::Hidden)) {
+        qDebug() << "~~Loading language file:" << file;
         QTranslator *translator = new QTranslator();
-        if(translator->load(file, translationFilesDir)){
+        if(translator->load(file, translationFilesDir)) {
             qApp->installTranslator(translator);
             translators.append(translator);
-        }else{
+        } else {
             delete translator;
             translator = 0;
-            qCritical()<<"ERROR! Loading language file failed:"<<file;
+            qCritical() << "ERROR! Loading language file failed:" << file;
         }
 
     }
 
+
     return translators.size();
+
 }
 
 void GUIUtilities::setupStyleMenu(QMenu *styleMenu, const QString &preferedStyle, bool useStylesPalette)
@@ -237,6 +257,7 @@ void GUIUtilities::setupLanguageMenu(QMenu *languageMenu, const QString &prefere
     QHash<QString /*Local Name*/, QString /*Language Name*/ > languagesHash;
     languagesHash.insert("en_US", "English");
     languagesHash.insert("zh_CN", QString::fromUtf8("\347\256\200\344\275\223\344\270\255\346\226\207"));
+    qDebug()<<"-----"<<QLocale("fr").nativeCountryName()<<"   "<<QLocale("fr").nativeLanguageName();
     QString curSystemLanguage = QLocale::languageToString(QLocale::system().language());
     QStringList translations = availableTranslationLanguages(m_translationFilesDir);
 
@@ -272,13 +293,17 @@ void GUIUtilities::setupLanguageMenu(QMenu *languageMenu, const QString &prefere
     for (int i = 0; i < translations.size(); i++){
         QString translationLanguage = translations[i];
         QLocale local(translationLanguage);
-        QString LanguageName = languagesHash.value(translationLanguage);
-        if(LanguageName.isEmpty()){
-            LanguageName = QLocale::languageToString(local.language());
+        QString languageName = languagesHash.value(translationLanguage);
+        if(languageName.isEmpty()){
+            languageName = QLocale::languageToString(local.language());
         }
-
         QString regionName = QLocale::countryToString(local.country());
-        QAction *action = languageMenu->addAction(QString("%1(%2)").arg(LanguageName).arg(regionName));
+#if QT_VERSION >= 0x048000
+        languageName = local.nativeLanguageName();
+        regionName = local.nativeCountryName();
+#endif
+
+        QAction *action = languageMenu->addAction(QString("%1(%2)").arg(languageName).arg(regionName));
         action->setData(translationLanguage);
         action->setCheckable(true);
         actGroup->addAction(action);

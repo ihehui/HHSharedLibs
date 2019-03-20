@@ -35,8 +35,8 @@
 
 //#include "../../core/user.h"
 //#include "../../core/global_core.h"
-#include "HHSharedCore/huser.h"
-#include "HHSharedCore/hglobal_core.h"
+#include "HHSharedCore/User"
+#include "HHSharedCore/GlobalCore"
 
 #include "../guilib.h"
 

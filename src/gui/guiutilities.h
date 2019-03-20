@@ -31,12 +31,11 @@ public:
     };
     static void moveWindow(QWidget *widget, WindowPosition positon);
 
+    //// The file name should have the format "filename_language[_country].qm", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example "myapp_zh_CN.qm".
     static QStringList availableTranslationLanguages(const QString &translationFilesDir);
     //Load translation
+    //// qmLocale: a string of the form "language_country", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code, For example "zh_CN".
     static bool changeLangeuage(const QString &translationFilesDir, const QString &qmLocale);
-
-
-
 
 
 signals:
@@ -51,6 +50,7 @@ public slots:
     void setStyle(const QString &style);
     void setUseStylesPalette(bool checked);
 
+    ////preferedLanguage: a string of the form "language_country", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code.
     void setupLanguageMenu(QMenu *languageMenu, const QString &preferedLanguage, const QString &translationFilesDir = "");
     void setLanguage(const QString &language);
 

@@ -7,7 +7,6 @@ HEADERS += $$PWD/logdebug.h \
     $$PWD/plugin/pluginmanager.h \
     $$PWD/plugin/corepluginbase.h \
     $$PWD/userbase.h \
-    $$PWD/utilities.h \
     $$PWD/settingscore.h \
     $$PWD/global_core.h \
     $$PWD/database/databaseutility.h \
@@ -18,14 +17,14 @@ HEADERS += $$PWD/logdebug.h \
     $$PWD/jobmonitor.h \
     $$PWD/logger/messagelogger.h \
     $$PWD/logger/messageloggerbase.h \
-    $$PWD/crashhandler.h
+    $$PWD/crashhandler.h \
+    $$PWD/coreutilities.h
 FORMS += 
 SOURCES += $$PWD/cryptography/tea/teacrypt.cpp \
     $$PWD/cryptography/cryptography.cpp \
     $$PWD/plugin/pluginmanager.cpp \
     $$PWD/plugin/corepluginbase.cpp \
     $$PWD/userbase.cpp \
-    $$PWD/utilities.cpp \
     $$PWD/settingscore.cpp \
     $$PWD/database/databaseutility.cpp \
     $$PWD/singleton.cpp \
@@ -33,7 +32,8 @@ SOURCES += $$PWD/cryptography/tea/teacrypt.cpp \
     $$PWD/error.cpp \
     $$PWD/jobmonitor.cpp \
     $$PWD/logger/messagelogger.cpp \
-    $$PWD/logger/messageloggerbase.cpp
+    $$PWD/logger/messageloggerbase.cpp \
+    $$PWD/coreutilities.cpp
 RESOURCES += 
 win32:LIBS += -Lresources/lib \
     -lwsock32 \
