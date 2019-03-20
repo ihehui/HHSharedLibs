@@ -53,10 +53,10 @@ public:
     SettingsBase( const QString fileBaseName, const QString fileDirPath = QCoreApplication::applicationDirPath(), QObject *parent = 0 );
     ~SettingsBase();
 
-    void setStyle(const QString &style);
-    QString getStyle() const;
-    void setUseStylesPalette(bool checked);
-    bool isUsingStylesPalette();
+//    void setStyle(const QString &style);
+//    QString getStyle() const;
+//    void setUseStylesPalette(bool checked);
+//    bool isUsingStylesPalette();
 
     void setHideOnClose(bool hideOnClose);
     bool getHideOnClose();
@@ -67,8 +67,8 @@ public:
     void setRestoreWindowStateOnStartup(bool restore);
     bool getRestoreWindowStateOnStartup();
 
-    void setLanguage(const QString &language);
-    QString getLanguage() const;
+//    void setLanguage(const QString &language);
+//    QString getLanguage() const;
 
     //static QStringList availableTranslationLanguages(const QString &translationFilesDir);
     ////Load translation

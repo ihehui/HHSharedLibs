@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resource/palette/blue.ini</file>
+        <file>resource/palette/white.ini</file>
+        <file>resource/palette/lightblack.ini</file>
+        <file>resource/palette/dark.ini</file>
+    </qresource>
+</RCC>

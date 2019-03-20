@@ -62,7 +62,7 @@ class GUI_LIB_API  MainWindowBase: public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindowBase(QWidget *parent = 0);
+    MainWindowBase(const QString &settingsFile, QWidget *parent = 0, GUIUtilities::WindowPosition positon = GUIUtilities::CENTER);
     virtual~ MainWindowBase();
 
 
@@ -75,28 +75,20 @@ public:
 //    QString preferedStyle();
 //    QString preferedLanguage();
 
+    GUIUtilities *guiUtilities();
+
 public slots:
     void slotResetStatusBar(bool show);
 
-    QMenu *getLanguageMenu(const QString &qmFileDirPath, const QString &local);
-    QMenu *getStyleMenu(const QString &preferedStyle, bool useStylePalette = false);
+    QMenu *getLanguageMenu();
+    QMenu *getStyleMenu();
     QMenu *getPluginsMenu();
     QAction *getPluginsManagementAction();
 
 
 private slots:
     virtual void slotInitPlugin(AbstractPluginInterface *plugin) = 0;
-
-
-    void slotChangeLanguage(const QString &preferedLanguage);
-    void slotChangeStyle(const QString &preferedStyle);
-    void slotChangePalette(bool useStylePalette);
-
     void slotManagePlugins();
-
-    virtual void savePreferedStyle(const QString &preferedStyle) = 0;
-    virtual void saveUsingStylePalette(bool useStylePalette) = 0;
-    virtual void savePreferedLanguage(const QString &preferedLanguage) = 0;
 
 private:
     virtual void initStatusBar();
@@ -115,17 +107,7 @@ private:
     //QLabel *label;
     QProgressBar *progressBarOnStatusBar;
 
-    QPalette originalPalette;
-    bool m_useStylePalette;
-    QString m_preferedStyle;
-    QString m_preferedLanguage;
-
-    //QAction *actionLanguageDefaultEnglish;
-    //QAction *actionUseStylesPalette;
     QAction *actionPluginsManagement;
-
-    QString qmPath;
-    QString qmLocale;
 
     QMenu *m_languageMenu;
     QMenu *m_styleMenu;

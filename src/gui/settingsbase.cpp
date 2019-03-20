@@ -132,34 +132,34 @@ SettingsBase::~SettingsBase()
 //}
 
 
-void SettingsBase::setStyle(const QString &style)
-{
-    setValue("UI/Style", style);
-}
+//void SettingsBase::setStyle(const QString &style)
+//{
+//    setValue("UI/Style", style);
+//}
 
-QString SettingsBase::getStyle() const
-{
+//QString SettingsBase::getStyle() const
+//{
 
-#ifdef Q_OS_WIN
-    return value("UI/Style", QString("fusion")).toString();
-#endif
+//#ifdef Q_OS_WIN
+//    return value("UI/Style", QString("fusion")).toString();
+//#endif
 
-    return value("UI/Style", "").toString();
+//    return value("UI/Style", "").toString();
 
-}
+//}
 
-void SettingsBase::setUseStylesPalette(bool checked)
-{
-    setValue("UI/UseStylesPalette", checked);
-    sync();
+//void SettingsBase::setUseStylesPalette(bool checked)
+//{
+//    setValue("UI/UseStylesPalette", checked);
+//    sync();
 
-    //changePalette();
-}
+//    //changePalette();
+//}
 
-bool SettingsBase::isUsingStylesPalette()
-{
-    return value("UI/UseStylesPalette", true).toBool();
-}
+//bool SettingsBase::isUsingStylesPalette()
+//{
+//    return value("UI/UseStylesPalette", true).toBool();
+//}
 
 //void SettingsBase::changePalette()
 //{
@@ -265,16 +265,16 @@ bool SettingsBase::isUsingStylesPalette()
 //    setLanguage(language);
 //}
 
-void SettingsBase::setLanguage(const QString &language)
-{
-    setValue("UI/Language", language);
-}
+//void SettingsBase::setLanguage(const QString &language)
+//{
+//    setValue("UI/Language", language);
+//}
 
-QString SettingsBase::getLanguage() const
-{
-    //return value("UI/Language",QString("en_US")).toString();
-    return value("UI/Language", QLocale::system().name()).toString();
-}
+//QString SettingsBase::getLanguage() const
+//{
+//    //return value("UI/Language",QString("en_US")).toString();
+//    return value("UI/Language", QLocale::system().name()).toString();
+//}
 
 //QStringList SettingsBase::availableTranslationLanguages(const QString &translationFilesDir){
 

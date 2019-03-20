@@ -57,11 +57,12 @@ public:
 
     static const QString currentUserNameOfOS();
 
-    //// The file name should have the format "filename_language[_country].qm", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example "myapp_zh_CN.qm".
+    //// The file name should have the format "prefix_language[_country].qm", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example "myapp_zh_CN.qm".
     static QStringList availableTranslationLanguages(const QString &translationFilesDir);
     //Load translation
     //// qmLocale: a string of the form "language_country", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code, For example "zh_CN".
-    static bool changeLangeuage(const QString &translationFilesDir, const QString &qmLocale);
+    static bool changeLangeuage(const QStringList &translationFilesDirList, const QString &qmLocale);
+    static bool appendLangeuage(const QString &translationFilesDir, const QString &qmLocale, const QString &prefix = "");
 
     static int versionCompare(const QString &exeFile1Version, const QString &exeFile2Version);
 

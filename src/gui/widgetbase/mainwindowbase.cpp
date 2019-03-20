@@ -46,7 +46,7 @@ namespace HEHUI
 {
 
 
-MainWindowBase::MainWindowBase(QWidget *parent)
+MainWindowBase::MainWindowBase(const QString &settingsFile, QWidget *parent, GUIUtilities::WindowPosition positon)
     : QMainWindow(parent)
 {
 
@@ -54,8 +54,6 @@ MainWindowBase::MainWindowBase(QWidget *parent)
 
     //loadPlugins();
 
-    originalPalette = QApplication::palette();
-    m_useStylePalette = false;
 
     //actionLanguageDefaultEnglish = 0;
     //actionUseStylesPalette = 0;
@@ -65,10 +63,11 @@ MainWindowBase::MainWindowBase(QWidget *parent)
     m_styleMenu = 0;
     m_pluginsMenu = 0;
 
-    m_guiUtilities = new GUIUtilities(this);
-    connect(m_guiUtilities, SIGNAL(signalStyleChanged(const QString &)), this, SLOT(savePreferedStyle(const QString &)));
-    connect(m_guiUtilities, SIGNAL(signalUsingStylesPaletteChanged(bool)), this, SLOT(saveUsingStylePalette(bool)));
-    connect(m_guiUtilities, SIGNAL(signalLanguageChanged(const QString &)), this, SLOT(savePreferedLanguage(const QString &)));
+    m_guiUtilities = new GUIUtilities(settingsFile, this);
+    connect(m_guiUtilities, SIGNAL(signalStyleChanged(const QString &, bool)), this, SLOT(update()));
+    //connect(m_guiUtilities, SIGNAL(signalLanguageChanged(const QString &)), this, SLOT(savePreferedLanguage(const QString &)));
+    GUIUtilities::moveWindow(this, positon);
+
 }
 
 MainWindowBase::~MainWindowBase()
@@ -207,6 +206,11 @@ void MainWindowBase::initStatusBar()
 
 }
 
+GUIUtilities *MainWindowBase::guiUtilities()
+{
+    return m_guiUtilities;
+}
+
 void MainWindowBase::slotResetStatusBar(bool show)
 {
     //statusBar()->removeWidget(m_progressWidget);
@@ -222,28 +226,21 @@ void MainWindowBase::slotResetStatusBar(bool show)
 
 }
 
-QMenu *MainWindowBase::getLanguageMenu(const QString &qmFileDirPath, const QString &local)
+QMenu *MainWindowBase::getLanguageMenu()
 {
-    qDebug() << "--setupLanguageMenu(...) " << " qmFileDirPath:" << qmFileDirPath << " local:" << local;
-
-    qmPath = qmFileDirPath;
-    qmLocale = local;
     if(!m_languageMenu) {
         m_languageMenu = new QMenu(tr("&Language"), this);
-        m_guiUtilities->setupLanguageMenu(m_languageMenu, local, qmFileDirPath);
+        m_guiUtilities->setupLanguageMenu(m_languageMenu);
     }
 
     return m_languageMenu;
 }
 
-QMenu *MainWindowBase::getStyleMenu(const QString &preferedStyle, bool useStylePalette)
+QMenu *MainWindowBase::getStyleMenu()
 {
-
-    this->m_preferedStyle = preferedStyle;
-    this->m_useStylePalette = useStylePalette;
     if(!m_styleMenu) {
         m_styleMenu = new QMenu(tr("&Style"), this);
-        m_guiUtilities->setupStyleMenu(m_styleMenu, preferedStyle, useStylePalette);
+        m_guiUtilities->setupStyleMenu(m_styleMenu, this);
     }
 
     return m_styleMenu;
@@ -298,24 +295,6 @@ void MainWindowBase::languageChanged()
         actionPluginsManagement->setText(tr("&Management"));
     }
 
-}
-
-void MainWindowBase::slotChangeLanguage(const QString &preferedLanguage)
-{
-    m_preferedLanguage = preferedLanguage;
-    savePreferedLanguage(preferedLanguage);
-}
-
-void MainWindowBase::slotChangeStyle(const QString &preferedStyle)
-{
-    m_preferedStyle = preferedStyle;
-    savePreferedStyle(m_preferedStyle);
-}
-
-void MainWindowBase::slotChangePalette(bool useStylePalette)
-{
-    this->m_useStylePalette = useStylePalette;
-    saveUsingStylePalette(m_useStylePalette);
 }
 
 void MainWindowBase::slotManagePlugins()

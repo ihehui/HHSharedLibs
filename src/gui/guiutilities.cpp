@@ -12,20 +12,32 @@
 #endif
 
 
+#include "HHSharedCore/CoreUtilities"
+
+#include "paletteeditor/paletteeditor.h"
+#include "paletteeditor/paletteutilities.h"
+
 
 namespace HEHUI {
 
 
 static QPalette *sysPalette = 0;
 
-QList<QTranslator *> GUIUtilities::translators = QList<QTranslator *>();
 
-GUIUtilities::GUIUtilities(QObject *parent)
+GUIUtilities::GUIUtilities(const QString &settingsFile, QObject *parent)
     : QObject(parent)
 {
     if(!sysPalette){
         sysPalette = new QPalette();
     }
+
+    m_settingsFile = settingsFile;
+    if(m_settingsFile.trimmed().isEmpty()){
+        m_settingsFile = QCoreApplication::applicationDirPath() + "/settings.ini";
+    }
+
+    m_topWidget = 0;
+    m_paletteEditorAction = 0;
 }
 
 void GUIUtilities::moveWindow(QWidget *widget, WindowPosition positon)
@@ -72,90 +84,22 @@ void GUIUtilities::moveWindow(QWidget *widget, WindowPosition positon)
 
 }
 
-QStringList GUIUtilities::availableTranslationLanguages(const QString &translationFilesDir){
-
-    //Search language files
-    QDir dir(translationFilesDir);
-    QStringList fileNames = dir.entryList(QStringList("*.qm"));
-    qDebug()<<"Available language files: "<<fileNames.join(",");
-
-    if (fileNames.isEmpty()) {
-        return QStringList();
-    }
-
-    QString errorStr = "Invalid file name format! The file name should have the format \"filename_language[_country].qm\", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example \"myapp_zh_CN.qm\".";
-
-    QStringList translationLanguages;
-    QString translationLanguageName;
-    int lastIdx = 0;
-    foreach(QString name, fileNames){
-        name.truncate(name.lastIndexOf(".qm", -1, Qt::CaseInsensitive));
-        lastIdx = name.lastIndexOf(QRegExp("_[a-z]{2}(_[a-zA-Z]{2,3})?$"));
-        if(lastIdx < 1){
-            qCritical()<<name<<": "<<errorStr;
-            continue;
-        }
-
-        translationLanguageName = name.mid(lastIdx+1);
-        if(translationLanguages.contains(translationLanguageName)){continue;}
-
-        QLocale local(translationLanguageName);
-        if(local.name().size() < 2){
-            qCritical()<<name<<": "<<errorStr;
-            continue;
-        }
-
-        translationLanguages.append(translationLanguageName);
-    }
-
-    qDebug()<<"Available translation languages: "<<translationLanguages.join(",");
-
-    return translationLanguages;
+void GUIUtilities::initStyle()
+{
+    QApplication::setStyle(getPreferedStyle());
+    changePalette();
 }
 
-bool GUIUtilities::changeLangeuage(const QString &translationFilesDir, const QString &qmLocale)
+void GUIUtilities::setupStyleMenu(QMenu *styleMenu, QWidget *topWidget)
 {
-    qDebug() << "Locale System Name:" << QLocale::system().name();
-
-    int lastIdx = qmLocale.lastIndexOf(QRegExp("^[a-z]{2}(_[a-zA-Z]{2,3})?$"));
-    if(lastIdx < 1){
-        qCritical() << "Invalid local name format! It should be a string of the form \"filename_language[_country].qm\", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example \"zh_CN\".";
-        return false;
+    if(!styleMenu || (!topWidget)){
+        return;
     }
 
-    foreach(QTranslator *translator, translators) {
-        qApp->removeTranslator(translator);
-        delete translator;
-        translator = 0;
-    }
-    translators.clear();
+    m_topWidget = topWidget;
+    connect(m_topWidget, SIGNAL(destroyed()), this, SLOT(topWidgetDestroyed()));
 
-
-    QStringList filters;
-    filters << QString("*" + qmLocale + ".qm");
-    foreach(QString file, QDir(translationFilesDir).entryList(filters, QDir::Files | QDir::System | QDir::Hidden)) {
-        qDebug() << "~~Loading language file:" << file;
-        QTranslator *translator = new QTranslator();
-        if(translator->load(file, translationFilesDir)) {
-            qApp->installTranslator(translator);
-            translators.append(translator);
-        } else {
-            delete translator;
-            translator = 0;
-            qCritical() << "ERROR! Loading language file failed:" << file;
-        }
-
-    }
-
-
-    return translators.size();
-
-}
-
-void GUIUtilities::setupStyleMenu(QMenu *styleMenu, const QString &preferedStyle, bool useStylesPalette)
-{
-    if(!styleMenu){return;}
-
+    QString preferedStyle = getPreferedStyle();
     QString defaultStyle = "";
     QStringList styles = QStyleFactory::keys();
     if(styles.contains("Oxygen", Qt::CaseInsensitive)){
@@ -193,14 +137,22 @@ void GUIUtilities::setupStyleMenu(QMenu *styleMenu, const QString &preferedStyle
     connect(actGroup, SIGNAL(triggered(QAction *)), this, SLOT(changeStyle(QAction *)));
 
 
+    bool useStylesPalette = isUsingStylesPalette();
     styleMenu->addSeparator();
-    action = styleMenu->addAction(tr("Use Style's Palette"));
-    action->setCheckable(true);
-    action->setChecked(useStylesPalette);
-    action->setData("");
-    connect(action, SIGNAL(triggered(bool)), this, SLOT(setUseStylesPalette(bool)));
+    QAction *useStylesPaletteAction = styleMenu->addAction(tr("Use Style's Palette"));
+    useStylesPaletteAction->setCheckable(true);
+    useStylesPaletteAction->setChecked(useStylesPalette);
+    useStylesPaletteAction->setData("");
+    connect(useStylesPaletteAction, SIGNAL(triggered(bool)), this, SLOT(setUseStylesPalette(bool)));
 
-    m_usingStylesPalette = useStylesPalette;
+    styleMenu->addSeparator();
+    m_paletteEditorAction = styleMenu->addAction(tr("Palette Editor"));
+    m_paletteEditorAction->setCheckable(false);
+    m_paletteEditorAction->setEnabled(!useStylesPalette);
+    m_paletteEditorAction->setData("PaletteEditor");
+    connect(m_paletteEditorAction, SIGNAL(triggered()), this, SLOT(editPalette()));
+    connect(useStylesPaletteAction, SIGNAL(triggered(bool)), this, SLOT(updatePaletteEditorAction(bool)));
+
 }
 
 void GUIUtilities::changeStyle(QAction *styleAction)
@@ -210,58 +162,136 @@ void GUIUtilities::changeStyle(QAction *styleAction)
     QString style = styleAction->data().toString();
     if(style.toLower() != styleAction->text().toLower().remove("&")){
         qApp->setStyle(style);
-        setStyle("");
+        setPreferedStyle("");
     }else{
-        setStyle(style);
+        setPreferedStyle(style);
     }
+
 }
 
-void GUIUtilities::setStyle(const QString &style)
+void GUIUtilities::setPreferedStyle(const QString &style)
 {
-    qApp->setStyle(style);
-    emit signalStyleChanged(style);
+    QSettings settings(m_settingsFile, QSettings::IniFormat);
+    settings.setValue("UI/Style", style);
 
+    qApp->setStyle(style);
+    emit signalStyleChanged(style, isUsingStylesPalette());
     changePalette();
+}
+
+QString GUIUtilities::getPreferedStyle()
+{
+    QSettings settings(m_settingsFile, QSettings::IniFormat);
+#ifdef Q_OS_WIN
+    return value("UI/Style", QString("fusion")).toString();
+#endif
+    return settings.value("UI/Style", "").toString();
 }
 
 void GUIUtilities::setUseStylesPalette(bool checked)
 {
-    m_usingStylesPalette = checked;
+    QSettings settings(m_settingsFile, QSettings::IniFormat);
+    settings.setValue("UI/UseStylesPalette", checked);
+
     changePalette();
 
-    emit signalUsingStylesPaletteChanged(checked);
+    emit signalStyleChanged(getPreferedStyle(), checked);
+}
+
+bool GUIUtilities::isUsingStylesPalette()
+{
+    QSettings settings(m_settingsFile, QSettings::IniFormat);
+    return settings.value("UI/UseStylesPalette", true).toBool();
 }
 
 void GUIUtilities::changePalette()
 {
     QPalette palette;
-    if(m_usingStylesPalette){
+    if(isUsingStylesPalette()){
         palette = QApplication::style()->standardPalette();
     }else{
-        palette = *sysPalette;
+        //palette = *sysPalette;
+        palette = loadSavedPalette();
     }
-    //QWidget::setPalette(palette);
+
     QApplication::setPalette(palette);
-    //update();
+    if(m_topWidget){
+        m_topWidget->setPalette(palette);
+        m_topWidget->update();
+    }
+
 }
 
-void GUIUtilities::setupLanguageMenu(QMenu *languageMenu, const QString &preferedLanguage, const QString &translationFilesDir){
+void GUIUtilities::updatePaletteEditorAction(bool useStylesPalette)
+{
+    QAction *act = qobject_cast<QAction*>(sender());
+    if(!act){return;}
+
+    if(m_paletteEditorAction == act){return;}
+
+    m_paletteEditorAction->setEnabled(!useStylesPalette);
+}
+
+void GUIUtilities::editPalette()
+{
+    //QPalette palette = QApplication::style()->standardPalette();
+    QPalette palette = QApplication::palette();
+    palette = qdesigner_internal::PaletteEditor::getPalette(m_topWidget, palette);
+    QApplication::setPalette(palette);
+    if(m_topWidget){
+        m_topWidget->setPalette(palette);
+        m_topWidget->update();
+    }
+
+    saveCurrentPalette();
+
+    emit signalStyleChanged(getPreferedStyle(), false);
+}
+
+void GUIUtilities::saveCurrentPalette()
+{
+    QSettings settings(m_settingsFile, QSettings::IniFormat);
+    QPalette palette = QApplication::palette();
+    PaletteUtilities utilities;
+    utilities.exportPalette(&settings, &palette);
+}
+
+QPalette GUIUtilities::loadSavedPalette()
+{
+    QSettings settings(m_settingsFile, QSettings::IniFormat);
+    QPalette palette = QApplication::palette();
+    PaletteUtilities utilities;
+    utilities.importPalette(&settings, &palette);
+    return palette;
+}
+
+void GUIUtilities::initLanguage()
+{
+    changeLanguage(getPreferedLanguage());
+}
+
+void GUIUtilities::setupLanguageMenu(QMenu *languageMenu)
+{
     if(!languageMenu){return;}
 
-    m_translationFilesDir = translationFilesDir;
-    if(m_translationFilesDir.trimmed().isEmpty()){
-        m_translationFilesDir = QApplication::applicationDirPath() + QDir::separator () + QString(LANGUAGE_FILE_DIR);
+    QStringList dirList = translationFileDirList();
+    if(dirList.isEmpty()){
+        dirList.append(QApplication::applicationDirPath() + QDir::separator () + QString(LANGUAGE_FILE_DIR));
     }
+    dirList.removeDuplicates();
 
 
     QHash<QString /*Local Name*/, QString /*Language Name*/ > languagesHash;
     languagesHash.insert("en_US", "English");
     languagesHash.insert("zh_CN", QString::fromUtf8("\347\256\200\344\275\223\344\270\255\346\226\207"));
-    qDebug()<<"-----"<<QLocale("fr").nativeCountryName()<<"   "<<QLocale("fr").nativeLanguageName();
     QString curSystemLanguage = QLocale::languageToString(QLocale::system().language());
-    QStringList translations = availableTranslationLanguages(m_translationFilesDir);
+    QStringList translations;
+    foreach (QString dir, dirList) {
+        translations.append(CoreUtilities::availableTranslationLanguages(dir));
+    }
+    translations.removeDuplicates();
 
-    QString language = preferedLanguage;
+    QString language = getPreferedLanguage();
     if(language.isEmpty()){
         language = curSystemLanguage;
     }
@@ -324,13 +354,39 @@ void GUIUtilities::changeLanguage(QAction *languageAction)
 
     QString language = languageAction->data().toString();
     //QString translationFilesDir = QApplication::applicationDirPath() + QDir::separator () + QString(LANGUAGE_FILE_DIR);
-    setLanguage(language);
+    setPreferedLanguage(language);
 }
 
-void GUIUtilities::setLanguage(const QString &language)
+void GUIUtilities::changeLanguage(const QString &language)
 {
-    changeLangeuage(m_translationFilesDir, language);
+    CoreUtilities::changeLangeuage(translationFileDirList(), language);
     emit signalLanguageChanged(language);
+}
+
+QStringList GUIUtilities::translationFileDirList() const
+{
+    QSettings settings(m_settingsFile, QSettings::IniFormat);
+    return settings.value("UI/TranslationFileDir").toStringList();
+}
+
+void GUIUtilities::setTranslationFileDirList(const QStringList &dirList)
+{
+    QSettings settings(m_settingsFile, QSettings::IniFormat);
+    settings.setValue("UI/TranslationFileDir", dirList);
+}
+
+void GUIUtilities::setPreferedLanguage(const QString &language)
+{
+    QSettings settings(m_settingsFile, QSettings::IniFormat);
+    settings.setValue("UI/Language", language);
+
+    changeLanguage(language);
+}
+
+QString GUIUtilities::getPreferedLanguage() const
+{
+    QSettings settings(m_settingsFile, QSettings::IniFormat);
+    return settings.value("UI/Language", QLocale::system().name()).toString();
 }
 
 void GUIUtilities::updateSystemTray(QSystemTrayIcon *tray, const QString &toolTip, const QIcon &icon, QMenu *menu)
@@ -364,7 +420,10 @@ void GUIUtilities::showSystemTrayMsg(QSystemTrayIcon *tray, const QString &title
     tray->showMessage(title, message, icon, secondsTimeoutHint * 1000);
 }
 
-
+void GUIUtilities::topWidgetDestroyed()
+{
+    m_topWidget = 0;
+}
 
 
 }

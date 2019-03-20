@@ -115,7 +115,7 @@ QStringList CoreUtilities::availableTranslationLanguages(const QString &translat
         return QStringList();
     }
 
-    QString errorStr = "Invalid file name format! The file name should have the format \"filename_language[_country].qm\", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example \"myapp_zh_CN.qm\".";
+    QString errorStr = "Invalid file name format! The file name should have the format \"prefix_language[_country].qm\", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example \"myapp_zh_CN.qm\".";
 
     QStringList translationLanguages;
     QString translationLanguageName;
@@ -145,45 +145,56 @@ QStringList CoreUtilities::availableTranslationLanguages(const QString &translat
     return translationLanguages;
 }
 
-bool CoreUtilities::changeLangeuage(const QString &translationFilesDir, const QString &qmLocale)
+bool CoreUtilities::changeLangeuage(const QStringList &translationFilesDirList, const QString &qmLocale)
 {
     qDebug() << "Locale System Name:" << QLocale::system().name();
 
-    QMutexLocker locker(translatorsMutex);
-
     int lastIdx = qmLocale.lastIndexOf(QRegExp("^[a-z]{2}(_[a-zA-Z]{2,3})?$"));
     if(lastIdx < 1){
-        qCritical() << "Invalid local name format! It should be a string of the form \"filename_language[_country].qm\", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example \"zh_CN\".";
+        qCritical() << "Invalid local name format! It should be a string of the form \"prefix_language[_country].qm\", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example \"zh_CN\".";
         return false;
     }
 
-    foreach(QTranslator *translator, translators) {
-        qApp->removeTranslator(translator);
-        delete translator;
-        translator = 0;
+    {
+        QMutexLocker locker(translatorsMutex);
+        foreach(QTranslator *translator, translators) {
+            qApp->removeTranslator(translator);
+            delete translator;
+            translator = 0;
+        }
+        translators.clear();
     }
-    translators.clear();
 
 
+    foreach (QString translationFilesDir, translationFilesDirList) {
+        appendLangeuage(translationFilesDir, qmLocale);
+    }
+
+    return translators.size();
+}
+
+bool CoreUtilities::appendLangeuage(const QString &translationFilesDir, const QString &qmLocale, const QString &prefix)
+{
+    QMutexLocker locker(translatorsMutex);
+
+    int count = 0;
     QStringList filters;
-    filters << QString("*" + qmLocale + ".qm");
-    foreach(QString file, QDir(translationFilesDir).entryList(filters, QDir::Files | QDir::System | QDir::Hidden)) {
-        qDebug() << "~~Loading language file:" << file;
+    filters << QString(prefix + "*" + qmLocale + ".qm");
+    foreach(QString fileName, QDir(translationFilesDir).entryList(filters, QDir::Files | QDir::System | QDir::Hidden)) {
+        qDebug() << "Loading language file:" << fileName;
         QTranslator *translator = new QTranslator();
-        if(translator->load(file, translationFilesDir)) {
+        if(translator->load(fileName, translationFilesDir)) {
             qApp->installTranslator(translator);
             translators.append(translator);
+            count++;
         } else {
             delete translator;
             translator = 0;
-            qCritical() << "ERROR! Loading language file failed:" << file;
+            qCritical() << "ERROR! Failed to load language file:" << fileName;
         }
-
     }
 
-
-    return translators.size();
-
+    return count;
 }
 
 int CoreUtilities::versionCompare(const QString &exeFile1Version, const QString &exeFile2Version)

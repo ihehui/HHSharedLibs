@@ -8,6 +8,7 @@
 #include <QStyle>
 #include <QTranslator>
 #include <QSystemTrayIcon>
+#include <QSettings>
 
 #include "guilib.h"
 
@@ -19,7 +20,7 @@ class GUI_LIB_API GUIUtilities : public QObject
 {
     Q_OBJECT
 public:
-    explicit GUIUtilities(QObject *parent = nullptr);
+    explicit GUIUtilities(const QString &settingsFile, QObject *parent = nullptr);
 
     enum WindowPosition {
         CENTER = 0,
@@ -31,46 +32,51 @@ public:
     };
     static void moveWindow(QWidget *widget, WindowPosition positon);
 
-    //// The file name should have the format "filename_language[_country].qm", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code. For example "myapp_zh_CN.qm".
-    static QStringList availableTranslationLanguages(const QString &translationFilesDir);
-    //Load translation
-    //// qmLocale: a string of the form "language_country", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code, For example "zh_CN".
-    static bool changeLangeuage(const QString &translationFilesDir, const QString &qmLocale);
+    static void updateSystemTray(QSystemTrayIcon *tray, const QString &toolTip, const QIcon &icon, QMenu *menu = 0);
+    static void showSystemTrayMsg(QSystemTrayIcon *tray, const QString &title, const QString &message, QSystemTrayIcon::MessageIcon iconType = QSystemTrayIcon::Information, int secondsTimeoutHint = 3 );
 
 
 signals:
-    void signalStyleChanged(const QString &style);
-    void signalUsingStylesPaletteChanged(bool use);
-
+    void signalStyleChanged(const QString &style, bool usingStylesPalette);
     void signalLanguageChanged(const QString &language);
 
 
 public slots:
-    void setupStyleMenu(QMenu *styleMenu, const QString &preferedStyle, bool useStylesPalette);
-    void setStyle(const QString &style);
-    void setUseStylesPalette(bool checked);
+    void initStyle();
+    void setupStyleMenu(QMenu *styleMenu, QWidget *topWidget);
+    void setPreferedStyle(const QString &style);
+    QString getPreferedStyle();
 
+    void initLanguage();
     ////preferedLanguage: a string of the form "language_country", where language is a lowercase, two-letter ISO 639 language code, and country is an uppercase, two- or three-letter ISO 3166 country code.
-    void setupLanguageMenu(QMenu *languageMenu, const QString &preferedLanguage, const QString &translationFilesDir = "");
-    void setLanguage(const QString &language);
-
-    void updateSystemTray(QSystemTrayIcon *tray, const QString &toolTip, const QIcon &icon, QMenu *menu = 0);
-    void showSystemTrayMsg(QSystemTrayIcon *tray, const QString &title, const QString &message, QSystemTrayIcon::MessageIcon iconType = QSystemTrayIcon::Information, int secondsTimeoutHint = 3 );
-
+    void setupLanguageMenu(QMenu *languageMenu);
+    void setPreferedLanguage(const QString &language);
+    QString getPreferedLanguage() const;
+    QStringList translationFileDirList() const;
+    void setTranslationFileDirList(const QStringList &dirList);
 
 
 private slots:
+    void setUseStylesPalette(bool checked);
+    bool isUsingStylesPalette();
+
     void changeStyle(QAction *styleAction);
     void changePalette();
+    void editPalette();
+    void saveCurrentPalette();
+    QPalette loadSavedPalette();
+    void updatePaletteEditorAction(bool useStylesPalette);
 
     void changeLanguage(QAction *languageAction);
+    void changeLanguage(const QString &language);
 
+    void topWidgetDestroyed();
 
 private:
-    bool m_usingStylesPalette;
+    QString m_settingsFile;
+    QWidget *m_topWidget;
 
-    QString m_translationFilesDir;
-    static QList<QTranslator *>translators;
+    QAction *m_paletteEditorAction;
 
 
 };

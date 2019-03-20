@@ -1,9 +1,11 @@
 
 
-include (./imageviewer/imageviewer.pri)
-include (./widgetbase/itembox/itembox.pri)
+include (imageviewer/imageviewer.pri)
+include (widgetbase/itembox/itembox.pri)
 include(screencapture/screencapture.pri)
+include(paletteeditor/paletteeditor.pri)
 
+DEPENDPATH += $$PWD
 INCLUDEPATH += $$PWD
 
 HEADERS += screenshot/screenshot.h \
