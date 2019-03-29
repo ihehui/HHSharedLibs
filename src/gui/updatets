@@ -1,0 +1,2 @@
+#!/usr/bin/sh 
+lupdate -no-obsolete  -source-language en  -target-language zh_CN  -pro gui.pro -ts gui_zh_CN.ts 

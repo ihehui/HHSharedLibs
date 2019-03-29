@@ -251,7 +251,7 @@ void SelectTargetImageWidget::resizeEvent(QResizeEvent * /* event */)
 void SelectTargetImageWidget::saveScreenshot()
 {
     QString format = "png";
-    QString initialPath = QDir::currentPath() + tr("/Screenshot%1.%2").arg(QDateTime::currentDateTime().toString("yyyyMMddhhmmss")).arg(format) ;
+    QString initialPath = QDir::currentPath() + QString("/Screenshot%1.%2").arg(QDateTime::currentDateTime().toString("yyyyMMddhhmmss")).arg(format) ;
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"), initialPath,
                        tr("%1 Files (*.%2);;All Files (*)").arg(format.toUpper()).arg(format));

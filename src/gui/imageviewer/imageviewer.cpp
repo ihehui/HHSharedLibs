@@ -1292,12 +1292,10 @@ void ImageViewer::createActions()
     m_normalSizeAct->setEnabled(false);
     connect(m_normalSizeAct, SIGNAL(triggered()), this, SLOT(zoomOrignal()));
 
-    m_resetAct = new QAction(tr("&Reset..."), this);
+    m_resetAct = new QAction(tr("&Reset"), this);
     m_resetAct->setShortcut(tr("Ctrl+R"));
     m_resetAct->setEnabled(false);
     connect(m_resetAct, SIGNAL(triggered()), this, SLOT(reset()));
-
-
 
     m_fitToWindowAct = new QAction(tr("&Fit to Window"), this);
     m_fitToWindowAct->setEnabled(false);
@@ -1305,29 +1303,23 @@ void ImageViewer::createActions()
     m_fitToWindowAct->setShortcut(tr("Ctrl+F"));
     connect(m_fitToWindowAct, SIGNAL(triggered()), this, SLOT(zoomFitBest()));
 
-    m_saveAsAct = new QAction(tr("&Save As..."), this);
+    m_saveAsAct = new QAction(tr("&Save As"), this);
     m_saveAsAct->setShortcut(tr("Ctrl+S"));
     m_saveAsAct->setEnabled(false);
     connect(m_saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
-    m_printAct = new QAction(tr("&Print..."), this);
+    m_printAct = new QAction(tr("&Print"), this);
     m_printAct->setShortcut(tr("Ctrl+P"));
     m_printAct->setEnabled(false);
     connect(m_printAct, SIGNAL(triggered()), this, SLOT(print()));
 
-
-    m_openAct = new QAction(tr("&Open..."), this);
+    m_openAct = new QAction(tr("&Open"), this);
     m_openAct->setShortcut(tr("Ctrl+O"));
     connect(m_openAct, SIGNAL(triggered()), this, SLOT(open()));
 
     m_exitAct = new QAction(tr("E&xit"), this);
     m_exitAct->setShortcut(tr("Ctrl+Q"));
     connect(m_exitAct, SIGNAL(triggered()), this, SLOT(close()));
-
-
-
-
-
 
 }
 

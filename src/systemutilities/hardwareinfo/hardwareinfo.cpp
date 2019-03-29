@@ -85,17 +85,17 @@ QString HardwareInfo::monitorID(const QString &pnpDeviceID){
     return hw.monitorID(pnpDeviceID);
 }
 
-bool HardwareInfo::getOSInfo(QJsonObject *object){
-    if(!object){return false;}
+//bool HardwareInfo::getOSInfo(QJsonObject *object){
+//    if(!object){return false;}
 
-#ifdef Q_OS_WIN32
-    HardwareInfoWin hw;
-#else
-    HardwareInfoUnix hw;
-#endif
+//#ifdef Q_OS_WIN32
+//    HardwareInfoWin hw;
+//#else
+//    HardwareInfoUnix hw;
+//#endif
 
-    return hw.getOSInfo(object);
-}
+//    return hw.getOSInfo(object);
+//}
 
 bool HardwareInfo::getBaseBoardInfo(QJsonObject *object){
     if(!object){return false;}

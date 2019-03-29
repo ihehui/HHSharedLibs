@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/login.png</file>
+        <file>images/locked.png</file>
+        <file>images/logo.png</file>
+        <file>images/user.png</file>
+        <file>images/key.png</file>
+        <file>images/plugin.png</file>
+        <file>images/emptyicon.png</file>
+        <file>translations/gui_zh_CN.qm</file>
+    </qresource>
+</RCC>

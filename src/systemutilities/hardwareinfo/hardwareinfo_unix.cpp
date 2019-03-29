@@ -37,12 +37,9 @@ bool HardwareInfoUnix::getCPUInfo(int *numberOfLogicalProcessors, int *numberOfP
 {
 
     QProcess process;
-    QString cmdString = QString("cat /proc/cpuinfo | grep 'model name' | cut -f2 -d:");
+    QString cmdString = QString("sh -c \"cat /proc/cpuinfo | grep 'model name' | cut -f2 -d:\"");
     process.start(cmdString);
     if(!process.waitForFinished()) {
-        return false;
-    }
-    if(!process.waitForReadyRead()) {
         return false;
     }
 
@@ -132,22 +129,57 @@ QString HardwareInfoUnix::monitorID(const QString &pnpDeviceID){
     return "";
 }
 
-bool HardwareInfoUnix::getOSInfo(QJsonObject *object){
-    if(!object){return false;}
+//bool HardwareInfoUnix::getOSInfo(QJsonObject *object){
+//    if(!object){return false;}
 
-    QString cmdString = QString("uname -a");
-    QByteArray output;
-    bool ok = getProcessOutput(cmdString, &output);
-    if(!ok || output.trimmed().isEmpty()){
-        return false;
-    }
+//    QString osInfo;
 
-    object->insert("OS", QString::fromLocal8Bit(output));
-    object->insert("InstallDate", "");
-    object->insert("Key", "");
+////    QProcess process;
+////    QString cmdString = QString("lsb_release  -a | grep Description | cut -d \":\" -f 2");
+////    process.start("sh", QStringList()<<"-c"<<cmdString);
+////    if(!process.waitForStarted()) {
+////        osInfo = QSysInfo::prettyProductName();
+////    }
+////    if(!process.waitForFinished()) {
+////        osInfo = QSysInfo::prettyProductName();
+////    }
+////    osInfo = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
+////    if(osInfo.trimmed().isEmpty()){
+////        osInfo = QSysInfo::prettyProductName();
+////    }
 
-    return true;
-}
+//    QString unameInfo = QSysInfo::prettyProductName();
+//    QProcess process;
+//    process.start("uname -srm");
+//    if(process.waitForStarted() && process.waitForFinished()) {
+//        unameInfo = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
+//        if(unameInfo.trimmed().isEmpty()){
+//            unameInfo = QSysInfo::prettyProductName();
+//        }
+//    }
+
+//    QString cmd = QString("sh -c \"lsb_release  -a | grep Description | cut -d \":\" -f 2\"");
+//    process.start(cmd);
+//    if(!process.waitForStarted() || (!process.waitForFinished())) {
+//        osInfo = unameInfo;
+//    }
+
+
+//    osInfo = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
+//    if(osInfo.trimmed().isEmpty()){
+//        osInfo = unameInfo;
+//    }
+
+//    if(!unameInfo.contains(osInfo, Qt::CaseInsensitive)){
+//        osInfo += QString("(%1)").arg(unameInfo);
+//    }
+
+//    object->insert("OS", osInfo);
+//    object->insert("InstallDate", "");
+//    object->insert("Key", "");
+
+//    return true;
+//}
 
 bool HardwareInfoUnix::getBaseBoardInfo(QJsonObject *object){
     if(!object){return false;}
@@ -307,7 +339,7 @@ bool HardwareInfoUnix::getDiskDriveInfo(QJsonObject *object){
 bool HardwareInfoUnix::getVideoControllerInfo(QJsonObject *object){
     if(!object){return false;}
 
-    QString cmdString = QString("lspci | grep VGA");
+    QString cmdString = QString("sh -c \"lspci | grep VGA\"");
     QByteArray output;
     bool ok = getProcessOutput(cmdString, &output);
     if(!ok || output.trimmed().isEmpty()){
@@ -335,7 +367,7 @@ bool HardwareInfoUnix::getVideoControllerInfo(QJsonObject *object){
 bool HardwareInfoUnix::getSoundDeviceInfo(QJsonObject *object){
     if(!object){return false;}
 
-    QString cmdString = QString("lspci | grep -i Audio");
+    QString cmdString = QString("sh -c \"lspci | grep -i Audio\"");
     QByteArray output;
     bool ok = getProcessOutput(cmdString, &output);
     if(!ok || output.trimmed().isEmpty()){
@@ -373,7 +405,7 @@ bool HardwareInfoUnix::getMonitorInfo(QJsonObject *object){
 bool HardwareInfoUnix::getNetworkAdapterInfo(QJsonObject *object){
     if(!object){return false;}
 
-    QString cmdString = QString("lspci | grep -i -E 'ethernet controller|network controller'");
+    QString cmdString = QString("sh -c \"lspci | grep -i -E 'ethernet controller|network controller'\"");
     QByteArray output;
     bool ok = getProcessOutput(cmdString, &output);
     if(!ok || output.trimmed().isEmpty()){
@@ -417,9 +449,6 @@ bool HardwareInfoUnix::getProcessOutput(const QString &cmd, QByteArray *output)
     QProcess process;
     process.start(cmd);
     if(!process.waitForFinished()) {
-        return false;
-    }
-    if(!process.waitForReadyRead()) {
         return false;
     }
 

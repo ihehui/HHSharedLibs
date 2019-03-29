@@ -242,31 +242,11 @@ QString SystemUtilities::getOSVersionInfo()
 
     QString osInfo;
 #ifdef Q_OS_WIN
-    if(!WinUtilities::windowsVersionName(&osInfo)) {
-        osInfo =  QSysInfo::prettyProductName();
-        QString bit = WinUtilities::windowsVersionName(&osInfo) ? tr("64-bit") : tr("32-bit");
-        osInfo += " " + bit;
-    }
+    return WinUtilities::getOSVersionInfo();
 #else
-
-    QProcess process;
-    QString cmdString = QString("lsb_release  -a | grep Description | cut -d \":\" -f 2");
-    process.start("sh", QStringList()<<"-c"<<cmdString);
-    if(!process.waitForStarted()) {
-        return QSysInfo::prettyProductName();
-    }
-    if(!process.waitForFinished()) {
-        return QSysInfo::prettyProductName();
-    }
-    osInfo = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
-    if(osInfo.trimmed().isEmpty()){
-        return QSysInfo::prettyProductName();
-    }
-
-
+    return UnixUtilities::getOSVersionInfo();
 #endif
 
-    return osInfo;
 }
 
 bool SystemUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *domain, QString *logonServer, QString *errorMessage)
@@ -310,6 +290,8 @@ bool SystemUtilities::getLogonInfoOfCurrentUser(QString *userName, QString *doma
 
 void SystemUtilities::getAllUsersLoggedOn(QStringList *users, const QString &serverName, unsigned long *apiStatus)
 {
+    if(!users){return;}
+
 #ifdef Q_OS_WIN
     return WinUtilities::getAllUsersLoggedOn(users, serverName, apiStatus);
 #else
@@ -324,7 +306,13 @@ void SystemUtilities::getAllUsersLoggedOn(QStringList *users, const QString &ser
         return;
     }
 
-    *users = QString::fromLocal8Bit(process.readAllStandardOutput()).split("\n");
+    QStringList list = QString::fromLocal8Bit(process.readAllStandardOutput()).split("\n");
+    QString name;
+    foreach (QString nameStr, list) {
+        name = nameStr.trimmed();
+        if(name.isEmpty() || users->contains(name)){continue;};
+        users->append(name);
+    }
 
 #endif
 }
@@ -389,5 +377,48 @@ bool SystemUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, unsigned 
     return UnixUtilities::serviceGetAllServicesInfo(jsonArray, errorCode, serviceType);
 #endif
 }
+
+bool SystemUtilities::shutdown(const QString &machineName, const QString &message, unsigned long timeout, bool forceAppsClosed, bool rebootAfterShutdown, QString *errorMessage)
+{
+#ifdef Q_OS_WIN
+    return WinUtilities::Shutdown(machineName, message, timeout, forceAppsClosed, rebootAfterShutdown, errorMessage);
+#else
+    return UnixUtilities::shutdown(machineName, message, timeout, forceAppsClosed, rebootAfterShutdown, errorMessage);
+#endif
+}
+
+bool SystemUtilities::setComputerName(const QString &newComputerName, const QString &adminName, const QString &adminPassword, unsigned long *errorCode, QString *errorMessage)
+{
+#ifdef Q_OS_WIN
+    bool isJoinedToDomain = false;
+    QString joinInfo = WinUtilities::getJoinInformation(&isJoinedToDomain).toLower();
+    if(joinInfo.trimmed().isEmpty()) {
+        qCritical() << tr("Failed to get join information!");
+    }
+    bool ok = false;
+    unsigned long errorCode = 0;
+    if(isJoinedToDomain) {
+        ok = WinUtilities::renameMachineInDomain(newComputerName, adminName, adminPassword, "", &errorCode);
+    } else {
+        ok = WinUtilities::setComputerName(newComputerName, &errorCode);
+    }
+#else
+    return UnixUtilities::setComputerName(newComputerName, adminPassword, errorCode, errorMessage);
+#endif
+}
+
+bool SystemUtilities::getOSInfo(QJsonObject *object){
+    if(!object){return false;}
+
+#ifdef Q_OS_WIN32
+    WinUtilities hw;
+#else
+    UnixUtilities hw;
+#endif
+
+    return hw.getOSInfo(object);
+}
+
+
 
 } //namespace HEHUI

@@ -245,7 +245,7 @@ void PaletteEditor::importPalette()
     }
 
     if(fileName.trimmed().isEmpty()){
-        fileName = QFileDialog::getOpenFileName(this, tr("Open palette"), QDir::currentPath(), tr("INI file(*.ini);;All Files(*)"));
+        fileName = QFileDialog::getOpenFileName(this, tr("Open saved palette"), QDir::currentPath(), tr("INI file(*.ini);;All Files(*)"));
         if(fileName.trimmed().isEmpty()){return;}
     }
 

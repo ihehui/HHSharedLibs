@@ -1837,4 +1837,1539 @@ Failed to get NetBIOS name! Error Code: %1</source>
     <source>Warranty:</source>
     <target>保修：</target>
 </phrase>
+<phrase>
+    <source>Export Settings</source>
+    <target>导出设置</target>
+</phrase>
+<phrase>
+    <source>Data</source>
+    <target>数据</target>
+</phrase>
+<phrase>
+    <source>Rows:</source>
+    <target>行：</target>
+</phrase>
+<phrase>
+    <source>All</source>
+    <target>所有</target>
+</phrase>
+<phrase>
+    <source>Selected</source>
+    <target>选中的</target>
+</phrase>
+<phrase>
+    <source>Column:</source>
+    <target>列：</target>
+</phrase>
+<phrase>
+    <source>Format:</source>
+    <target>格式：</target>
+</phrase>
+<phrase>
+    <source>&amp;Separator:</source>
+    <target>分隔符(&amp;S)：</target>
+</phrase>
+<phrase>
+    <source>Notes:</source>
+    <target>备注：</target>
+</phrase>
+<phrase>
+    <source>File &amp;Path:</source>
+    <target>文件路径(&amp;P)：</target>
+</phrase>
+<phrase>
+    <source>&amp;Browse</source>
+    <target>浏览(&amp;B)</target>
+</phrase>
+<phrase>
+    <source>Print Settings</source>
+    <target>打印设置</target>
+</phrase>
+<phrase>
+    <source>Header:</source>
+    <target>页眉：</target>
+</phrase>
+<phrase>
+    <source>Footer:</source>
+    <target>页脚：</target>
+</phrase>
+<phrase>
+    <source>Execute</source>
+    <target>执行</target>
+</phrase>
+<phrase>
+    <source>&amp;Cancel</source>
+    <target>取消(&amp;C)</target>
+</phrase>
+<phrase>
+    <source>Fatal Error</source>
+    <target>严重错误</target>
+</phrase>
+<phrase>
+    <source>An error occurred when opening the database!&lt;br&gt; %1</source>
+    <target>打开数据库时发生错误！&lt;br&gt; %1</target>
+</phrase>
+<phrase>
+    <source>Can not connect to database server!</source>
+    <target>无法连接到数据库服务器！</target>
+</phrase>
+<phrase>
+    <source>Fatal Error</source>
+    <target>严重错误</target>
+</phrase>
+<phrase>
+    <source>No available database driver!</source>
+    <target>没有可有的数据库驱动！</target>
+</phrase>
+<phrase>
+    <source>Database File Path</source>
+    <target>数据库文件路径</target>
+</phrase>
+<phrase>
+    <source>Database (*.db *.mdb);;All Files (*.*)</source>
+    <target>数据库 (*.db *.mdb);;所有文件 (*.*)</target>
+</phrase>
+<phrase>
+    <source>MySQL</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Default Port:3306</source>
+    <target>默认端口：3306</target>
+</phrase>
+<phrase>
+    <source>SQLite</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>PostgreSQL</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Default Port:5432</source>
+    <target>默认端口：5432</target>
+</phrase>
+<phrase>
+    <source>Firebird</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Default Port:3050</source>
+    <target>默认端口：3050</target>
+</phrase>
+<phrase>
+    <source>IBM DB2</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Default Port:50000</source>
+    <target>默认端口：50000</target>
+</phrase>
+<phrase>
+    <source>Oracle</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>M$ SQL Server</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Default Port:1433</source>
+    <target>默认端口：1433</target>
+</phrase>
+<phrase>
+    <source>M$ Access</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Other</source>
+    <target>其它</target>
+</phrase>
+<phrase>
+    <source>Database Server Port</source>
+    <target>数据库服务器端口</target>
+</phrase>
+<phrase>
+    <source>localhost</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>DSN:</source>
+    <target>数据源名称：</target>
+</phrase>
+<phrase>
+    <source>&amp;Database:</source>
+    <target>数据库(&amp;D)：</target>
+</phrase>
+<phrase>
+    <source>Error</source>
+    <target>错误</target>
+</phrase>
+<phrase>
+    <source>&lt;b&gt;Please fill in every required information!&lt;/b&gt;</source>
+    <target>&lt;b&gt;请填写每一个必要的信息！&lt;/b&gt;</target>
+</phrase>
+<phrase>
+    <source>&lt;b&gt;No database file found in your specified path !&lt;br&gt;Please check out and try again !&lt;/b&gt;</source>
+    <target>&lt;b&gt;在指定的路经找不到数据库文件！&lt;/b&gt;</target>
+</phrase>
+<phrase>
+    <source>&lt;b&gt;No database file found in your specified path !&lt;br&gt;Please check out and try again !&lt;/b&gt;</source>
+    <target>&lt;b&gt;在指定的路经找不到数据库文件！&lt;/b&gt;</target>
+</phrase>
+<phrase>
+    <source>Database Connecter</source>
+    <target>数据库连接器</target>
+</phrase>
+<phrase>
+    <source>Network Database</source>
+    <target>网络数据库</target>
+</phrase>
+<phrase>
+    <source>&amp;Database:</source>
+    <target>数据库(&amp;D)：</target>
+</phrase>
+<phrase>
+    <source>Database Name</source>
+    <target>数据库名称</target>
+</phrase>
+<phrase>
+    <source>D&amp;river:</source>
+    <target>驱动(&amp;R)：</target>
+</phrase>
+<phrase>
+    <source>Database Driver</source>
+    <target>数据库驱动</target>
+</phrase>
+<phrase>
+    <source>Auto Select</source>
+    <target>自动选择</target>
+</phrase>
+<phrase>
+    <source>&amp;Hostname:</source>
+    <target>主机名称(&amp;H)：</target>
+</phrase>
+<phrase>
+    <source>Host Name Or IP Address Of The Database Server</source>
+    <target>数据库服务器的主机名称或者IP地址</target>
+</phrase>
+<phrase>
+    <source>Port:</source>
+    <target>端口：</target>
+</phrase>
+<phrase>
+    <source>Port Of The Database Server</source>
+    <target>数据库服务器端口</target>
+</phrase>
+<phrase>
+    <source>Default</source>
+    <target>默认</target>
+</phrase>
+<phrase>
+    <source>&amp;Username:</source>
+    <target>用户名(&amp;U)：</target>
+</phrase>
+<phrase>
+    <source>User Name Of The Database Server</source>
+    <target>数据库服务器用户名</target>
+</phrase>
+<phrase>
+    <source>&amp;Password:</source>
+    <target>密码(&amp;P)：</target>
+</phrase>
+<phrase>
+    <source>Password</source>
+    <target>密码</target>
+</phrase>
+<phrase>
+    <source>Local Database File</source>
+    <target>本地数据库文件</target>
+</phrase>
+<phrase>
+    <source>Database File Path</source>
+    <target>数据库文件路径</target>
+</phrase>
+<phrase>
+    <source>Click To Select The Database File</source>
+    <target>点击选择数据库文件</target>
+</phrase>
+<phrase>
+    <source>&amp;Browse</source>
+    <target>浏览(&amp;B)</target>
+</phrase>
+<phrase>
+    <source>Database File Path:</source>
+    <target>数据库文件路径：</target>
+</phrase>
+<phrase>
+    <source>Database &amp;Type:</source>
+    <target>数据库类型(&amp;T)：</target>
+</phrase>
+<phrase>
+    <source>Database Type</source>
+    <target>数据库类型</target>
+</phrase>
+<phrase>
+    <source>&amp;OK</source>
+    <target>确定(&amp;O)</target>
+</phrase>
+<phrase>
+    <source>Ctrl+Return</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Cancel</source>
+    <target>取消(&amp;C)</target>
+</phrase>
+<phrase>
+    <source>Esc</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Esc</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Database connection(&apos;%1&apos;) has been previously added!</source>
+    <target>数据库(&apos;%1&apos;)已经连接过！</target>
+</phrase>
+<phrase>
+    <source>Invalid SQL Script File Name!</source>
+    <target>无效的SQL脚本文件名称！</target>
+</phrase>
+<phrase>
+    <source>Invalid Database!</source>
+    <target>无效的数据库!</target>
+</phrase>
+<phrase>
+    <source>Database Not Open!</source>
+    <target>数据库未打开!</target>
+</phrase>
+<phrase>
+    <source>Export</source>
+    <target>导出</target>
+</phrase>
+<phrase>
+    <source>Tab(&apos;	&apos;)</source>
+    <target>制表符(&apos;	&apos;)</target>
+</phrase>
+<phrase>
+    <source>He Hui</source>
+    <target>贺辉</target>
+</phrase>
+<phrase>
+    <source>Core Plug-in</source>
+    <target>核心插件</target>
+</phrase>
+<phrase>
+    <source>LGPL</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>%1All(*.*)</source>
+    <target>%1所有文件(*.*)</target>
+</phrase>
+<phrase>
+    <source>&lt;b&gt;File already exists!&lt;br&gt;Overwrite?&lt;/b&gt;</source>
+    <target>&lt;b&gt;文件已经存在！&lt;br&gt;覆盖它？&lt;/b&gt;</target>
+</phrase>
+<phrase>
+    <source>Cannot write file %1:&lt;br&gt;%2.</source>
+    <target>无法写文件 %1：&lt;br&gt;%2。</target>
+</phrase>
+<phrase>
+    <source>Comma(&apos;,&apos;)</source>
+    <target>逗号(&apos;,&apos;)</target>
+</phrase>
+<phrase>
+    <source>Data File Path:</source>
+    <target>数据文件路径：</target>
+</phrase>
+<phrase>
+    <source>Export</source>
+    <target>导出</target>
+</phrase>
+<phrase>
+    <source>Fatal Error</source>
+    <target>严重错误</target>
+</phrase>
+<phrase>
+    <source>File Already Exists</source>
+    <target>文件已经存在</target>
+</phrase>
+<phrase>
+    <source>New Separator</source>
+    <target>新分隔符</target>
+</phrase>
+<phrase>
+    <source>New Separator:</source>
+    <target>新分隔符：</target>
+</phrase>
+<phrase>
+    <source>Other</source>
+    <target>其它</target>
+</phrase>
+<phrase>
+    <source>Print</source>
+    <target>打印</target>
+</phrase>
+<phrase>
+    <source>Tab(&apos;	&apos;)</source>
+    <target>制表符(&apos;	&apos;)</target>
+</phrase>
+<phrase>
+    <source>Vertical(&apos;|&apos;)</source>
+    <target>竖线(&apos;|&apos;)</target>
+</phrase>
+<phrase>
+    <source>Can not open file &apos;%1&apos;!</source>
+    <target>无法打开文件&apos;%1&apos;！</target>
+</phrase>
+<phrase>
+    <source>Fatal Error</source>
+    <target>严重错误</target>
+</phrase>
+<phrase>
+    <source>File &apos;%1&apos; does not exist!</source>
+    <target>文件 &apos;%1&apos;不存在！</target>
+</phrase>
+<phrase>
+    <source>Print Document</source>
+    <target>打印文档</target>
+</phrase>
+<phrase>
+    <source>Clear text</source>
+    <target>清除文本</target>
+</phrase>
+<phrase>
+    <source>Filter</source>
+    <target>过滤</target>
+</phrase>
+<phrase>
+    <source>&lt;p&gt;See the &lt;a href=&quot;http://www.gnu.org/copyleft/lesser.html&quot;&gt;GNU LESSER GENERAL PUBLIC LICENSE&lt;/a&gt; for more details.&lt;/p&gt;</source>
+    <target>&lt;p&gt;详细信息请见&lt;a href=&quot;http://www.gnu.org/copyleft/lesser.html&quot;&gt;GNU LESSER GENERAL PUBLIC LICENSE&lt;/a&gt;&lt;/p&gt;</target>
+</phrase>
+<phrase>
+    <source>GUI Plug-in</source>
+    <target>GUI插件</target>
+</phrase>
+<phrase>
+    <source>He Hui</source>
+    <target>贺辉</target>
+</phrase>
+<phrase>
+    <source>This plugin is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.&lt;/br&gt;</source>
+    <target>本程序不提供任何形式的担保。&lt;/br&gt;</target>
+</phrase>
+<phrase>
+    <source>Collapse all</source>
+    <target>折叠所有</target>
+</phrase>
+<phrase>
+    <source>Edit name</source>
+    <target>编辑名称</target>
+</phrase>
+<phrase>
+    <source>Expand all</source>
+    <target>展开所有</target>
+</phrase>
+<phrase>
+    <source>Icon View</source>
+    <target>图标视图</target>
+</phrase>
+<phrase>
+    <source>List View</source>
+    <target>列表视图</target>
+</phrase>
+<phrase>
+    <source>Remove</source>
+    <target>移除</target>
+</phrase>
+<phrase>
+    <source>Scratchpad</source>
+    <target>便条簿</target>
+</phrase>
+<phrase>
+    <source>&lt;font color=red&gt;Sorry,I can&apos;t find your ID!&lt;br&gt;  Please check out your ID.&lt;/font&gt;</source>
+    <target>&lt;font color=red&gt;对不起，未找到ID！&lt;br&gt;请检查你的ID。&lt;/font&gt;</target>
+</phrase>
+<phrase>
+    <source>&lt;font color=red&gt;Sorry,Password incorrect!&lt;br&gt;  Please check out your password.&lt;/font&gt;</source>
+    <target>&lt;font color=red&gt;对不起，密码错误！&lt;br&gt;请检查你的密码。&lt;/font&gt;</target>
+</phrase>
+<phrase>
+    <source>An error occurred when querying the database!&lt;br&gt; %1</source>
+    <target>查询数据库时发生错误！&lt;br&gt; %1</target>
+</phrase>
+<phrase>
+    <source>Authentication Failed</source>
+    <target>认证失败</target>
+</phrase>
+<phrase>
+    <source>Cannot access the specified server: &lt;font color=red&gt;Permission Denied!&lt;/font&gt;</source>
+    <target>无法访问指定的服务器：&lt;font color=red&gt;拒绝访问！&lt;/font&gt;</target>
+</phrase>
+<phrase>
+    <source>Fatal Error</source>
+    <target>严重错误</target>
+</phrase>
+<phrase>
+    <source>Login</source>
+    <target>登陆</target>
+</phrase>
+<phrase>
+    <source>&lt;b&gt;How can I help you?&lt;br&gt; I don&apos;t know how to do that, I don&apos;t know!&lt;/b&gt;</source>
+    <target>&lt;b&gt;我不知道该怎么样帮你！&lt;/b&gt;</target>
+</phrase>
+<phrase>
+    <source>&lt;b&gt;Incorrect Authenticode!&lt;/b&gt;</source>
+    <target>&lt;b&gt;验证码错误！&lt;/b&gt;</target>
+</phrase>
+<phrase>
+    <source>Access Code:</source>
+    <target>访问代码：</target>
+</phrase>
+<phrase>
+    <source>Authentication Failed</source>
+    <target>认证失败</target>
+</phrase>
+<phrase>
+    <source>Authentication Required</source>
+    <target>需要认证</target>
+</phrase>
+<phrase>
+    <source>What&apos;s your name?</source>
+    <target>你的名字是什么？</target>
+</phrase>
+<phrase>
+    <source>What&apos;s your password?</source>
+    <target>你的密码是什么？</target>
+</phrase>
+<phrase>
+    <source>%1(%2)</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Can not switch to the language &apos;%1&apos;!</source>
+    <target>无法切换到指定语言 &apos;%1&apos;！</target>
+</phrase>
+<phrase>
+    <source>Default(English)</source>
+    <target>默认(English)</target>
+</phrase>
+<phrase>
+    <source>Error</source>
+    <target>错误</target>
+</phrase>
+<phrase>
+    <source>&amp;Language</source>
+    <target>语言(&amp;L)</target>
+</phrase>
+<phrase>
+    <source>&amp;Management</source>
+    <target>管理(&amp;M)</target>
+</phrase>
+<phrase>
+    <source>&amp;Plugins</source>
+    <target>插件(&amp;P)</target>
+</phrase>
+<phrase>
+    <source>Plugins</source>
+    <target>插件</target>
+</phrase>
+<phrase>
+    <source>&amp;Style</source>
+    <target>样式(&amp;S)</target>
+</phrase>
+<phrase>
+    <source>Use Style&apos;s Palette</source>
+    <target>使用样式标准配色</target>
+</phrase>
+<phrase>
+    <source>Peer Not Connected!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>RUDP Server has already started!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>RUDP Server Not Running!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>UDP Server has already started!</source>
+    <target>UDP服务器已经启动！</target>
+</phrase>
+<phrase>
+    <source>Location</source>
+    <target>位置</target>
+</phrase>
+<phrase>
+    <source>Name</source>
+    <target>名称</target>
+</phrase>
+<phrase>
+    <source>State</source>
+    <target>状态</target>
+</phrase>
+<phrase>
+    <source>Vendor</source>
+    <target>提供商</target>
+</phrase>
+<phrase>
+    <source>Version</source>
+    <target>版本</target>
+</phrase>
+<phrase>
+    <source>Error: %1</source>
+    <target>错误:%1</target>
+</phrase>
+<phrase>
+    <source>File &apos;%1&apos; does not exist!</source>
+    <target>文件&apos;%1&apos;不存在！</target>
+</phrase>
+<phrase>
+    <source>Plug-in &apos;%1&apos; loaded!</source>
+    <target>插件&apos;%1&apos;已加载!</target>
+</phrase>
+<phrase>
+    <source>Plugin &apos;%1&apos; has already been loaded!</source>
+    <target>插件&apos;%1&apos;已经被卸载！</target>
+</phrase>
+<phrase>
+    <source>Unknown Plug-in: %1</source>
+    <target>未知插件:%1</target>
+</phrase>
+<phrase>
+    <source>All Files (*.*)</source>
+    <target>所有文件 (*.*)</target>
+</phrase>
+<phrase>
+    <source>Can not load plugin &apos;%1&apos;!
+%2</source>
+    <target>无法载入插件&apos;%1&apos;! %2</target>
+</phrase>
+<phrase>
+    <source>Can not unload the plug-in &apos;%1&apos;!</source>
+    <target>无法卸载插件&apos;%1&apos;！</target>
+</phrase>
+<phrase>
+    <source>DLL (*.dll);;All Files (*.*)</source>
+    <target>DLL (*.dll);;所有文件 (*.*)</target>
+</phrase>
+<phrase>
+    <source>Error</source>
+    <target>错误</target>
+</phrase>
+<phrase>
+    <source>File &apos;%1&apos; does not exist!</source>
+    <target>文件&apos;%1&apos;不存在！</target>
+</phrase>
+<phrase>
+    <source>Invalid plug-in instance or plug-in has already been unloaded!</source>
+    <target>无效的插件实例或者是插件已经被卸载！</target>
+</phrase>
+<phrase>
+    <source>Select one or more plugin files to load</source>
+    <target>选择一个或多个要载入的插件文件</target>
+</phrase>
+<phrase>
+    <source>SO (*.so);;All Files (*.*)</source>
+    <target>SO (*.so);;所有文件 (*.*)</target>
+</phrase>
+<phrase>
+    <source>%1 Files (*.%2);;All Files (*)</source>
+    <target>%1 Files (*.%2);;所有文件 (*.*)</target>
+</phrase>
+<phrase>
+    <source>Can not save image!</source>
+    <target>无法保存图像!</target>
+</phrase>
+<phrase>
+    <source>Error</source>
+    <target>错误</target>
+</phrase>
+<phrase>
+    <source>Save As</source>
+    <target>另存为</target>
+</phrase>
+<phrase>
+    <source>Can not connect to host! Failed to bind!</source>
+    <target>无法连接到主机！绑定失败！</target>
+</phrase>
+<phrase>
+    <source>Can not connect to host! Failed to connect!</source>
+    <target>无法连接到主机！连接失败！</target>
+</phrase>
+<phrase>
+    <source>Can not connect to host! Invalid local address or port!!</source>
+    <target>无法连接到主机！无效的地址或端口！</target>
+</phrase>
+<phrase>
+    <source>Can not connect to host! Invalid peer address or port!</source>
+    <target>无法连接到主机！无效的地址或端口！</target>
+</phrase>
+<phrase>
+    <source>Can not connect to host! Invalid peer address!</source>
+    <target>无法连接到主机！无效的地址！</target>
+</phrase>
+<phrase>
+    <source>Can not connect to host! Invalid peer port!</source>
+    <target>无法连接到主机！无效的端口！</target>
+</phrase>
+<phrase>
+    <source>Data is too large! Max allowed size:%1, current data size:%2</source>
+    <target>数据太大！允许的最大尺寸：%1，当前数据尺寸：%2</target>
+</phrase>
+<phrase>
+    <source>Data sent failed! Data size:%1, Sent size:%2! %3</source>
+    <target>数据发送失败！数据尺寸：%1，已发送尺寸：%2！ %3</target>
+</phrase>
+<phrase>
+    <source>EPOLL Not Initialized!</source>
+    <target>EPOLL未初始化！</target>
+</phrase>
+<phrase>
+    <source>Failed to send message data! </source>
+    <target>发送消息数据失败！</target>
+</phrase>
+<phrase>
+    <source>Failed to start listening! </source>
+    <target>无法监听！</target>
+</phrase>
+<phrase>
+    <source>Failed to start listening! Bind error! </source>
+    <target>无法监听！绑定时发生错误！</target>
+</phrase>
+<phrase>
+    <source>Failed to start listening! Illegal port number or port is busy!</source>
+    <target>无法监听！非法的端口或端口正忙！</target>
+</phrase>
+<phrase>
+    <source>Invalid UDT Socket!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Server is already listenning on %1:%2!</source>
+    <target>服务器正在监听 %1:%2 ！</target>
+</phrase>
+<phrase>
+    <source>Failed to receive file! </source>
+    <target>接收文件失败！</target>
+</phrase>
+<phrase>
+    <source>Failed to send file! </source>
+    <target>发送文件失败！</target>
+</phrase>
+<phrase>
+    <source>Failed to send file! </source>
+    <target>发送文件失败！</target>
+</phrase>
+<phrase>
+    <source>A parameter is incorrect.</source>
+    <target>参数错误。</target>
+</phrase>
+<phrase>
+    <source>A system error has occurred: %1</source>
+    <target>发生系统错误：%1</target>
+</phrase>
+<phrase>
+    <source>A system error has occurred: %1
+</source>
+    <target>发生系统错误：%1
+</target>
+</phrase>
+<phrase>
+    <source>ACCESS DENIED</source>
+    <target>拒绝访问</target>
+</phrase>
+<phrase>
+    <source>Adding user %1 to local &apos;Administrators&apos; group...</source>
+    <target>正在添加用户 %1 到本地 &apos;Administrators&apos; 组....</target>
+</phrase>
+<phrase>
+    <source>Adding user %1 to local system...</source>
+    <target>正在添加用户 %1 到本地系统....</target>
+</phrase>
+<phrase>
+    <source>Adding user to local &apos;Power Users&apos; group...</source>
+    <target>正在添加用户 %1 到本地 &apos;Power Users&apos; 组....</target>
+</phrase>
+<phrase>
+    <source>Administrator Privilege Required!</source>
+    <target>需要管理员权限!</target>
+</phrase>
+<phrase>
+    <source>An access violation has occurred
+</source>
+    <target>非法访问\n</target>
+</phrase>
+<phrase>
+    <source>An access violation has occurred!
+</source>
+    <target>访问出错！</target>
+</phrase>
+<phrase>
+    <source>An error occured while adding user &apos;%1&apos; to local group &apos;%2&apos;! Error code: %3</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>An Error occured while adding user &apos;%1&apos; to Local system! Error code: %2</source>
+    <target>添加用户&apos;%1&apos;到本地系统时发生错误！错误代码：%2</target>
+</phrase>
+<phrase>
+    <source>An error occured while connecting to network drive! Error code: %1</source>
+    <target>连接网络磁盘时发生错误！错误代码：%1</target>
+</phrase>
+<phrase>
+    <source>An error occured while connecting to network printer &apos;%1&apos;! Error code: %2</source>
+    <target>连接网络打印机&apos;%1&apos;时发生错误！错误代码：%2</target>
+</phrase>
+<phrase>
+    <source>
+An error occured while connecting to network printer &apos;%1&apos;! Error code: %2</source>
+    <target>\n连接网络打印机&apos;%1&apos;时发生错误！错误代码：%2</target>
+</phrase>
+<phrase>
+    <source>An error occured while deleting user &apos;%1&apos; from local group &apos;%2&apos;! Error code: %3</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>An error occured while trying to join the workgroup &apos;%1&apos;! Error code: %2 </source>
+    <target>加入工作组&apos;%1&apos;时发生错误！错误代码：%2</target>
+</phrase>
+<phrase>
+    <source>An error occurred while getting the last logon/logoff time. NetUserGetInfo failed: %1</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>An error occurred while setting up the account. NetUserGetInfo failed: %1</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>An error occurred while updating the password. NetUserGetInfo failed: %1</source>
+    <target>更新密码时发生错误。函数“NetUserGetInfo”失败：%1</target>
+</phrase>
+<phrase>
+    <source>BAD NET NAME</source>
+    <target>无效的网络名称</target>
+</phrase>
+<phrase>
+    <source>Can Not Adjust Token Privileges!</source>
+    <target>无法修改令牌权限！</target>
+</phrase>
+<phrase>
+    <source>Can not delete key &apos;System$&apos;!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Can not find the user key of %1!</source>
+    <target>找不到帐户&apos;%1&apos;的键值!</target>
+</phrase>
+<phrase>
+    <source>Can not find user info!</source>
+    <target>找不到用户信息！</target>
+</phrase>
+<phrase>
+    <source>Can Not Find WB IME Key</source>
+    <target>找不到输入法的键值</target>
+</phrase>
+<phrase>
+    <source>Can not get account name of process!</source>
+    <target>无法获取进程的帐户名称!</target>
+</phrase>
+<phrase>
+    <source>Can not get computer name! Error: %1</source>
+    <target>无法设置计算机名称！错误代码：%1</target>
+</phrase>
+<phrase>
+    <source>Can not get disk free space!</source>
+    <target>无法获取磁盘剩余空间大小！</target>
+</phrase>
+<phrase>
+    <source>Can not get join status information!</source>
+    <target>无法获取计算机所加入的工作组或域信息！</target>
+</phrase>
+<phrase>
+    <source>Can not read image &apos;%1&apos; ! </source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Can not read key &apos;%1&apos; related to System$!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Can not read System$ key!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Can not read the value of &apos;F&apos; from key &apos;000001F4&apos;!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Can not retrieve the name of the user associated with the current thread! Code:%1 </source>
+    <target>无法获取当前线程的用户名！错误代码：%1</target>
+</phrase>
+<phrase>
+    <source>Can not set &apos;AutoAdminLogon&apos; for &apos;AutoAdminLogon&apos;!</source>
+    <target>无法设置自动登陆！</target>
+</phrase>
+<phrase>
+    <source>Can not set &apos;DefaultPassword&apos; for &apos;AutoAdminLogon&apos;!</source>
+    <target>无法为自动登陆设置&apos;DefaultPassword&apos;注册表项值！</target>
+</phrase>
+<phrase>
+    <source>Can not set &apos;DefaultUserName&apos; for &apos;AutoAdminLogon&apos;!</source>
+    <target>无法为自动登陆设置&apos;DefaultUserName&apos;注册表项值！</target>
+</phrase>
+<phrase>
+    <source>Can not set computer name to &apos;%1&apos;</source>
+    <target>无法设置计算机名称为&apos;%1&apos;</target>
+</phrase>
+<phrase>
+    <source>Can not set system time! Error code: %1</source>
+    <target>无法设置系统时间!错误代码:%1</target>
+</phrase>
+<phrase>
+    <source>Can not set wallpaper! Can not save file &apos;%1&apos; !</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Can not set wallpaper! File &apos;%1&apos; does not exist!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Can not write registry!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Connecting to net drive ...</source>
+    <target>正在连接网络磁盘....</target>
+</phrase>
+<phrase>
+    <source>Connecting to network printers ...</source>
+    <target>正在连接网络打印机....</target>
+</phrase>
+<phrase>
+    <source>Current OS is not NT6!</source>
+    <target>当前系统是NT6！</target>
+</phrase>
+<phrase>
+    <source>Deleting File &apos;%1&apos; ...</source>
+    <target>正在删除文件&apos;%1&apos;....</target>
+</phrase>
+<phrase>
+    <source>Deleting Files In &apos;%1&apos; ...</source>
+    <target>正在删除&apos;%1&apos;里的文件....</target>
+</phrase>
+<phrase>
+    <source>Deleting Temporary Files ...</source>
+    <target>正在删除临时文件....</target>
+</phrase>
+<phrase>
+    <source>Deleting Temporary Internet Files ...</source>
+    <target>正在删除临时文件....</target>
+</phrase>
+<phrase>
+    <source>Deleting user from local &apos;Administrators&apos; group...</source>
+    <target>正在从本地 &apos;Administrators&apos; 组删除用户 %1 ....</target>
+</phrase>
+<phrase>
+    <source>disable</source>
+    <target>禁用</target>
+</phrase>
+<phrase>
+    <source>Disable Application Starting with M$ windows ...</source>
+    <target>禁用开机启动....</target>
+</phrase>
+<phrase>
+    <source>Done!</source>
+    <target>完成！</target>
+</phrase>
+<phrase>
+    <source>Done! User &apos;%1&apos; initialized!</source>
+    <target>完成！用户&apos;%1&apos;的设置已经初始化！</target>
+</phrase>
+<phrase>
+    <source>Email Store Root:&apos;%1&apos;</source>
+    <target>邮件存储位置根路径:%1</target>
+</phrase>
+<phrase>
+    <source>enable</source>
+    <target>启用</target>
+</phrase>
+<phrase>
+    <source>Error %1 occurred while setting up the account. Parm Error %2 returned.</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Error %1 occurred while updating the password. Parm Error %2 returned.</source>
+    <target>更新密码时发生错误%1。返回错误%2。</target>
+</phrase>
+<phrase>
+    <source>
+Failed to get dns domain! Error Code: %1</source>
+    <target>无法获取DNS域！错误代码： %1</target>
+</phrase>
+<phrase>
+    <source>
+Failed to get dns hostname! Error Code: %1</source>
+    <target>无法获取DNS主机名！错误代码： %1</target>
+</phrase>
+<phrase>
+    <source>
+Failed to get NetBIOS name! Error Code: %1</source>
+    <target>无法获取NetBIOS名称！错误代码： %1</target>
+</phrase>
+<phrase>
+    <source>Failed to join a domain! Error code:%1</source>
+    <target>无法加入域！错误代码： %1</target>
+</phrase>
+<phrase>
+    <source>Failed to open registry &apos;%1&apos;!</source>
+    <target>无法打开注册表 &apos;%1&apos;！</target>
+</phrase>
+<phrase>
+    <source>Failed to rename machine in domain! Error code: %1</source>
+    <target>无法在域内重命名计算机！错误代码： %1</target>
+</phrase>
+<phrase>
+    <source>Failed to start process &apos;%1&apos; ! Error Code:%2 </source>
+    <target>无法启动进程 &apos;%1&apos;！错误代码：%2</target>
+</phrase>
+<phrase>
+    <source>Failed to unjoin machine from the domain! Error code: %1</source>
+    <target>无法退出域！错误代码： %1</target>
+</phrase>
+<phrase>
+    <source>Failure writing to the system registry! Can not %1 &apos;%2&apos; to start with M$ Windows!</source>
+    <target>写系统注册表失败！无法%1 &apos;%2&apos;自启动！</target>
+</phrase>
+<phrase>
+    <source>Invalid computer name!</source>
+    <target>无效的计算机名称！</target>
+</phrase>
+<phrase>
+    <source>Invalid parameter!</source>
+    <target>无效参数！</target>
+</phrase>
+<phrase>
+    <source>Invalid Process Token!</source>
+    <target>无效的进程令牌!</target>
+</phrase>
+<phrase>
+    <source>Invalid QStringList pointer!</source>
+    <target>无效的QStringList指针！</target>
+</phrase>
+<phrase>
+    <source>Invalid Root Path &apos;%1&apos; !</source>
+    <target>无效的根目录路径 &apos;%1&apos; ！</target>
+</phrase>
+<phrase>
+    <source>Invalid Time!</source>
+    <target>无效时间!</target>
+</phrase>
+<phrase>
+    <source>Invalid user name!</source>
+    <target>无效的用户名！</target>
+</phrase>
+<phrase>
+    <source>Invalid Workgroup Name &apos;%1&apos;!</source>
+    <target>无效的工作组名称&apos;%1&apos;！</target>
+</phrase>
+<phrase>
+    <source>Join workgroup ...</source>
+    <target>加入工作组....</target>
+</phrase>
+<phrase>
+    <source>NO NET OR BAD PATH</source>
+    <target>无网络或无效路径</target>
+</phrase>
+<phrase>
+    <source>NO NETWORK</source>
+    <target>无网络</target>
+</phrase>
+<phrase>
+    <source>No such domain!</source>
+    <target>没有这个域！</target>
+</phrase>
+<phrase>
+    <source>Authenticode</source>
+    <target>验证码</target>
+</phrase>
+<phrase>
+    <source>&amp;Cancel</source>
+    <target>取消(&amp;C)</target>
+</phrase>
+<phrase>
+    <source>Esc</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;ID:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Login</source>
+    <target>登陆(&amp;L)</target>
+</phrase>
+<phrase>
+    <source>Login...</source>
+    <target>登陆....</target>
+</phrase>
+<phrase>
+    <source>Password</source>
+    <target>密码</target>
+</phrase>
+<phrase>
+    <source>&amp;Password:</source>
+    <target>密码(&amp;P)：</target>
+</phrase>
+<phrase>
+    <source>User Info</source>
+    <target>用户信息</target>
+</phrase>
+<phrase>
+    <source>User Name</source>
+    <target>用户名</target>
+</phrase>
+<phrase>
+    <source>Author:</source>
+    <target>作者：</target>
+</phrase>
+<phrase>
+    <source>Description</source>
+    <target>描述：</target>
+</phrase>
+<phrase>
+    <source>&amp;Details</source>
+    <target>详细信息(&amp;D)</target>
+</phrase>
+<phrase>
+    <source>Details</source>
+    <target>详细信息</target>
+</phrase>
+<phrase>
+    <source>License</source>
+    <target>授权</target>
+</phrase>
+<phrase>
+    <source>&amp;Load</source>
+    <target>加载(&amp;L)</target>
+</phrase>
+<phrase>
+    <source>Plug-ins</source>
+    <target>插件</target>
+</phrase>
+<phrase>
+    <source>&amp;Unload</source>
+    <target>卸载(&amp;U)</target>
+</phrase>
+<phrase>
+    <source>URL:</source>
+    <target>网址：</target>
+</phrase>
+<phrase>
+    <source>&amp;Close</source>
+    <target>关闭(&amp;C)</target>
+</phrase>
+<phrase>
+    <source>&amp;Details</source>
+    <target>详细信息(&amp;D)</target>
+</phrase>
+<phrase>
+    <source>Work In Progress</source>
+    <target>工作进行中</target>
+</phrase>
+<phrase>
+    <source>Working....</source>
+    <target>正在工作....</target>
+</phrase>
+<phrase>
+    <source>Database file  %1  can not be read or written !</source>
+    <target>数据库文件 &apos;%1&apos;无法读写！</target>
+</phrase>
+<phrase>
+    <source>Database file  %1  does not exists !</source>
+    <target>数据库文件 &apos;%1&apos;不存在！</target>
+</phrase>
+<phrase>
+    <source>Insert HTML entity</source>
+    <target>插入HTML实体</target>
+</phrase>
+<phrase>
+    <source>Image Viewer</source>
+    <target>图像查看器</target>
+</phrase>
+<phrase>
+    <source>Open Image Files</source>
+    <target>打开图像文件</target>
+</phrase>
+<phrase>
+    <source>Images (*.png *.xpm *.jpg *.mng *.svg *.gif *.bmp);;All files (*.*)</source>
+    <target>图像 (*.png *.xpm *.jpg *.mng *.svg *.gif *.bmp);;所有文件 (*.*)</target>
+</phrase>
+<phrase>
+    <source>Can not create path:&lt;p&gt;%1&lt;/p&gt;</source>
+    <target>无法创建路径：&lt;p&gt;%1&lt;/p&gt;</target>
+</phrase>
+<phrase>
+    <source>Can not save image as:&lt;p&gt;%1&lt;/p&gt;</source>
+    <target>无法另存图像为：&lt;p&gt;%1&lt;/p&gt;</target>
+</phrase>
+<phrase>
+    <source>Save Image As:</source>
+    <target>图像另存为：</target>
+</phrase>
+<phrase>
+    <source>Zoom &amp;In</source>
+    <target>放大[&amp;I]</target>
+</phrase>
+<phrase>
+    <source>Zoom &amp;Out</source>
+    <target>缩小[&amp;O]</target>
+</phrase>
+<phrase>
+    <source>&amp;Normal Size</source>
+    <target>正常大小[&amp;N]</target>
+</phrase>
+<phrase>
+    <source>&amp;Reset...</source>
+    <target>重置[&amp;R]</target>
+</phrase>
+<phrase>
+    <source>&amp;Fit to Window</source>
+    <target>适合窗口大小[&amp;F]</target>
+</phrase>
+<phrase>
+    <source>OK</source>
+    <target>确定</target>
+</phrase>
+<phrase>
+    <source>Authentication failed! Invalid user ID!</source>
+    <target>认证失败！无效的用户ID！</target>
+</phrase>
+<phrase>
+    <source>Logging in....</source>
+    <target>正在登陆....</target>
+</phrase>
+<phrase>
+    <source>Font Size</source>
+    <target>字体大小</target>
+</phrase>
+<phrase>
+    <source>Bold</source>
+    <target>粗体</target>
+</phrase>
+<phrase>
+    <source>Italic</source>
+    <target>斜体</target>
+</phrase>
+<phrase>
+    <source>Underline</source>
+    <target>下划线</target>
+</phrase>
+<phrase>
+    <source>Left Align</source>
+    <target>左对齐</target>
+</phrase>
+<phrase>
+    <source>Right Align</source>
+    <target>右对齐</target>
+</phrase>
+<phrase>
+    <source>Right to Left</source>
+    <target>从右到左</target>
+</phrase>
+<phrase>
+    <source>Superscript</source>
+    <target>上标</target>
+</phrase>
+<phrase>
+    <source>Subscript</source>
+    <target>下标</target>
+</phrase>
+<phrase>
+    <source>Insert &amp;Link</source>
+    <target>插入链接[&amp;L]</target>
+</phrase>
+<phrase>
+    <source>Simplify Rich Text</source>
+    <target>简化超文本</target>
+</phrase>
+<phrase>
+    <source>Select Image</source>
+    <target>选择图像</target>
+</phrase>
+<phrase>
+    <source>Edit text</source>
+    <target>编辑文本</target>
+</phrase>
+<phrase>
+    <source>Rich Text</source>
+    <target>超文本</target>
+</phrase>
+<phrase>
+    <source>Controler</source>
+    <target>控制器</target>
+</phrase>
+<phrase>
+    <source>Rotate Left</source>
+    <target>向左旋转</target>
+</phrase>
+<phrase>
+    <source>Rotate</source>
+    <target>旋转</target>
+</phrase>
+<phrase>
+    <source>Rotate Right</source>
+    <target>向右旋转</target>
+</phrase>
+<phrase>
+    <source>Flip Vertical</source>
+    <target>垂直翻转</target>
+</phrase>
+<phrase>
+    <source>Flip Horizontal</source>
+    <target>水平翻转</target>
+</phrase>
+<phrase>
+    <source>Zoom Out</source>
+    <target>缩小</target>
+</phrase>
+<phrase>
+    <source>Zoom In</source>
+    <target>放大</target>
+</phrase>
+<phrase>
+    <source>Zoom Fit Best</source>
+    <target>缩放到最佳大小</target>
+</phrase>
+<phrase>
+    <source>Original Size</source>
+    <target>原始尺寸</target>
+</phrase>
+<phrase>
+    <source>Save Image</source>
+    <target>保存图像</target>
+</phrase>
+<phrase>
+    <source>Save Image As</source>
+    <target>图像另存为</target>
+</phrase>
+<phrase>
+    <source>&amp;Settings</source>
+    <target>设置[&amp;S]</target>
+</phrase>
+<phrase>
+    <source>Abort</source>
+    <target>中止</target>
+</phrase>
+<phrase>
+    <source>The dimension is larger than the file size!</source>
+    <target>尺寸超出文件大小！</target>
+</phrase>
+<phrase>
+    <source>Edit Palette</source>
+    <target>编辑配色</target>
+</phrase>
+<phrase>
+    <source>Tune Palette</source>
+    <target>调整配色</target>
+</phrase>
+<phrase>
+    <source>Quick</source>
+    <target>快速调整</target>
+</phrase>
+<phrase>
+    <source>&amp;Compute Details</source>
+    <target>计算细节[&amp;C]</target>
+</phrase>
+<phrase>
+    <source>Show De&amp;tails</source>
+    <target>显示细节[&amp;T]</target>
+</phrase>
+<phrase>
+    <source>Preview</source>
+    <target>预览</target>
+</phrase>
+<phrase>
+    <source>&amp;Disabled</source>
+    <target>禁用[&amp;D]</target>
+</phrase>
+<phrase>
+    <source>I&amp;nactive</source>
+    <target>非活动[&amp;N]</target>
+</phrase>
+<phrase>
+    <source>Acti&amp;ve</source>
+    <target>活动[&amp;V]</target>
+</phrase>
+<phrase>
+    <source>Import</source>
+    <target>导入</target>
+</phrase>
+<phrase>
+    <source>Apply</source>
+    <target>应用</target>
+</phrase>
+<phrase>
+    <source>Dark</source>
+    <target>黑色</target>
+</phrase>
+<phrase>
+    <source>Light Black</source>
+    <target>浅黑色</target>
+</phrase>
+<phrase>
+    <source>Blue</source>
+    <target>蓝色</target>
+</phrase>
+<phrase>
+    <source>White</source>
+    <target>白色</target>
+</phrase>
+<phrase>
+    <source>Style&apos;s Palette</source>
+    <target>样式的配色</target>
+</phrase>
+<phrase>
+    <source>INI file(*.ini);;All Files(*)</source>
+    <target>INI文件 (*.ini);;所有文件 (*.*)</target>
+</phrase>
+<phrase>
+    <source>Save palette</source>
+    <target>保存配色</target>
+</phrase>
+<phrase>
+    <source>Change Palette</source>
+    <target>改变配色</target>
+</phrase>
+<phrase>
+    <source>Active</source>
+    <target>活动</target>
+</phrase>
+<phrase>
+    <source>Inactive</source>
+    <target>非活动</target>
+</phrase>
+<phrase>
+    <source>Disabled</source>
+    <target>禁用</target>
+</phrase>
+<phrase>
+    <source>Preview Window</source>
+    <target>预览窗口</target>
+</phrase>
+<phrase>
+    <source>Reset Property</source>
+    <target>重置属性</target>
+</phrase>
+<phrase>
+    <source>Play</source>
+    <target>播放</target>
+</phrase>
+<phrase>
+    <source>Pause</source>
+    <target>暂停</target>
+</phrase>
+<phrase>
+    <source>Stop</source>
+    <target>停止</target>
+</phrase>
+<phrase>
+    <source>Current Frame</source>
+    <target>当前帧</target>
+</phrase>
+<phrase>
+    <source>Speed:</source>
+    <target>速度：</target>
+</phrase>
+<phrase>
+    <source>Speed</source>
+    <target>速度</target>
+</phrase>
+<phrase>
+    <source>&amp;Save As</source>
+    <target>另存为[&amp;S]</target>
+</phrase>
+<phrase>
+    <source>&amp;Print</source>
+    <target>打印[&amp;P]</target>
+</phrase>
+<phrase>
+    <source>&amp;Open</source>
+    <target>打开[&amp;O]</target>
+</phrase>
+<phrase>
+    <source>E&amp;xit</source>
+    <target>退出[&amp;X]</target>
+</phrase>
+<phrase>
+    <source>Justify</source>
+    <target>两端对齐</target>
+</phrase>
+<phrase>
+    <source>Images (*.png *.bmp *.jpg *.gif);;ALl files (*.*)</source>
+    <target>图像 (*.png *.bmp *.jpg *.gif);;所有文件 (*.*)</target>
+</phrase>
+<phrase>
+    <source>Description</source>
+    <target>描述</target>
+</phrase>
+<phrase>
+    <source>Join workgroup ...</source>
+    <target>加入工作组....</target>
+</phrase>
+<phrase>
+    <source>Join workgroup ...</source>
+    <target>加入工作组....</target>
+</phrase>
+<phrase>
+    <source>Failed to parse data: %1</source>
+    <target>无法解析数据：%1</target>
+</phrase>
+<phrase>
+    <source>Deleting Temporary Files...</source>
+    <target>正在删除临时文件...</target>
+</phrase>
+<phrase>
+    <source>Deleting Temporary Internet Files...</source>
+    <target>正在删除Internet临时文件...</target>
+</phrase>
+<phrase>
+    <source>Deleting Files In &apos;%1&apos;...</source>
+    <target>正在删除&apos;%1&apos;里的文件...</target>
+</phrase>
+<phrase>
+    <source>Deleting File &apos;%1&apos;...</source>
+    <target>正在删除文件&apos;%1&apos;...</target>
+</phrase>
+<phrase>
+    <source>Can not get account name of process! %1:%2.</source>
+    <target>无法获取进程的帐户名称! %1：%2。</target>
+</phrase>
+<phrase>
+    <source>Join workgroup...</source>
+    <target>加入工作组...</target>
+</phrase>
+<phrase>
+    <source>Connecting to net drive...</source>
+    <target>正在连接网络磁盘...</target>
+</phrase>
+<phrase>
+    <source>An error occured while connecting to network drive! %1:%2.</source>
+    <target>连接网络驱动器时发生错误！%1：%2。</target>
+</phrase>
+<phrase>
+    <source>
+An error occured while connecting to network printer &apos;%1&apos;! Error code: %2</source>
+    <target>
+连接网络打印机&apos;%1&apos;时发生错误！错误代码：%2</target>
+</phrase>
+<phrase>
+    <source>This plan requires review!&lt;p&gt;Please approve this plan before next therapy!&lt;/p&gt;</source>
+    <target>此计划需要重新审核！&lt;p&gt;请在下次治疗前确认此计划！&lt;/p&gt;</target>
+</phrase>
 </QPH>

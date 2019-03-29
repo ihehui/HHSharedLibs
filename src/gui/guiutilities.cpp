@@ -277,6 +277,7 @@ void GUIUtilities::setupLanguageMenu(QMenu *languageMenu)
     QStringList dirList = translationFileDirList();
     if(dirList.isEmpty()){
         dirList.append(QApplication::applicationDirPath() + QDir::separator () + QString(LANGUAGE_FILE_DIR));
+        dirList.append(":/translations");
     }
     dirList.removeDuplicates();
 

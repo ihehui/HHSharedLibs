@@ -1,0 +1,2 @@
+#!/usr/bin/sh 
+lupdate  -no-obsolete  -source-language en  -target-language zh_CN  -pro service.pro -ts service_zh_CN.ts

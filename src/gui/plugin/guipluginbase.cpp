@@ -108,7 +108,7 @@ QString GUIPluginBase::license() const
 //    return false;
 //  }
 
-bool GUIPluginBase::initialize(QWidget *parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString &pName, const QString &pVersion)
+bool GUIPluginBase::initialize(QWidget *parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString &appName, const QString &appVersion)
 {
 
     qDebug("----GUIPluginBase::initialize(...)");
@@ -311,35 +311,6 @@ QAction *GUIPluginBase::mainActionForMenu()
 
 }
 
-
-
-
-/*
- void GUIPluginBase::slotRun(){
-
- if(isSingle() && SqlExplorer::isRunning()){
- //TODO: Activate the widget
- return;
- }
-
-
- User user;
- LoginBase login(&user, parentWidget);
- if (!login.isVerified()) {
- return ;
- }
-
-
- SqlExplorer *sqlExplorer = new SqlExplorer(parentWidget);
- if(parentWidget){
- if(QMdiArea *mdiArea = qobject_cast<QMdiArea *>(parentWidget)){
- mdiArea->addSubWindow(sqlExplorer, Qt::Dialog);
- qDebug()<<"Parent Widget is QMdiArea!";
- }
- }
- sqlExplorer->show();
- }
- */
 
 //Q_EXPORT_PLUGIN2(samplePlugin, GUIPluginBase)
 

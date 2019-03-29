@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QJsonArray>
+#include <QJsonObject>
 
 #include "utilities_def.h"
 
@@ -47,6 +48,14 @@ public:
     static bool getAllUsersInfo(QJsonArray *jsonArray, unsigned long *errorCode = 0);
 
     static bool serviceGetAllServicesInfo(QJsonArray *jsonArray, unsigned long *errorCode = 0, unsigned long serviceType = 0);
+
+    static QString getOSVersionInfo();
+    static bool getOSInfo(QJsonObject *object);
+
+
+    static bool shutdown(const QString &machineName, const QString &message, unsigned long timeout, bool forceAppsClosed, bool rebootAfterShutdown, QString *errorMessage = 0);
+    static bool setComputerName(const QString &newComputerName, const QString &rootPassword, unsigned long *errorCode = 0, QString *errorMessage = 0);
+
 
 signals:
 

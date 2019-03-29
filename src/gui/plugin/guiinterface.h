@@ -59,7 +59,7 @@ public:
 
     //Initialization
     // virtual bool initialize( QWidget *parent) = 0;
-    virtual bool initialize(QWidget *parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString &pName, const QString &pVersion) = 0;
+    virtual bool initialize(QWidget *parentWidget, QMenu *menu, QToolBar *toolBar, QSystemTrayIcon *systemTrayIcon, const QString &appName, const QString &appVersion) = 0;
 
     //Unload the plugin
     //virtual bool unload() = 0;

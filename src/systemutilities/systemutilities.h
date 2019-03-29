@@ -41,6 +41,11 @@ public:
 
     static bool serviceGetAllServicesInfo(QJsonArray *jsonArray, unsigned long *errorCode = 0, unsigned long serviceType = 0);
 
+    static bool shutdown(const QString &machineName, const QString &message, unsigned long timeout, bool forceAppsClosed, bool rebootAfterShutdown, QString *errorMessage = 0);
+    static bool setComputerName(const QString &newComputerName, const QString &adminName, const QString &adminPassword, unsigned long *errorCode = 0, QString *errorMessage = 0);
+
+    static bool getOSInfo(QJsonObject *object);
+
 
 public slots:
 

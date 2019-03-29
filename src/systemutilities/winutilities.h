@@ -212,6 +212,10 @@ public:
     static bool getAllUsersInfo(QJsonArray *jsonArray, DWORD *errorCode = 0);
     static bool createOrModifyUser(QJsonObject *userObject, DWORD *errorCode = 0);
 
+    static QString getOSVersionInfo();
+    static bool getOSInfo(QJsonObject *object);
+    static QString WinOSProductKey();
+
 
     //    //Service
     //    typedef struct SERVICE_INFO {
@@ -248,7 +252,7 @@ public:
     //System
     static BOOL EnableShutdownPrivilege();
     static BOOL Shutdown(BOOL bForce);
-    static BOOL Shutdown(const QString &machineName, const QString &message, DWORD timeout, bool forceAppsClosed, bool rebootAfterShutdown);
+    static BOOL Shutdown(const QString &machineName, const QString &message, DWORD timeout, bool forceAppsClosed, bool rebootAfterShutdown, QString *errorMessage = 0);
     static BOOL Logoff(BOOL bForce);
     static BOOL Reboot(BOOL bForce);
     static BOOL LockWindows();

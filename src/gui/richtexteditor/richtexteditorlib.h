@@ -1,9 +1,9 @@
 /*
  ****************************************************************************
- * guilib.h
+ * itemboxlib.h
  *
- * Created on: 2009-4-27
- *     Author: 贺辉
+ * Created on: 2013-4-14
+ *    Author: 贺辉
  *    License: LGPL
  *    Comment:
  *
@@ -22,25 +22,24 @@
 
 /*
   ***************************************************************************
-  * Last Modified on: 2012-01-11
+  * Last Modified on: 2013-04-15
   * Last Modified by: 贺辉
   ***************************************************************************
 */
 
 
 
-#ifndef GUILIB_H
-#define GUILIB_H
+#ifndef RICHTEXTEDITORLIB_H
+#define RICHTEXTEDITORLIB_H
 
 
 #include <QtCore/QtGlobal>
 
-#if defined(GUI_LIBRARY_EXPORT)
-    #define GUI_LIB_API Q_DECL_EXPORT
+#if defined(RICHTEXTEDITOR_LIBRARY_EXPORT)
+    #define RICHTEXTEDITOR_LIB_API Q_DECL_EXPORT
 #else
-    #define GUI_LIB_API Q_DECL_IMPORT
+    #define RICHTEXTEDITOR_LIB_API Q_DECL_IMPORT
 #endif
 
 
-
-#endif // GUILIB_H
+#endif // RICHTEXTEDITORLIB_H

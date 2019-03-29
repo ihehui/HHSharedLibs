@@ -636,7 +636,7 @@ void RichTextEditorToolBar::insertImage()
     QString path = QFileDialog::getOpenFileName(this,
                    tr("Select Image"),
                    QDir::homePath(),
-                   tr("Images (*.png *.bmp *.jpg);;ALl files (*.*)"));
+                   tr("Images (*.png *.bmp *.jpg *.gif);;ALl files (*.*)"));
 
     if (!path.isEmpty()) {
         m_editor->insertHtml(QStringLiteral("<img src=\"") + path + QStringLiteral("\"/>"));

@@ -19,7 +19,7 @@ HEADERS += $$PWD/logdebug.h \
     $$PWD/logger/messageloggerbase.h \
     $$PWD/crashhandler.h \
     $$PWD/coreutilities.h
-FORMS += 
+
 SOURCES += $$PWD/cryptography/tea/teacrypt.cpp \
     $$PWD/cryptography/cryptography.cpp \
     $$PWD/plugin/pluginmanager.cpp \
@@ -34,8 +34,10 @@ SOURCES += $$PWD/cryptography/tea/teacrypt.cpp \
     $$PWD/logger/messagelogger.cpp \
     $$PWD/logger/messageloggerbase.cpp \
     $$PWD/coreutilities.cpp
-RESOURCES += 
-win32:LIBS += -Lresources/lib \
+
+RESOURCES += resources/core_resources.qrc
+
+win32:LIBS += -L$$PWD/resources/lib \
     -lwsock32 \
     -lws2_32
 

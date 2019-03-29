@@ -168,7 +168,7 @@ bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, co
     bool ok = false;
 
     //    if(!m_newComputerNameToBeUsed.isEmpty()){
-    //        emit signalProgressUpdate(QString(tr("Update computer name ...")), 45);
+    //        emit signalProgressUpdate(QString(tr("Update computer name...")), 45);
     //        QCoreApplication::processEvents();
     //        ok = setComputerName(m_newComputerNameToBeUsed.replace("_", "-").toStdWString().c_str());
     //        if(!ok){
@@ -178,14 +178,14 @@ bool WindowsManagement::addNewSitoyUserToLocalSystem(const QString &userName, co
 
 
 
-    emit signalProgressUpdate(QString(tr("Join workgroup ...")), 70);
+    emit signalProgressUpdate(QString(tr("Join workgroup...")), 70);
     QCoreApplication::processEvents();
     ok = WinUtilities::joinWorkgroup(dept);
     if(!ok) {
         m_outputMsgs.append(m_lastErrorString);
     }
 
-    emit signalProgressUpdate(QString(tr("Set Starting up with M$ windows ...")), 85);
+    emit signalProgressUpdate(QString(tr("Set items starting up with M$ windows...")), 85);
     QCoreApplication::processEvents();
     ok = setUserAutoLogin(userName, userPassword, true);
     if(!ok) {
@@ -485,7 +485,7 @@ bool WindowsManagement::initNewSitoyUser()
 
     QString userName = m_currentUserName;
 
-    emit signalProgressUpdate(tr("Reading settings ..."), 10);
+    emit signalProgressUpdate(tr("Reading settings..."), 10);
 
     QSettings *ini = new QSettings(userInfoFilePath(), QSettings::IniFormat, this);
     ini->beginGroup(userName);
@@ -508,7 +508,7 @@ bool WindowsManagement::initNewSitoyUser()
     wchar_t userNameArray[MaxUserAccountNameLength];
     wcscpy(userNameArray, userName.toStdWString().c_str());
 
-    emit signalProgressUpdate(tr( "Setting up email accounts ..."), 20);
+    emit signalProgressUpdate(tr( "Setting up email accounts..."), 20);
 
     QString outlookInstalledPathString = outlookInstalledPath();
     if(QFileInfo(outlookInstalledPathString).exists()) {
@@ -579,7 +579,7 @@ bool WindowsManagement::initNewSitoyUser()
     }
 
 
-    emit signalProgressUpdate(tr( "Setting up IME ..."), 30);
+    emit signalProgressUpdate(tr( "Setting up IME..."), 30);
 
     if(!setupIME()) {
         //m_outputMsgs.append(tr("Can not setup IME"));
@@ -601,25 +601,25 @@ bool WindowsManagement::initNewSitoyUser()
         m_outputMsgs.append(m_lastErrorString);
     }
 
-    emit signalProgressUpdate(tr("Connecting to net drive ..."), 60);
+    emit signalProgressUpdate(tr("Connecting to net drive..."), 60);
 
     if (!addConnectionToNetDrive()) {
         //m_outputMsgs.append(tr("Can not connect to net drive!"));
         m_outputMsgs.append(m_lastErrorString);
     }
 
-    emit signalProgressUpdate(tr("Connecting to network printers ..."), 70);
+    emit signalProgressUpdate(tr("Connecting to network printers..."), 70);
     //    if (!addPrinterConnections(dept)) {
     //        //m_outputMsgs.append(tr("Can not connect to network printers!"));
     //        m_outputMsgs.append(error);
     //    }
 
-    emit signalProgressUpdate(tr("Disable Application Starting with M$ windows ..."), 80);
+    emit signalProgressUpdate(tr("Disable Application Starting with M$ windows..."), 80);
     setStartupWithWin(QCoreApplication::applicationFilePath(), "", "", false);
     setStartupWithWin("" , "", "Email", false);
 
 
-    emit signalProgressUpdate(tr( "Saving settings ..."), 90);
+    emit signalProgressUpdate(tr( "Saving settings..."), 90);
 
     ////////////
     ini->remove("");
@@ -2663,11 +2663,11 @@ void WindowsManagement::cleanTemporaryFiles()
         qDebug() << "dirname:" << dirName;
 
         QString path = basepath + dirName + tempPath;
-        emit signalProgressUpdate(tr("Deleting Temporary Files ..."), 0);
+        emit signalProgressUpdate(tr("Deleting Temporary Files..."), 0);
         deleteFiles(path, filters, ignoredFiles, ignoredDirs);
 
         path = basepath + dirName + tempIEPath;
-        emit signalProgressUpdate(tr("Deleting Temporary Internet Files ..."), 0);
+        emit signalProgressUpdate(tr("Deleting Temporary Internet Files..."), 0);
         deleteFiles(path, filters, ignoredFiles, ignoredDirs);
     }
 
@@ -2688,7 +2688,7 @@ void WindowsManagement::deleteFiles(const QString &path, const QStringList &name
     }
 
     int steps = 100 / (dir.count());
-    emit signalProgressUpdate(tr("Deleting Files In '%1' ...").arg(path), 0);
+    emit signalProgressUpdate(tr("Deleting Files In '%1'...").arg(path), 0);
 
     //qlonglong size = 0;
     //QStringList filters;
@@ -2703,7 +2703,7 @@ void WindowsManagement::deleteFiles(const QString &path, const QStringList &name
             qDebug() << "Failed To Delete :" + path + QDir::separator() + file ;
         }
 
-        emit signalProgressUpdate(tr("Deleting File '%1' ...").arg(file), (++i)*steps);
+        emit signalProgressUpdate(tr("Deleting File '%1'...").arg(file), (++i)*steps);
         qApp->processEvents();
     }
 

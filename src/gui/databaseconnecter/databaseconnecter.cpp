@@ -157,7 +157,7 @@ QSqlDatabase DatabaseConnecter::getDatabase(const QString &connectionName,
 
             if (err.type() != QSqlError::NoError) {
                 QApplication::restoreOverrideCursor();
-                QMessageBox::critical(parentWidget, tr("Fatal Error"), tr("An error occurred when opening the database!<br> %1").arg(err.text()));
+                QMessageBox::critical(parentWidget, tr("Fatal Error"), tr("An error occurred when opening the database!") + QString("<p>%1</p>").arg(err.text()));
                 qCritical() << QString("ERROR! An error occurred when opening the database: %1").arg(err.text());
 
                 DatabaseConnecterDialog dbConnecterDlg(

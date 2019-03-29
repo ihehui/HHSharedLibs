@@ -7,16 +7,16 @@
 
 
 #if defined(Q_OS_WIN32)
-#include <qt_windows.h>
+    #include <qt_windows.h>
 #else
-#include <unistd.h>
-#include <stdlib.h>
+    #include <unistd.h>
+    #include <stdlib.h>
 
-#include <execinfo.h>
-#include <signal.h>
+    #include <execinfo.h>
+    #include <signal.h>
 
-#include <cxxabi.h>
-#include <memory>
+    #include <cxxabi.h>
+    #include <memory>
 #endif
 
 

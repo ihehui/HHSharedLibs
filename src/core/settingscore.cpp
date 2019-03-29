@@ -181,7 +181,7 @@ void SettingsCore::initLogger(quint8 targets, const QString &logFileBaaseName)
         if(!MessageLogger::instance()->openDatabase(&errorMessage)){
             QString err = QObject::tr("Failed to open debug log database!");
             qCritical()<<err<<errorMessage;
-            //QMessageBox::critical(0, QObject::tr("Error"), QString("%1<br>%2").arg(err).arg(errorMessage));
+            //QMessageBox::critical(0, QObject::tr("Error"), QString("%1<p>%2</p>").arg(err).arg(errorMessage));
         }
 
     }

@@ -18,6 +18,8 @@
 #include <QDebug>
 #include <QProcess>
 #include <QFile>
+#include <QElapsedTimer>
+#include <QCoreApplication>
 
 
 
@@ -494,4 +496,147 @@ bool UnixUtilities::serviceGetAllServicesInfo(QJsonArray *jsonArray, unsigned lo
 
     return true;
 
+}
+
+QString UnixUtilities::getOSVersionInfo()
+{
+    QString unameInfo = QSysInfo::prettyProductName();
+    QProcess process;
+    process.start("uname -srm");
+    if(process.waitForStarted() && process.waitForFinished()) {
+        unameInfo = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
+        if(unameInfo.trimmed().isEmpty()){
+            unameInfo = QSysInfo::prettyProductName();
+        }
+    }
+
+
+    QString cmd = QString("sh -c \"lsb_release  -a | grep Description | cut -d \":\" -f 2\"");
+    process.start(cmd);
+    if(!process.waitForStarted()) {
+        return unameInfo;
+    }
+    if(!process.waitForFinished()) {
+        return unameInfo;
+    }
+
+    QString osInfo = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
+    if(osInfo.trimmed().isEmpty()){
+        return unameInfo;
+    }
+
+    if(!unameInfo.contains(osInfo, Qt::CaseInsensitive)){
+        osInfo += QString("(%1)").arg(unameInfo);
+    }
+
+    return osInfo;
+}
+
+bool UnixUtilities::getOSInfo(QJsonObject *object){
+    if(!object){return false;}
+
+    QString osInfo = getOSVersionInfo();
+
+    object->insert("OS", osInfo);
+    object->insert("InstallDate", "");
+    object->insert("Key", "");
+
+    return true;
+}
+
+bool UnixUtilities::shutdown(const QString &machineName, const QString &message, unsigned long timeout, bool forceAppsClosed, bool rebootAfterShutdown, QString *errorMessage)
+{
+    QProcess process;
+    QString cmdString = QString("shutdown");
+    QStringList args;
+    if(rebootAfterShutdown){
+        args.append("-r");
+    }else{
+        args.append("-h");
+    }
+    args.append(QString("+%1").arg(timeout/60));
+    if(!message.trimmed().isEmpty()){
+        args.append(message);
+    }
+
+    process.start(cmdString, args);
+    if(!process.waitForStarted()) {
+        QString msg = process.errorString();
+        if(errorMessage){
+            *errorMessage = msg;
+        }
+        qCritical()<<msg;
+        return false;
+    }
+    if(!process.waitForFinished()) {
+        QString msg = process.errorString();
+        if(errorMessage){
+            *errorMessage = msg;
+        }
+        qCritical()<<msg;
+        return false;
+    }
+
+    return true;
+}
+
+bool UnixUtilities::setComputerName(const QString &newComputerName, const QString &rootPassword, unsigned long *errorCode, QString *errorMessage)
+{
+
+    QProcess process;
+    QString cmdString = QString("sh");
+    process.start(cmdString);
+    if(!process.waitForStarted()) {
+        QString msg = process.errorString();
+        if(errorMessage){
+            *errorMessage = msg;
+        }
+        qCritical()<<msg;
+        return false;
+    }
+
+    cmdString = QString("echo %1 | sudo -S sh -c \"echo %2 > /etc/hostname && hostname %2\"").arg(rootPassword).arg(newComputerName);
+    process.write(cmdString.toLocal8Bit());
+    process.closeWriteChannel();
+
+    if(!process.waitForFinished()) {
+        QString msg = process.errorString();
+        if(errorMessage){
+            *errorMessage = msg;
+        }
+        qCritical()<<msg;
+        return false;
+    }
+
+    //Verify
+    cmdString = QString("sh -c \"cat /etc/hostname && hostname\"").arg(rootPassword).arg(newComputerName);
+    process.start(cmdString);
+    if(!process.waitForStarted()) {
+        QString msg = process.errorString();
+        if(errorMessage){
+            *errorMessage = msg;
+        }
+        qCritical()<<msg;
+        return false;
+    }
+    if(!process.waitForFinished()) {
+        QString msg = process.errorString();
+        if(errorMessage){
+            *errorMessage = msg;
+        }
+        qCritical()<<msg;
+        return false;
+    }
+
+    QString output = process.readAllStandardOutput();
+    if(!output.contains(newComputerName+"\n"+newComputerName)){
+        QString msg = QString("Error occurred while setting up computer name!");
+        if(errorMessage){
+            *errorMessage = msg;
+        }
+        qCritical()<<msg;
+        return false;
+    }
+
+    return true;
 }

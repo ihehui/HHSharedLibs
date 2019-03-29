@@ -37,7 +37,7 @@
 
 #include <QtWidgets/QTextEdit>
 
-#include "../guilib.h"
+#include "richtexteditorlib.h"
 
 
 
@@ -50,7 +50,7 @@ namespace HEHUI
 
 class RichTextEditor;
 
-class GUI_LIB_API RichTextEditorWidget : public QWidget
+class RICHTEXTEDITOR_LIB_API RichTextEditorWidget : public QWidget
 {
     Q_OBJECT
 public:

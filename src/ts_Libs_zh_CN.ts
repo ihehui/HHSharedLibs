@@ -1732,7 +1732,7 @@ An error occured while connecting to network printer &apos;%1&apos;! Error code:
         <location filename="gui/plugin/pluginmanager/pluginmanagerwindow.ui" line="128"/>
         <location filename="gui/ui/ui_pluginmanagerwindow.h" line="186"/>
         <source>Description</source>
-        <translation>描述：</translation>
+        <translation>描述</translation>
     </message>
     <message>
         <location filename="gui/plugin/pluginmanager/pluginmanagerwindow.ui" line="147"/>

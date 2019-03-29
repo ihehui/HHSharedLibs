@@ -30,7 +30,7 @@ public:
     QString EDIDBinToChr(const QString &bin);
     QString monitorID(const QString &pnpDeviceID);
 
-    bool getOSInfo(QJsonObject *object);
+//    bool getOSInfo(QJsonObject *object);
     bool getBaseBoardInfo(QJsonObject *object);
     bool getProcessorInfo(QJsonObject *object);
     bool getPhysicalMemoryInfo(QJsonObject *object);

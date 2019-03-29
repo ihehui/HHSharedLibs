@@ -3115,7 +3115,121 @@ bool WinUtilities::createOrModifyUser(QJsonObject *userObject, DWORD *errorCode)
 
 }
 
+QString WinUtilities::getOSVersionInfo()
+{
+    QString osInfo;
+    if(!WinUtilities::windowsVersionName(&osInfo)) {
+        osInfo =  QSysInfo::prettyProductName();
+        QString bit = WinUtilities::windowsVersionName(&osInfo) ? tr("64-bit") : tr("32-bit");
+        osInfo += " " + bit;
+    }
 
+    return osInfo;
+}
+
+bool WinUtilities::getOSInfo(QJsonObject *object){
+
+    if(!object){return false;}
+
+    WMIQuery m_wmiQuery;
+    QString queryString = QString("SELECT * FROM Win32_OperatingSystem ");
+    //qDebug()<<"queryString:"<<queryString;
+    QList<QVariantList> list = m_wmiQuery.queryValues(queryString, "Caption,CSDVersion,OSArchitecture,MUILanguages,InstallDate", "ROOT/CIMV2");
+    if(list.isEmpty()){return false;}
+
+    QVariantList variantList = list.at(0);
+    if(variantList.size() != 5){return false;}
+
+
+    QString caption = variantList.at(0).toString();
+    QString csdVersion = variantList.at(1).toString();
+    QString osArchitecture = variantList.at(2).toString();
+    QString muiLanguages = variantList.at(3).toString();
+    object->insert("OS", caption + " " + csdVersion + " " + osArchitecture + " " + muiLanguages);
+
+    QDate date = QDate::fromString(variantList.at(4).toString().left(8), "yyyyMMdd");
+    object->insert("InstallDate", date.toString("yyyy-MM-dd"));
+
+    object->insert("Key", WinOSProductKey());
+
+    return true;
+}
+
+QString WinUtilities::WinOSProductKey(){
+
+    ////See:http://www.codeproject.com/Articles/15261/WebControls/
+
+    QString value;
+    bool ok = regRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "DigitalProductId", &value, true);
+    if(!ok){
+        qCritical()<<"ERROR! Can not read registry.";
+        return "";
+    }
+    QByteArray byteBuffer = QByteArray::fromHex(value.toLatin1());
+    if(byteBuffer.isEmpty()){return "";}
+
+    BYTE   *DigitalProductID;
+    BYTE ProductKeyExtract [15]; //Extract Key
+    char sCDKey  [256];   //Temp, adding a Window Product Key
+    long ByteCounter;    //Counter
+    long ByteConvert;    //Convert
+    int  nCur;      //XOR calculate
+
+    const char *KeyChars[] = {
+        "B","C","D","F","G","H","J","K","M",
+        "P","Q","R","T","V","W","X","Y",
+        "2","3","4","6","7","8","9",NULL
+    };
+
+    DWORD DataLength = 164;
+
+    //Allocate Memory
+    DigitalProductID = (BYTE *)malloc(DataLength);
+
+    //Memory Initializationd
+    memset(DigitalProductID, 0, DataLength);
+    memset(ProductKeyExtract, 0, sizeof(ProductKeyExtract));
+
+
+    DigitalProductID = (BYTE *)byteBuffer.data();
+
+    //reading a value start position 52, by 66
+    for(ByteCounter=52; ByteCounter<=66; ByteCounter++)
+    {
+        ProductKeyExtract[ByteCounter - 52] = DigitalProductID[ByteCounter];
+    }
+
+    //Last Indexer
+    ProductKeyExtract[sizeof(ProductKeyExtract) - 1] = NULL;
+
+
+    memset(sCDKey, 0, sizeof(sCDKey));
+    for(ByteCounter=24; ByteCounter>=0; ByteCounter--)
+    {
+        nCur = 0;
+
+        for(ByteConvert=14; ByteConvert>=0; ByteConvert--)
+        {
+            nCur = (nCur * 256) ^ ProductKeyExtract[ByteConvert];  //XOR&#44228;&#49328;
+            ProductKeyExtract[ByteConvert] = nCur / 24;
+            nCur = nCur % 24;
+        }
+
+        _strrev(sCDKey);
+        strcat_s(sCDKey, KeyChars[nCur]);
+        _strrev(sCDKey);
+
+        //Insert "-"
+        if(!(ByteCounter % 5) && (ByteCounter))
+        {
+            _strrev(sCDKey);
+            strcat_s(sCDKey, "-");
+            _strrev(sCDKey);
+        }
+    }
+
+    return QString::fromLatin1(sCDKey);
+}
 
 bool WinUtilities::serviceOpenSCManager(SC_HANDLE *schSCManager, DWORD *errorCode, DWORD dwDesiredAccess)
 {
@@ -4195,7 +4309,7 @@ BOOL WinUtilities::Shutdown(BOOL bForce)
     }
 }
 
-BOOL WinUtilities::Shutdown(const QString &machineName, const QString &message, DWORD timeout, bool forceAppsClosed, bool rebootAfterShutdown)
+BOOL WinUtilities::Shutdown(const QString &machineName, const QString &message, DWORD timeout, bool forceAppsClosed, bool rebootAfterShutdown, QString *errorMessage)
 {
     EnableShutdownPrivilege();
 
